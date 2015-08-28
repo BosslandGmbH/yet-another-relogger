@@ -1,0 +1,14 @@
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Authenticator\bin\Debug\Authenticator.dll
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Authenticator\bin\Debug\Authenticator.pdb
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Authenticator\bin\Debug\BouncyCastle.Crypto.dll
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Authenticator\bin\Debug\nunit.framework.dll
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Authenticator\obj\x86\Debug\Authenticator.csprojResolveAssemblyReference.cache
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Authenticator\obj\x86\Debug\Authenticator.dll
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Authenticator\obj\x86\Debug\Authenticator.pdb
+C:\YetAnotherRelogger-master\Authenticator\bin\Debug\Authenticator.dll
+C:\YetAnotherRelogger-master\Authenticator\bin\Debug\Authenticator.pdb
+C:\YetAnotherRelogger-master\Authenticator\bin\Debug\BouncyCastle.Crypto.dll
+C:\YetAnotherRelogger-master\Authenticator\bin\Debug\nunit.framework.dll
+C:\YetAnotherRelogger-master\Authenticator\obj\x86\Debug\Authenticator.dll
+C:\YetAnotherRelogger-master\Authenticator\obj\x86\Debug\Authenticator.pdb
+C:\YetAnotherRelogger-master\Authenticator\obj\x86\Debug\Authenticator.csprojResolveAssemblyReference.cache

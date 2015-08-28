@@ -1,0 +1,13 @@
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Plugin\YetAnotherRelogger_Plugin\bin\Debug\YetAnotherRelogger_Plugin.dll
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Plugin\YetAnotherRelogger_Plugin\bin\Debug\YetAnotherRelogger_Plugin.pdb
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Plugin\YetAnotherRelogger_Plugin\bin\Debug\Demonbuddy.exe
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Plugin\YetAnotherRelogger_Plugin\bin\Debug\GreyMagic.dll
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Plugin\YetAnotherRelogger_Plugin\bin\Debug\Microsoft.Scripting.dll
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Plugin\YetAnotherRelogger_Plugin\bin\Debug\IronPython.dll
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Plugin\YetAnotherRelogger_Plugin\bin\Debug\RemoteASM.dll
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Plugin\YetAnotherRelogger_Plugin\bin\Debug\RemoteASMNative.dll
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Plugin\YetAnotherRelogger_Plugin\bin\Debug\Microsoft.Dynamic.dll
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Plugin\YetAnotherRelogger_Plugin\bin\Debug\Microsoft.Scripting.Metadata.dll
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Plugin\YetAnotherRelogger_Plugin\obj\Debug\YetAnotherRelogger_Plugin.csprojResolveAssemblyReference.cache
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Plugin\YetAnotherRelogger_Plugin\obj\Debug\YetAnotherRelogger_Plugin.dll
+C:\Users\hp pc\Desktop\YetAnotherRelogger-master\Plugin\YetAnotherRelogger_Plugin\obj\Debug\YetAnotherRelogger_Plugin.pdb
