@@ -1,0 +1,4 @@
+There is no installation :)
+
+Just open the LatestBuild\ directory and run YetAnotherRelogger.exe
+

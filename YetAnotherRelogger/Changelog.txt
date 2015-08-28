@@ -1,0 +1,97 @@
+-----------------------
+* Version 0.2.0 BETA
+- Added Commandline argument "-safemode" to disable some extra feature like (stats, foregroundcheck) and reset detected screens
+- Added Graph for Gold statistics
+- Added Graph for cpu and ram usage
+- Improved plugin log scanning
+- Added Support for Take A Break by Ghaleon
+- Added Support for Trinity Pause button
+- Added Diablo clone possibilty in advanced bot tab
+- Improved Communication between DB and YAR (only really noticable with 10+ bots)
+- Attempt to fix Foreground checker
+- Fixed saved Hotkeys not loading
+- Added new max login attempt system (15 mins, 30 mins, 45 mins, 60 mins, 60 mins, repeat every hour)
+-----------------------
+* Version 0.1.9 BETA
+- Fixed diablo region selection when using multiple diablos on different regions and languages
+- Fixed Random profile schedule not always selection the right profile
+- Fixed BuddyAuth Session killer
+- Added Monsterpower selection in profile schedule
+- Added Advanced settings to launch diablo as a different windows user
+  * Remove window frame wont be working anymore when using this
+-----------------------
+* Version 0.1.8 BETA
+- Added Hotkeys
+- Changed Log file extension from .log to .txt to match Demonbuddy logging
+- Added New thread for stats
+- Added CrashTender now uses profile Kickstart when enabled 
+- Added -autostart launch argument
+- Added Option to disable Coinage 30 second log
+- Added Bot running time
+- Added Added delays inside possible CPU consuming loops
+- Added Profile "Kickstart" (will load a profile with 1 custom profile tag to prevent DB from choking in deeply nested custom profile tags)
+- Added Random profile selection
+- Added Customize-able Diablo start time limit
+-----------------------
+* Version 0.1.7 BETA 
+- Added Support for Atom 2.0.15 "Take a break"
+- Added Option to start with windows
+- Added Option to minimize on start
+- Added Buddy Auth Session killer
+- Added option to remove window frame on diablo
+- Added Coinage check (2 minutes w/o gold change => reset) (*tomasd)
+- Added Crash detection for demonbuddy
+- Added Demonbuddy initialize time limit
+- Added CPU Affinity support (*tomasd)
+- Changed Version numbereing to v 0.1.inc_new_features.inc_new_test_release
+- Foreground check improved the way demonbuddy is set to front
+- Fixed some issues with the profile schedule
+- Fixed Connection check IP range was not implemented (somehow forgot this sorry...)
+- Fixed Layout problems with schedule and settings on some systems
+- Improved AntiIdle system
+	- Limited to 3 fixing attempts in 5 mins
+	- Added a new way to fix no pulse
+		* First check if plugin is enabled
+- Fixed Language support for Traditional Chinese
+-----------------------
+* Version 0.0.0.6 BETA 
+- Added Internet connection check (using ping to check if internet connection is available)
+- Added External IP / Host Validation (using http://checkip.dyndns.org) *request
+- Added Pause button to pause the relogger (useful when doing stuff that might cause false positives and close D3 + DB) *request
+- Reincarnated the Fore ground checker (disabled by default)
+- Fixed Date and Time issues with non-English windows systems
+- Fixed crash when no profile is added in the profile schedule (it will now show a warning and launch Demonbuddy without a start profile)
+- Fixed Manifest file to force Admin rights 
+- Fixed High CPU load during Diablo start ups
+- Settings will no longer reset on every update
+- Removed Autoposition Diablo Window size 400x400 limit
+-----------------------
+* Version 0.0.0.5 BETA 
+- Added InnerSpace support
+- Added possibility to force start
+- Fixed WaitForInputIdle bug causing false reports about Diablo III not being ready
+-----------------------
+* Version 0.0.0.4 BETA 
+- Fixed FindWindowClass (it does now found the right window for the right process)
+- Improved the way Aopoc D3Starter is used
+- Added Polish language selection
+- Added Some Logging for Anti-Idle actions
+- Added option to Force enable all plugins for demonbuddy
+- Added Autoposition for Diablo III (demonbuddy will follow soon)
+- Removed Foreground window check (will improve and make this optional in a later release)
+- Small bugfixes all over the code
+* Plugin 0.0.0.4
+- Changed: Version now matches YAR main app
+- Added: Force enable all plugins
+- Added: Support for Giles Emergency stop
+- Added: Support for BuddyStats stop
+-----------------------
+* Version 0.0.0.3 BETA 
+- Windows 2003 fix
+- Added manifest file to force Administrator rights
+- Added Treeview in settings tab
+- Improved weekschedule editing (Hold shift key and mouse over a box to enable the box)
+-----------------------
+* Version 0.0.0.1 BETA
+- Initial release
+-----------------------
