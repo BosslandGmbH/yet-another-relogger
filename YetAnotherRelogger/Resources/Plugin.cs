@@ -1,5 +1,7 @@
-﻿// VERSION: 0.3.0.0
+﻿// VERSION: 0.3.1.0
 /* Changelog:
+* VERSION 0.3.1.0:
+ * Compatability with DB 500+ and D3 2.4
  * VERSION 0.3.0.0:
  * Added experience inactivity timer
  * VERSION 0.2.1.0:
@@ -83,7 +85,7 @@ namespace YARPLUGIN
     public class YARPLUGIN : IPlugin
     {
         // Plugin version
-        public Version Version { get { return new Version(0, 3, 0, 0); } }
+        public Version Version { get { return new Version(0, 3, 1, 0); } }
 
         private const bool _debug = true;
         private static readonly log4net.ILog DBLog = Zeta.Common.Logger.GetLoggerInstanceForType();
@@ -538,7 +540,7 @@ namespace YARPLUGIN
                 {
                     if (ZetaDia.Me != null && ZetaDia.Me.IsValid)
                     {
-                        _bs.Coinage = ZetaDia.CPlayer.Coinage;
+                        _bs.Coinage = ZetaDia.PlayerData.Coinage;
                         Int64 exp;
                         if (ZetaDia.Me.Level < 60)
                             exp = ZetaDia.Me.CurrentExperience;
