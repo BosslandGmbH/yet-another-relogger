@@ -342,13 +342,11 @@ namespace YetAnotherRelogger.Helpers.Bot
 
                 if (profilepath != null)
                 {
-                    // Check if current profile path is Kickstart
                     string file = Path.GetFileName(profilepath);
-                    if (file == null || (file.Equals("YAR_Kickstart.xml") || file.Equals("YAR_TMP_Kickstart.xml")))
+                    if (file == null)
                         profilepath = Parent.ProfileSchedule.Current.Location;
 
-                    var profile = new Profile { Location = profilepath };
-                    string path = ProfileKickstart.GenerateKickstart(profile);
+                    string path = Parent.ProfileSchedule.Current.Location;
                     Logger.Instance.Write("Using Profile {0}", path);
                     arguments += string.Format(" -profile=\"{0}\"", path);
                 }

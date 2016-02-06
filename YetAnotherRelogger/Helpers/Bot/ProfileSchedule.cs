@@ -53,7 +53,7 @@ namespace YetAnotherRelogger.Helpers.Bot
             {
                 // Stay on same profile when not ready yet, or if this is the only profile
                 if (!Current.IsDone)
-                    return ProfileKickstart.GenerateKickstart(Current);
+                    return Current.Location;
 
                 var rnd = new MersenneTwister();
 
@@ -82,7 +82,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                 Logger.Instance.Write("Current profile: \"{0}\" Runs:{1} Time:{2} mintues ({3})", Current.Name, MaxRuns,
                     MaxTime, Current.Location);
 
-                return ProfileKickstart.GenerateKickstart(Current);
+                return Current.Location;
             }
         }
 
