@@ -1,59 +1,4 @@
-﻿// VERSION: 0.3.1.0
-/* Changelog:
-* VERSION 0.3.1.0:
- * Compatability with DB 500+ and D3 2.4
- * VERSION 0.3.0.0:
- * Added experience inactivity timer
- * VERSION 0.2.1.0:
- * Compatability with DB 300+ and D3 2.0
- * Tons of performance improvements
- * VERSION 0.2.0.11
- * Fixed Plugin Pulse pulseTimer, last Pulse time, and gold inactivity check, removed Trinity pause check code (DB does this now..), fixed DB termination crash closing
- * VERSION 0.2.0.10
- * Added Plugin=>DB Shutdown on Terminate State
- * VERSION 0.2.0.9
- * Changed regex matching to compiled for performance
- * VERSION: 0.2.0.8
- * Added FrameLock to Pulse, in hopes this helps avoid crashes
- * VERSION: 0.2.0.7
- * Added 1 second pulse timer to reduce CPU utilization
- * VERSION: 0.2.0.6
- * Added: Support for: Take A Break by Ghaleon
- * VERSION: 0.2.0.5
- * Improved: Log scanning
- * VERSION: 0.1.9.1
- * Added: Monsterpower
- * Added: Support for RadsAtom
- * VERSION: 0.1.8.4
- * Changed: Delay between stats reports to yar from 1 second to 3 seconds
- * Added: Some delay in possible intensive loops (make it nicer for CPU)
- * VERSION: 0.1.8.2
- * Added: Crashtender now uses Kickstart profile
- * VERSION: 0.1.8.1
- * Added: Kickstart custom profiletag
- * VERSION: 0.1.7.7
- * improved profile loading
- * VERSION: 0.1.7.6
- * Added: Support for Atom 2.0.15+ "Take a break"
- * VERSION: 0.1.7.2
- * Added: Sends Coinage to YAR, will be reset after 2 mins of no gold change
- * VERSION: 0.1.7.1
- * Added: Demonbuddy invalid/expired sessions detection
- * Added: Failed to attach detection
- * Improved AntiIdle system a bit
- * VERSION: 0.0.0.6
- * Fixed: DateTime issues for non-english windows
- * VERSION: 0.0.0.5
- * Main app update
- * VERSION: 0.0.0.4
- * Added: Force enable all plugins
- * Added: Support for Giles Emergency stop
- * Added: Support for BuddyStats stop
- * Changed: Version now matches YAR main app
- * VERSION: 0.0.0.1
- * Initial realease
- */
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -85,7 +30,7 @@ namespace YARPLUGIN
     public class YARPLUGIN : IPlugin
     {
         // Plugin version
-        public Version Version { get { return new Version(0, 3, 1, 0); } }
+        public Version Version { get { return new Version(0, 3, 1, 1); } }
 
         private const bool _debug = true;
         private static readonly log4net.ILog DBLog = Zeta.Common.Logger.GetLoggerInstanceForType();

@@ -314,7 +314,7 @@ namespace YetAnotherRelogger.Helpers
                                 break;
                             }
                         case "CrashTender":
-                            if (Settings.Default.UseKickstart && File.Exists(msg))
+                            if (File.Exists(msg))
                                 b.Demonbuddy.CrashTender(msg);
                             else
                                 b.Demonbuddy.CrashTender();
