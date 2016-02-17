@@ -40,9 +40,10 @@
             treeNode1,
             treeNode2,
             treeNode5});
-            System.Windows.Forms.TreeNode treeNode7 = new System.Windows.Forms.TreeNode("Anti Idle");
-            System.Windows.Forms.TreeNode treeNode8 = new System.Windows.Forms.TreeNode("Hotkeys");
-            System.Windows.Forms.TreeNode treeNode9 = new System.Windows.Forms.TreeNode("Stats");
+            System.Windows.Forms.TreeNode treeNode7 = new System.Windows.Forms.TreeNode("Profile Kickstart");
+            System.Windows.Forms.TreeNode treeNode8 = new System.Windows.Forms.TreeNode("Anti Idle");
+            System.Windows.Forms.TreeNode treeNode9 = new System.Windows.Forms.TreeNode("Hotkeys");
+            System.Windows.Forms.TreeNode treeNode10 = new System.Windows.Forms.TreeNode("Stats");
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
@@ -360,17 +361,20 @@
             treeNode6.Checked = true;
             treeNode6.Name = "Node0";
             treeNode6.Text = "Relogger";
-            treeNode7.Name = "AntiIdle";
-            treeNode7.Text = "Anti Idle";
-            treeNode8.Name = "HotKeys";
-            treeNode8.Text = "Hotkeys";
-            treeNode9.Name = "Stats";
-            treeNode9.Text = "Stats";
+            treeNode7.Name = "ProfileKickstart";
+            treeNode7.Text = "Profile Kickstart";
+            treeNode8.Name = "AntiIdle";
+            treeNode8.Text = "Anti Idle";
+            treeNode9.Name = "HotKeys";
+            treeNode9.Text = "Hotkeys";
+            treeNode10.Name = "Stats";
+            treeNode10.Text = "Stats";
             this.treeView1.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
             treeNode6,
             treeNode7,
             treeNode8,
-            treeNode9});
+            treeNode9,
+            treeNode10});
             this.treeView1.Size = new System.Drawing.Size(173, 395);
             this.treeView1.TabIndex = 3;
             // 

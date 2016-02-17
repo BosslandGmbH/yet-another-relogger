@@ -255,6 +255,7 @@ namespace YetAnotherRelogger.Helpers
                                 PluginPulse = nowTicks,
                                 LastRun = nowTicks
                             };
+                            
                             b.AntiIdle.LastStats = DateTime.UtcNow;
                             b.AntiIdle.State = IdleState.CheckIdle;
                             b.AntiIdle.IsInitialized = true;
@@ -311,10 +312,18 @@ namespace YetAnotherRelogger.Helpers
                             {
                                 Logger.Instance.Write(b, "Check Force Enable Plugins? {0}", b.Demonbuddy.ForceEnableAllPlugins);
                                 Send(b.Demonbuddy.ForceEnableAllPlugins ? "ForceEnableAll" : "ForceEnableYar");
+                                //Send(b.ProfileSchedule.GetProfile);
+                                break;
+                            }
+                        case "RequestProfile":
+                        {
+                            var profile = b.ProfileSchedule.GetProfile;
+                                Logger.Instance.Write(b, "Sending Current Profile to Load {0}", profile);
+                                Send("LoadProfile " + profile);
                                 break;
                             }
                         case "CrashTender":
-                            if (File.Exists(msg))
+                            if (Settings.Default.UseKickstart && File.Exists(msg))
                                 b.Demonbuddy.CrashTender(msg);
                             else
                                 b.Demonbuddy.CrashTender();
@@ -357,6 +366,7 @@ namespace YetAnotherRelogger.Helpers
                 catch (Exception ex)
                 {
                     StatFailed++;
+                    Logger.Instance.WriteGlobal("msg={0} ex={1}", msg, ex);
                     DebugHelper.Exception(ex);
                 }
             }

@@ -10,6 +10,9 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
+using System.IO;
+using System.Xml.Linq;
+using System.Xml.XPath;
 using System.Windows.Documents;
 using System.Xml.Serialization;
 using log4net;
@@ -22,6 +25,14 @@ using Zeta.Common;
 using Zeta.Common.Plugins;
 using Zeta.Game;
 using Zeta.TreeSharp;
+using Zeta.Bot;
+using Zeta.Bot.Logic;
+using Zeta.Bot.Profile;
+using Zeta.Common;
+using Zeta.Common.Plugins;
+using Zeta.Game;
+using Zeta.Game.Internals.Service;
+using Zeta.TreeSharp;
 using Action = Zeta.TreeSharp.Action;
 using UIElement = Zeta.Game.Internals.UIElement;
 
@@ -30,7 +41,7 @@ namespace YARPLUGIN
     public class YARPLUGIN : IPlugin
     {
         // Plugin version
-        public Version Version { get { return new Version(0, 3, 1, 1); } }
+        public Version Version { get { return new Version(0, 3, 1, 2); } }
 
         private const bool _debug = true;
         private static readonly log4net.ILog DBLog = Zeta.Common.Logger.GetLoggerInstanceForType();
@@ -169,10 +180,85 @@ namespace YARPLUGIN
 
             StartYarWorker();
 
-            Pulsator.OnPulse += Pulsator_OnPulse;
-            TreeHooks.Instance.OnHooksCleared += Instance_OnHooksCleared;
+            //Pulsator.OnPulse += Pulsator_OnPulse;
+            //TreeHooks.Instance.OnHooksCleared += Instance_OnHooksCleared;
+
+            //if (ProfileUtils.IsProfileYarKickstart)
+            //{
+            //    Log("[YAR] Kickstart Profile detected");
+
+            //    if (ZetaDia.Service.Hero.IsValid && ZetaDia.Service.Hero.HeroId > 0)
+            //    {
+            //        Log("[YAR] Logged in and hero is valid");
+
+            //        var realProfile = ProfileUtils.GetProfileAttribute("LoadProfile", "profile");
+            //        if (!string.IsNullOrEmpty(realProfile))
+            //        {
+            //            Log("[YAR] Loading profile: {0}", realProfile);
+            //            ProfileManager.Load(ProfileManager.CurrentProfile.Path);
+            //        }
+            //    }
+            //}
+
+            Log("Requesting Profile (Current={0})", ProfileManager.CurrentProfile != null ? ProfileManager.CurrentProfile.Path : "Null");
+
+            Send("RequestProfile");
 
             Send("Initialized");
+        }
+
+        public class ProfileUtils
+        {
+            public static bool ProfileHasTag(string tagName)
+            {
+                var profile = ProfileManager.CurrentProfile;
+                if (profile != null && profile.Element != null)
+                {
+                    return profile.Element.XPathSelectElement("descendant::" + tagName) != null;
+                }
+                return false;
+            }
+
+            public static XElement GetProfileTag(string tagName, XElement element = null)
+            {
+                if (element == null)
+                {
+                    var profile = ProfileManager.CurrentProfile;
+                    if (profile != null && profile.Element != null)
+                    {
+                        element = profile.Element;
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+
+                return element.XPathSelectElement("descendant::" + tagName);
+            }
+
+            public static bool IsProfileYarKickstart
+            {
+                get
+                {
+                    var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(ProfileManager.CurrentProfile.Path);
+                    return fileNameWithoutExtension != null && fileNameWithoutExtension.ToLower().StartsWith("yar_kickstart");
+                }
+            }
+
+            public static string GetProfileAttribute(string tagName, string attrName, XElement element = null)
+            {
+                var profileTag = GetProfileTag(tagName, element);
+                if (profileTag != null)
+                {
+                    var behaviorAttr = profileTag.Attribute(attrName);
+                    if (behaviorAttr != null && !string.IsNullOrEmpty(behaviorAttr.Value))
+                    {
+                        return behaviorAttr.Value;
+                    }
+                }
+                return string.Empty;
+            }
         }
 
         void BotMain_OnStart(IBot bot)
@@ -987,21 +1073,47 @@ namespace YARPLUGIN
             _bs.LastGame = DateTime.UtcNow.Ticks;
         }
 
+        private string ParseInnerProfile(string path = "")
+        {
+            if (string.IsNullOrEmpty(path))
+                return path;
+
+            var xml = XDocument.Load(path);
+
+            return ProfileUtils.GetProfileAttribute("LoadProfile", "profile", xml.Root);                        
+        }
+
         private void LoadProfile(string profile)
         {
-            BotMain.Stop(false, "YetAnotherRelogger -> Load new profile");
-            if (ZetaDia.IsInGame)
+            var isHardReset = ZetaDia.IsInGame || ZetaDia.IsLoadingWorld || ZetaDia.Service.Party.CurrentPartyLockReasonFlags != PartyLockReasonFlag.None;
+
+            if (isHardReset)
             {
-                ZetaDia.Service.Party.LeaveGame(true);
-                while (ZetaDia.IsInGame)
-                    Thread.Sleep(1000);
+                BotMain.Stop(false, "-> Hard Stop/Reset and Load new profile");
+                if (ZetaDia.IsInGame)
+                {
+                    ZetaDia.Service.Party.LeaveGame(true);
+                    while (ZetaDia.IsInGame)
+                        Thread.Sleep(1000);
+                }
             }
 
-            Thread.Sleep(2000);
-            Log("Loading profile: {0}", profile);
+            //profile = ParseInnerProfile(profile);
+
+            if (isHardReset)
+            {
+                Thread.Sleep(2000);
+                Log("Loading profile: {0}", profile);
+            }
+
             ProfileManager.Load(profile.Trim());
-            Thread.Sleep(5000);
-            BotMain.Start();
+
+            if (isHardReset)
+            {
+                Thread.Sleep(5000);
+                BotMain.Start();
+            }
+
         }
     }
 

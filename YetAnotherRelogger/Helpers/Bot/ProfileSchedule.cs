@@ -53,7 +53,9 @@ namespace YetAnotherRelogger.Helpers.Bot
             {
                 // Stay on same profile when not ready yet, or if this is the only profile
                 if (!Current.IsDone)
-                    return Current.Location;
+                {
+                    return Current.Location;  //ProfileKickstart.GenerateKickstart(Current);
+                }
 
                 var rnd = new MersenneTwister();
 
