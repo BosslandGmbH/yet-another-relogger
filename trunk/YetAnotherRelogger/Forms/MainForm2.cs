@@ -17,6 +17,7 @@ using YetAnotherRelogger.Properties;
 using AutoPosition = YetAnotherRelogger.Forms.SettingsTree.AutoPosition;
 using ConnectionCheck = YetAnotherRelogger.Helpers.ConnectionCheck;
 using General = YetAnotherRelogger.Forms.SettingsTree.General;
+using ProfileKickstart = YetAnotherRelogger.Forms.SettingsTree.ProfileKickstart;
 
 namespace YetAnotherRelogger.Forms
 {
@@ -637,6 +638,9 @@ namespace YetAnotherRelogger.Forms
                     break;
                 case "AntiIdle":
                     tmp = new AntiIdle();
+                    break;
+                case "ProfileKickstart":
+                    tmp = new ProfileKickstart();
                     break;
                 case "HotKeys":
                     tmp = new HotKeys();

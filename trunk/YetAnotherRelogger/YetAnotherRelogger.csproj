@@ -100,6 +100,12 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Demonbuddy">
+      <HintPath>..\..\..\DB\Demonbuddy.exe</HintPath>
+    </Reference>
+    <Reference Include="GreyMagic">
+      <HintPath>..\..\..\DB\GreyMagic.dll</HintPath>
+    </Reference>
     <Reference Include="InputSimulator">
       <HintPath>..\ThirdParty\InputSimulator.dll</HintPath>
     </Reference>
@@ -110,6 +116,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Forms\SettingsTree\ConnectionCheck.cs">
@@ -141,6 +148,12 @@
     </Compile>
     <Compile Include="Forms\SettingsTree\AntiIdle.Designer.cs">
       <DependentUpon>AntiIdle.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\SettingsTree\ProfileKickstart.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Forms\SettingsTree\ProfileKickstart.Designer.cs">
+      <DependentUpon>ProfileKickstart.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\SettingsTree\Stats.cs">
       <SubType>UserControl</SubType>
@@ -253,6 +266,7 @@
       <DependentUpon>SelectAction.cs</DependentUpon>
     </Compile>
     <Compile Include="Helpers\ObjectExtensions.cs" />
+    <Compile Include="Helpers\ProfileKickstart.cs" />
     <Compile Include="Helpers\Bot\ProfileSchedule.cs" />
     <Compile Include="Helpers\BuddyAuth.cs" />
     <Compile Include="Helpers\CommandLineArgs.cs" />
@@ -319,6 +333,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\SettingsTree\IpHostCheck.resx">
       <DependentUpon>IpHostCheck.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\SettingsTree\ProfileKickstart.resx">
+      <DependentUpon>ProfileKickstart.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\SettingsTree\Stats.resx">
       <DependentUpon>Stats.cs</DependentUpon>
@@ -401,6 +418,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Ayyubid jar.ico" />
+    <Content Include="Changelog.txt" />
+    <Content Include="TODO.txt" />
     <None Include="Images\YAR_LOGO_small.png" />
   </ItemGroup>
   <ItemGroup>
@@ -411,36 +430,12 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>echo Setting up Manifest
-"$(SolutionDir)ThirdParty\mt\mt.exe" -manifest "$(ProjectDir)Properties\app.manifest"  -outputresource:"$(TargetDir)$(TargetFileName)"
-
-echo Merging with ILMerge
-"$(SolutionDir)ThirdParty\ILMerge.exe" /v4 /target:winexe /wildcards /out:"$(TargetDir)$(TargetName).merged.exe" "$(TargetDir)$(TargetFileName)" "$(TargetDir)*.dll"
-
-if "$(ConfigurationName)"=="Release" (
-echo Deleting "$(TargetPath)"
-del "$(TargetPath)"
-
-echo Renaming "$(TargetDir)$(TargetName).merged.exe" to "$(TargetFileName)"
-ren "$(TargetDir)$(TargetName).merged.exe" "$(TargetFileName)"
-
-echo Destamping with PETool
-"$(SolutionDir)ThirdParty\PETool\PETool.exe" "$(TargetPath)" /DeStamp /VerChange "OriginalFilename" "" /VerChange "InternalName" "" /VerChange "FileVersion" "" /VerChange "ProductVersion" "" /VerChange "Assembly Version" ""
-
-
-echo Deleting "$(SolutionDir)LatestBuild\*"
-rd /S /Q "$(SolutionDir)LatestBuild\*"
-
-echo Creating "$(SolutionDir)LatestBuild\"
-mkdir "$(SolutionDir)LatestBuild\"
-echo Copying "$(TargetPath)"  to "$(SolutionDir)LatestBuild\$(TargetFileName)"
-copy "$(TargetPath)" "$(SolutionDir)LatestBuild\$(TargetFileName)" /Y
-)</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>if exist {$(SolutionDir)..\Plugins\YAR\Plugin.cs} (
-del  {$(SolutionDir)..\Plugins\YAR\Plugin.cs}
-)</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

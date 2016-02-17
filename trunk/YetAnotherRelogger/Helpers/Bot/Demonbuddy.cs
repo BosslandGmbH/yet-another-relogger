@@ -340,26 +340,30 @@ namespace YetAnotherRelogger.Helpers.Bot
                     arguments += string.Format(" -authenticatorserial=\"{0}\"", Parent.Diablo.Serial);
                 }
 
-                if (profilepath != null)
-                {
-                    string file = Path.GetFileName(profilepath);
-                    if (file == null)
-                        profilepath = Parent.ProfileSchedule.Current.Location;
+                //if (profilepath != null)
+                //{
+                //    // Check if current profile path is Kickstart
+                //    string file = Path.GetFileName(profilepath);
+                //    if (file == null || (file.Equals("YAR_Kickstart.xml") || file.Equals("YAR_TMP_Kickstart.xml")))
+                //        profilepath = Parent.ProfileSchedule.Current.Location;
 
-                    string path = Parent.ProfileSchedule.Current.Location;
-                    Logger.Instance.Write("Using Profile {0}", path);
-                    arguments += string.Format(" -profile=\"{0}\"", path);
-                }
-                else if (Parent.ProfileSchedule.Profiles.Count > 0 && !noprofile)
-                {
-                    string path = Parent.ProfileSchedule.GetProfile;
-                    Logger.Instance.Write("Using Scheduled Profile {0}", path);
-                    if (File.Exists(path))
-                        arguments += string.Format(" -profile=\"{0}\"", path);
-                }
-                else if (!noprofile)
-                    Logger.Instance.Write(
-                        "Warning: Launching Demonbuddy without a starting profile (Add a profile to the profilescheduler for this bot)");
+                //    var profile = new Profile { Location = profilepath };
+                //    string path = ProfileKickstart.GenerateKickstart(profile);
+                //    Logger.Instance.Write("Using Profile {0}", path);
+                //    arguments += string.Format(" -profile=\"{0}\"", string.Empty);
+                //}
+                //else if (Parent.ProfileSchedule.Profiles.Count > 0 && !noprofile)
+                //{
+                //    string path = Parent.ProfileSchedule.GetProfile;
+                //    Logger.Instance.Write("Using Scheduled Profile {0}", path);
+                //    if (File.Exists(path))
+                //        arguments += string.Format(" -profile=\"{0}\"", path);
+                //}
+                //else if (!noprofile)
+                //    Logger.Instance.Write(
+                //        "Warning: Launching Demonbuddy without a starting profile (Add a profile to the profilescheduler for this bot)");
+
+
 
                 if (NoFlash)
                     arguments += " -noflash";
@@ -368,7 +372,8 @@ namespace YetAnotherRelogger.Helpers.Bot
                 if (NoUpdate)
                     arguments += " -noupdate";
 
-
+                var kickstart = ProfileKickstart.GenerateKickstart(Parent.Demonbuddy.Location);
+                arguments += string.Format(" -profile=\"{0}\"", kickstart);
 
                 if (ForceEnableAllPlugins)
                     arguments += " -YarEnableAll";
@@ -402,6 +407,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                         CpuCount = Environment.ProcessorCount;
                     }
                     Proc.ProcessorAffinity = (IntPtr)ProcessorAffinity;
+
 
 
                     Logger.Instance.Write(Parent, "Demonbuddy:{0}: Waiting for process to become ready", Proc.Id);
