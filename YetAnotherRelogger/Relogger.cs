@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Windows.Forms;
 using YetAnotherRelogger.Helpers;
 using YetAnotherRelogger.Helpers.Bot;
 using YetAnotherRelogger.Helpers.Tools;
@@ -135,6 +136,12 @@ namespace YetAnotherRelogger
 
                     foreach (BotClass bot in BotSettings.Instance.Bots.Where(bot => bot != null).ToList())
                     {
+                        if (bot.Demonbuddy.Proc.HasExited && bot.Demonbuddy.Proc.ExitCode == 12)
+                        {
+                            Logger.Instance.Write("Closing YAR due to Tripwire event. Please check the forums for more information.");
+                            Application.Exit();
+                        }
+
                         if (Program.Pause)
                             break;
 
