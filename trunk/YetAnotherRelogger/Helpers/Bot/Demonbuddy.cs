@@ -7,6 +7,7 @@ using System.Threading;
 using System.Xml.Serialization;
 using YetAnotherRelogger.Helpers.Tools;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using YetAnotherRelogger.Properties;
 
 
@@ -308,6 +309,7 @@ namespace YetAnotherRelogger.Helpers.Bot
         {
             if (!Parent.IsStarted || !Parent.Diablo.IsRunning || (_crashTenderRestart && !crashtenderstart))
                 return;
+
             if (!File.Exists(Location))
             {
                 Logger.Instance.Write("File not found: {0}", Location);
@@ -430,6 +432,13 @@ namespace YetAnotherRelogger.Helpers.Bot
                         try
                         {
                             Proc.Refresh();
+
+                            if (Proc.HasExited && Proc.ExitCode == 12)
+                            {
+                                Logger.Instance.Write("Closing YAR due to Tripwire event. Please check the forums for more information.");
+                                Application.Exit();
+                            }
+
                             if (Proc.WaitForInputIdle(100) || CrashChecker.IsResponding(MainWindowHandle))
                                 break;
                         }
