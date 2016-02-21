@@ -41,7 +41,7 @@ namespace YARPLUGIN
     public class YARPLUGIN : IPlugin
     {
         // Plugin version
-        public Version Version { get { return new Version(0, 3, 1, 2); } }
+        public Version Version { get { return new Version(0, 3, 1, 3); } }
 
         private const bool _debug = true;
         private static readonly log4net.ILog DBLog = Zeta.Common.Logger.GetLoggerInstanceForType();
