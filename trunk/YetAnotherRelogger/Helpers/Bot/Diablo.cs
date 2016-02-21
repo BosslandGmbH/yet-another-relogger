@@ -379,7 +379,8 @@ namespace YetAnotherRelogger.Helpers.Bot
 
                     var pi = new ProcessStartInfo(Location2, arguments)
                     {
-                        WorkingDirectory = Path.GetDirectoryName(Location2)
+                        WorkingDirectory = Path.GetDirectoryName(Location2),
+                        UseShellExecute = false
                     };
                     pi = UserAccount.ImpersonateStartInfo(pi, Parent);
                     // Set working directory to executable location

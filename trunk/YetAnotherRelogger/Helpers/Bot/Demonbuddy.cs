@@ -382,7 +382,7 @@ namespace YetAnotherRelogger.Helpers.Bot
 
                 Debug.WriteLine(string.Format("DB Arguments: {0}", arguments));
 
-                var p = new ProcessStartInfo(Location, arguments) { WorkingDirectory = Path.GetDirectoryName(Location) };
+                var p = new ProcessStartInfo(Location, arguments) { WorkingDirectory = Path.GetDirectoryName(Location), UseShellExecute = false};
                 p = UserAccount.ImpersonateStartInfo(p, Parent);
 
                 // Check/Install latest Communicator plugin
@@ -433,8 +433,9 @@ namespace YetAnotherRelogger.Helpers.Bot
                         {
                             Proc.Refresh();
 
-                            if (Proc.HasExited && Proc.ExitCode == 12)
+                            if (Proc != null && Proc.HasExited && Proc.ExitCode == 12)
                             {
+                                Proc.WaitForExit();
                                 Logger.Instance.Write("Closing YAR due to Tripwire event. Please check the forums for more information.");
                                 Application.Exit();
                             }
