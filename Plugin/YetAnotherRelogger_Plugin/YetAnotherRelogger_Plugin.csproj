@@ -55,10 +55,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Demonbuddy">
-      <HintPath>..\..\..\..\DB - monk\Demonbuddy.exe</HintPath>
+      <HintPath>..\..\..\..\..\DB-Current\Demonbuddy.exe</HintPath>
     </Reference>
     <Reference Include="GreyMagic">
-      <HintPath>..\..\..\..\DB - monk\GreyMagic.dll</HintPath>
+      <HintPath>..\..\..\..\..\DB-Current\GreyMagic.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
