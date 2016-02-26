@@ -1086,32 +1086,26 @@ namespace YARPLUGIN
         private void LoadProfile(string profile)
         {
             var isHardReset = ZetaDia.IsInGame || ZetaDia.IsLoadingWorld || ZetaDia.Service.Party.CurrentPartyLockReasonFlags != PartyLockReasonFlag.None;
-
             if (isHardReset)
             {
-                BotMain.Stop(false, "-> Hard Stop/Reset and Load new profile");
+                //BotMain.Stop(false, "-> Hard Stop/Reset and Load new profile");
                 if (ZetaDia.IsInGame)
                 {
                     ZetaDia.Service.Party.LeaveGame(true);
                     while (ZetaDia.IsInGame)
-                        Thread.Sleep(1000);
+                        Thread.Sleep(250);
                 }
             }
 
-            //profile = ParseInnerProfile(profile);
+            Log("Loading profile: {0}", profile);
 
-            if (isHardReset)
-            {
-                Thread.Sleep(2000);
-                Log("Loading profile: {0}", profile);
-            }
-
-            ProfileManager.Load(profile.Trim());
+            if (ProfileManager.CurrentProfile == null || profile != ProfileManager.CurrentProfile.Path)
+                ProfileManager.Load(profile.Trim());
 
             if (isHardReset)
             {
                 Thread.Sleep(5000);
-                BotMain.Start();
+                //BotMain.Start();
             }
 
         }

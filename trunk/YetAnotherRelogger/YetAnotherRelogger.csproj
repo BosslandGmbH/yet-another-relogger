@@ -101,10 +101,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Demonbuddy">
-      <HintPath>..\..\..\DB\Demonbuddy.exe</HintPath>
+      <HintPath>..\..\..\..\DB-Current\Demonbuddy.exe</HintPath>
     </Reference>
     <Reference Include="GreyMagic">
-      <HintPath>..\..\..\DB\GreyMagic.dll</HintPath>
+      <HintPath>..\..\..\..\DB-Current\GreyMagic.dll</HintPath>
     </Reference>
     <Reference Include="InputSimulator">
       <HintPath>..\ThirdParty\InputSimulator.dll</HintPath>

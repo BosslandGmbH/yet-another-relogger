@@ -375,7 +375,21 @@ namespace YetAnotherRelogger.Helpers.Bot
                     arguments += " -noupdate";
 
                 var kickstart = ProfileKickstart.GenerateKickstart(Parent.Demonbuddy.Location);
-                arguments += string.Format(" -profile=\"{0}\"", kickstart);
+
+                // Kickstarter is required for two reasons
+                //
+                // 1) For DB to 'start' automatically - like clicking the start button - it needs a 'current profile'.
+                // 2) The bot will not log in at D3 login page if it doesnt have a 'current profile'.
+                //
+                // Once logged in DB will automatically use the last profile listed in Settings\GlobalSettings.xml <LastProfile>. 
+                // Using a -profile argument ensures that the current profile won't be empty / a null when DB initializes.
+                //
+                // If D3 is in game or in the hero selection screen. Kickstarter is not required.
+
+                if (!Parent.Diablo.IsLoggedIn)
+                { 
+                    arguments += string.Format(" -profile=\"{0}\"", kickstart);
+                }
 
                 if (ForceEnableAllPlugins)
                     arguments += " -YarEnableAll";

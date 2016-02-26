@@ -29,6 +29,8 @@ namespace YetAnotherRelogger.Helpers.Bot
         [XmlIgnore]
         private DateTime _timeStartTime;
 
+        private bool _isLoggedIn;
+
         public DiabloClass()
         {
             CpuCount = Environment.ProcessorCount;
@@ -258,15 +260,34 @@ namespace YetAnotherRelogger.Helpers.Bot
         }
 
         /// <summary>
+        /// If Diablo3 is on the lobby screen or in game.
+        /// </summary>
+        public bool IsLoggedIn
+        {
+            get
+            {
+                if (!IsRunning) _isLoggedIn = false;
+                return _isLoggedIn;
+            }
+            set { _isLoggedIn = value; }
+        }
+
+        /// <summary>
         /// Crashes the check.
         /// </summary>
         public void CrashCheck()
         {
             if (Proc == null)
+            {
+                IsLoggedIn = false;
                 return;
+            }
 
             if (Proc.HasExited)
+            {
+                IsLoggedIn = false;
                 return;
+            }
 
             if (Proc.Responding)
             {
@@ -284,7 +305,10 @@ namespace YetAnotherRelogger.Helpers.Bot
                 try
                 {
                     if (Proc != null && !Proc.HasExited)
+                    {
                         Proc.Kill();
+                        IsLoggedIn = false;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -755,7 +779,7 @@ namespace YetAnotherRelogger.Helpers.Bot
         public void Stop()
         {
             _isStopped = true;
-
+            
             if (Proc == null || Proc.HasExited)
                 return;
 

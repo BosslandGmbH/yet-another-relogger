@@ -255,7 +255,7 @@ namespace YetAnotherRelogger.Helpers
                                 PluginPulse = nowTicks,
                                 LastRun = nowTicks
                             };
-                            
+                            b.Diablo.IsLoggedIn = true;
                             b.AntiIdle.LastStats = DateTime.UtcNow;
                             b.AntiIdle.State = IdleState.CheckIdle;
                             b.AntiIdle.IsInitialized = true;
@@ -335,6 +335,7 @@ namespace YetAnotherRelogger.Helpers
                             break;
                         case "D3Exit":
                             Send("Shutdown");
+                            b.Diablo.IsLoggedIn = false;
                             b.Diablo.Proc.CloseMainWindow();
                             break;
                         // Unknown command reply
