@@ -267,6 +267,7 @@
             "Europe",
             "America",
             "Asia",
+            "China",
             "Beta"});
             this.region.Location = new System.Drawing.Point(89, 123);
             this.region.Name = "region";
