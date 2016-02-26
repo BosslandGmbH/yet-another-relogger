@@ -104,6 +104,9 @@ namespace YetAnotherRelogger.Helpers.Tools
                     case "Asia":
                         regionUrl = "kr.actual.battle.net";
                         break;
+                    case "China":
+                        regionUrl = "cn.actual.battle.net";
+                        break;
                     default:
                         Logger.Instance.Write("Unknown region ({0}) using Europe as our default region", Region);
                         regionUrl = "eu.actual.battle.net";
