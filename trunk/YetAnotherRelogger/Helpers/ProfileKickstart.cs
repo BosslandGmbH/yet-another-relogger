@@ -6,48 +6,51 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using YetAnotherRelogger.Helpers.Bot;
 using YetAnotherRelogger.Properties;
+using Zeta.Bot;
 
 namespace YetAnotherRelogger.Helpers
 {
-    public static class ProfileKickstart
-    {
-        // GameParams Regex Pattern
-        private const string GameParamsRegex = @"(<GameParams .+/>)";
-        
-        // Kickstart profile layout
-        private const string YarKickstart = @"
+    //public static class ProfileKickstart
+    //{
+    //    // GameParams Regex Pattern
+    //    private const string GameParamsRegex = @"(<GameParams .+/>)";
 
-            <!-- This is a automaticly generated profile by YetAnotherRelogger -->
-            <Profile>
-              <Name>YAR Kickstart</Name>
-              <KillMonsters>True</KillMonsters>
-              <PickupLoot>True</PickupLoot> 
-              <Order />
-            </Profile>";
+    //    // Kickstart profile layout
+    //    private const string YarKickstart = @"
 
-        public static string GenerateKickstart(string DBLocation)
-        {
-            try
-            {
-                var directory = Path.GetDirectoryName(DBLocation);
-                if (directory == null)
-                    return string.Empty;
+    //        <!-- This is a automaticly generated profile by YetAnotherRelogger -->
+    //        <Profile>
+    //          <Name>YAR Kickstart</Name>
+    //          <KillMonsters>True</KillMonsters>
+    //          <PickupLoot>True</PickupLoot> 
+    //          <Order />
+    //        </Profile>";
 
-                var kickstartProfilePath = Path.Combine(directory, "Profiles", "Kickstart.xml"); 
+    //    public static string GenerateKickstart(string DBLocation)
+    //    {
+    //        try
+    //        {
+    //            var directory = Path.GetDirectoryName(DBLocation);
+    //            if (directory == null)
+    //                return string.Empty;
 
-                XDocument xmlFile = XDocument.Parse(YarKickstart);
+    //            //ProfileManager.Load();
 
-                xmlFile.Save(kickstartProfilePath);
+    //            var kickstartProfilePath = Path.Combine(directory, "Profiles", "Kickstart.xml"); 
 
-                return kickstartProfilePath;
+    //            XDocument xmlFile = XDocument.Parse(YarKickstart);
 
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.Write("Failed to generate Kickstart profile: {0}", ex.Message);
-                DebugHelper.Exception(ex);
-            }
-            return string.Empty;
-        }
-    }
+    //            xmlFile.Save(kickstartProfilePath);
+
+    //            return kickstartProfilePath;
+
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            Logger.Instance.Write("Failed to generate Kickstart profile: {0}", ex.Message);
+    //            DebugHelper.Exception(ex);
+    //        }
+    //        return string.Empty;
+    //    }
+    //}
 }
