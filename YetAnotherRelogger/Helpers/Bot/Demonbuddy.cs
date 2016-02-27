@@ -374,7 +374,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                 if (NoUpdate)
                     arguments += " -noupdate";
 
-                var kickstart = ProfileKickstart.GenerateKickstart(Parent.Demonbuddy.Location);
+                //var kickstart = ProfileKickstart.GenerateKickstart(Parent.Demonbuddy.Location);
 
                 // Kickstarter is required for two reasons
                 //
@@ -386,10 +386,10 @@ namespace YetAnotherRelogger.Helpers.Bot
                 //
                 // If D3 is in game or in the hero selection screen. Kickstarter is not required.
 
-                if (!Parent.Diablo.IsLoggedIn)
-                { 
-                    arguments += string.Format(" -profile=\"{0}\"", kickstart);
-                }
+                //if (!Parent.Diablo.IsLoggedIn)
+                //{ 
+                //    arguments += string.Format(" -profile=\"{0}\"", kickstart);
+                //}
 
                 if (ForceEnableAllPlugins)
                     arguments += " -YarEnableAll";
@@ -400,9 +400,12 @@ namespace YetAnotherRelogger.Helpers.Bot
                 p = UserAccount.ImpersonateStartInfo(p, Parent);
 
                 // Check/Install latest Communicator plugin
-                string plugin = string.Format("{0}\\Plugins\\YAR\\Plugin.cs", p.WorkingDirectory);
-                if (!PluginVersionCheck.Check(plugin))
-                    PluginVersionCheck.Install(plugin);
+                string pluginPath = string.Format("{0}\\Plugins\\YAR\\Plugin.cs", p.WorkingDirectory);
+                Installer.InstallPlugin(pluginPath);
+
+                // Check/Install latest Kickstart Bot
+                string botPath = string.Format("{0}\\Bots\\YARBot\\YARBot.cs", p.WorkingDirectory);
+                Installer.InstallBot(botPath);
 
                 DateTime timeout;
                 try // Try to start Demonbuddy

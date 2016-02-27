@@ -155,7 +155,8 @@ namespace YARPLUGIN
         private object _appenderLock = 0;
         public void OnInitialize()
         {
-            Log("YAR Plugin Initialized with PID: {0}", _bs.Pid);
+            // YAR Login Support (YARKickstart Ibot will call this from the proper thread)
+            if (!Application.Current.CheckAccess()) return;
 
             // Force enable YAR
             var enabledPluginsList = PluginManager.Plugins.Where(p => p.Enabled).Select(p => p.Plugin.Name).ToList();
@@ -273,6 +274,9 @@ namespace YARPLUGIN
 
         public void OnEnabled()
         {
+            // YAR Login Support (YARKickstart Ibot will call this from the proper thread)
+            if (!Application.Current.CheckAccess()) return;
+
             IsEnabled = true;
             Log("YAR Plugin Enabled with PID: {0}", _bs.Pid);
             BotMain.OnStart += BotMain_OnStart;

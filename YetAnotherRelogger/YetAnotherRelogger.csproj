@@ -276,7 +276,7 @@
     <Compile Include="Helpers\Bot\Demonbuddy.cs" />
     <Compile Include="Helpers\Bot\Diablo.cs" />
     <Compile Include="Helpers\Logger.cs" />
-    <Compile Include="Helpers\PluginVersionCheck.cs" />
+    <Compile Include="Helpers\Installer.cs" />
     <Compile Include="Helpers\BotSettings.cs" />
     <Compile Include="Helpers\Bot\WeekSchedule.cs" />
     <Compile Include="Helpers\Stats\ChartStats.cs" />
@@ -292,14 +292,15 @@
     <Compile Include="Helpers\Hotkeys\Actions\RepositionAll.cs" />
     <Compile Include="Helpers\Tools\PerformanceInfo.cs" />
     <Compile Include="Helpers\Tools\UserAccount.cs" />
+    <None Include="app.config" />
+    <None Include="Properties\app.manifest" />
+    <Resource Include="Resources\Plugin.cs" />
+    <Resource Include="Resources\YARBot.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <None Include="app.config" />
-    <None Include="Properties\app.manifest" />
-    <Resource Include="Resources\Plugin.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="StatsUpdater.cs" />
     <Compile Include="Updater\CRC.cs" />
