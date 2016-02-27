@@ -419,8 +419,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Ayyubid jar.ico" />
-    <Content Include="Changelog.txt" />
-    <Content Include="TODO.txt" />
     <None Include="Images\YAR_LOGO_small.png" />
   </ItemGroup>
   <ItemGroup>
