@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>YetAnotherRelogger_Plugin</RootNamespace>
     <AssemblyName>YetAnotherRelogger_Plugin</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -55,7 +55,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Demonbuddy">
-      <HintPath>..\..\..\..\..\DB-Current\Demonbuddy.exe</HintPath>
+      <HintPath>..\..\..\..\..\DB-Test\Demonbuddy.exe</HintPath>
     </Reference>
     <Reference Include="GreyMagic">
       <HintPath>..\..\..\..\..\DB-Current\GreyMagic.dll</HintPath>
