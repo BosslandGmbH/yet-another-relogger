@@ -63,8 +63,10 @@ namespace YetAnotherRelogger.Properties {
         /// <summary>
         ///   Looks up a localized string similar to using System;
         ///using System.Windows;
+        ///using System.Reflection;
         ///using System.Diagnostics;
         ///using System.IO;
+        ///using System.Linq.Expressions;
         ///using System.Net.Mime;
         ///using System.Threading;
         ///using System.Threading.Tasks;
@@ -81,7 +83,7 @@ namespace YetAnotherRelogger.Properties {
         ///{
         ///    public class YARKickstart : IBot
         ///    {
-        ///        private static readonly log4net.ILog Logger = Zeta.Common.Logger.Ge [rest of string was truncated]&quot;;.
+        ///        private s [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Bot {
             get {
