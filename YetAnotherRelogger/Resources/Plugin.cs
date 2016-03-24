@@ -155,9 +155,6 @@ namespace YARPLUGIN
         private object _appenderLock = 0;
         public void OnInitialize()
         {
-            // YAR Login Support (YARKickstart Ibot will call this from the proper thread)
-            if (!Application.Current.CheckAccess()) return;
-
             // Force enable YAR
             var enabledPluginsList = PluginManager.Plugins.Where(p => p.Enabled).Select(p => p.Plugin.Name).ToList();
             if (!enabledPluginsList.Contains(Name))
@@ -1089,28 +1086,28 @@ namespace YARPLUGIN
 
         private void LoadProfile(string profile)
         {
-            var isHardReset = ZetaDia.IsInGame || ZetaDia.IsLoadingWorld || ZetaDia.Service.Party.CurrentPartyLockReasonFlags != PartyLockReasonFlag.None;
-            if (isHardReset)
-            {
-                //BotMain.Stop(false, "-> Hard Stop/Reset and Load new profile");
-                if (ZetaDia.IsInGame)
-                {
-                    ZetaDia.Service.Party.LeaveGame(true);
-                    while (ZetaDia.IsInGame)
-                        Thread.Sleep(250);
-                }
-            }
+            //var isHardReset = ZetaDia.IsInGame || ZetaDia.IsLoadingWorld || ZetaDia.Service.Party.CurrentPartyLockReasonFlags != PartyLockReasonFlag.None;
+            //if (isHardReset)
+            //{
+            //    //BotMain.Stop(false, "-> Hard Stop/Reset and Load new profile");
+            //    if (ZetaDia.IsInGame)
+            //    {
+            //        ZetaDia.Service.Party.LeaveGame(true);
+            //        while (ZetaDia.IsInGame)
+            //            Thread.Sleep(250);
+            //    }
+            //}
 
             Log("Loading profile: {0}", profile);
 
             if (ProfileManager.CurrentProfile == null || profile != ProfileManager.CurrentProfile.Path)
                 ProfileManager.Load(profile.Trim());
 
-            if (isHardReset)
-            {
-                Thread.Sleep(5000);
-                //BotMain.Start();
-            }
+            //if (isHardReset)
+            //{
+            //    Thread.Sleep(5000);
+            //    //BotMain.Start();
+            //}
 
         }
     }
