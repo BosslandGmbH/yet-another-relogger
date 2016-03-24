@@ -103,6 +103,9 @@
     <Reference Include="Demonbuddy">
       <HintPath>..\..\..\..\DB-Current\Demonbuddy.exe</HintPath>
     </Reference>
+    <Reference Include="fecuoaevgv">
+      <HintPath>..\..\..\..\DB-Current\fecuoaevgv.exe</HintPath>
+    </Reference>
     <Reference Include="GreyMagic">
       <HintPath>..\..\..\..\DB-Current\GreyMagic.dll</HintPath>
     </Reference>
