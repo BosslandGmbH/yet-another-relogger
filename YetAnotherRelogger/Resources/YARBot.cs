@@ -95,7 +95,7 @@ namespace YARKickstart
                             Logger.Info("Arrived at hero selection screen");
 
                             // There is no way to prevent DB from 'reloading' plugins from /plugins/ directory when started with CMDLine/login.
-                            // but we can stop it from initializing/enabling plugins and then do it ourselves from the proper thread.
+                            // but we can stop it from enabling plugins and then do it ourselves from the proper thread.                            
 
                             _enabledPlugins = CharacterSettings.Instance.EnabledPlugins;
                             CharacterSettings.Instance.EnabledPlugins = new List<string>();

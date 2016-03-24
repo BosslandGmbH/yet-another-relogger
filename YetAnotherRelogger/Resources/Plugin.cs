@@ -159,6 +159,7 @@ namespace YARPLUGIN
             var enabledPluginsList = PluginManager.Plugins.Where(p => p.Enabled).Select(p => p.Plugin.Name).ToList();
             if (!enabledPluginsList.Contains(Name))
                 enabledPluginsList.Add(Name);
+
             PluginManager.SetEnabledPlugins(enabledPluginsList.ToArray());
 
             _bs = new BotStats();
@@ -946,35 +947,39 @@ namespace YARPLUGIN
             PluginContainer test;
             DateTime limit;
 
-            var disabledPlugins = PluginManager.Plugins.Where(p => !p.Enabled && p.Plugin.Name != "BuddyMonitor").ToList();
-            if (!disabledPlugins.Any())
-                return;
-
-            Log("Disabled plugins found. User requested all plugins be enabled through YAR. Enabling Plugins..");
-
-            foreach (var plugin in disabledPlugins)
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                try
+                var disabledPlugins = PluginManager.Plugins.Where(p => !p.Enabled && p.Plugin.Name != "BuddyMonitor").ToList();
+                if (!disabledPlugins.Any())
+                    return;
+
+                Log("Disabled plugins found. User requested all plugins be enabled through YAR. Enabling Plugins..");
+
+                foreach (var plugin in disabledPlugins)
                 {
-                    Log("Force enable: \"{0}\"", plugin.Plugin.Name);
-                    plugin.Enabled = true;
-                    limit = DateTime.UtcNow;
-                    while ((test = PluginManager.Plugins.FirstOrDefault(x => x.Plugin.Name.Equals(plugin.Plugin.Name))) != null && !test.Enabled)
+                    try
                     {
-                        if (DateTime.UtcNow.Subtract(limit).TotalSeconds > 5)
+                        Log("Force enable: \"{0}\"", plugin.Plugin.Name);
+                        plugin.Enabled = true;
+                        limit = DateTime.UtcNow;
+                        while ((test = PluginManager.Plugins.FirstOrDefault(x => x.Plugin.Name.Equals(plugin.Plugin.Name))) != null && !test.Enabled)
                         {
-                            Log("Failed to enable: Timeout ({0} seconds) \"{1}\"", DateTime.UtcNow.Subtract(limit).TotalSeconds, plugin.Plugin.Name);
-                            break;
+                            if (DateTime.UtcNow.Subtract(limit).TotalSeconds > 5)
+                            {
+                                Log("Failed to enable: Timeout ({0} seconds) \"{1}\"", DateTime.UtcNow.Subtract(limit).TotalSeconds, plugin.Plugin.Name);
+                                break;
+                            }
+                            Thread.Sleep(100);
                         }
-                        Thread.Sleep(100);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log("Failed to enable: \"{0}\"", plugin.Plugin.Name);
+                        LogException(ex);
                     }
                 }
-                catch (Exception ex)
-                {
-                    Log("Failed to enable: \"{0}\"", plugin.Plugin.Name);
-                    LogException(ex);
-                }
-            }
+
+            });
         }
         #endregion
 
