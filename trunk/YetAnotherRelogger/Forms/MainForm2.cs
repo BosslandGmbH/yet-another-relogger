@@ -736,5 +736,9 @@ namespace YetAnotherRelogger.Forms
                 BotSettings.Instance.Bots[botGrid.CurrentRow.Index].KillDiablo();
         }
 
+        private void treeView1_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+
+        }
     }
 }

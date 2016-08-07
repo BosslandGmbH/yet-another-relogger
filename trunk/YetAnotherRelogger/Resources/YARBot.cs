@@ -24,9 +24,13 @@ namespace YARKickstart
 {
     public class YARKickstart : IBot
     {
+        public string Name => "YARKickstart";
+
+        public static bool IsKickstarted;
+
         private static readonly log4net.ILog Logger = Zeta.Common.Logger.GetLoggerInstanceForType();
 
-        private const string YarKickstart = @"
+        private const string YarKickstartProfile = @"
 
             <Profile>
               <Name>YAR Kickstart</Name>
@@ -35,12 +39,14 @@ namespace YARKickstart
               <Order></Order>
             </Profile>";
 
-        public static bool IsKickstarted;
-
         public YARKickstart()
         {
             if (IsKickstarted)
                 return;
+
+            Logger.Info("YARBot Initialized");
+
+            PluginManager.OnPluginsReloaded += OnPluginsLoaded_WrapPlugins;
 
             using (ZetaDia.Memory.AcquireFrame())
             {
@@ -50,113 +56,63 @@ namespace YARKickstart
             }
 
             IsKickstarted = true;
-            Logger.Info("YARBot Initialized");
 
             var currentProfile = ProfileManager.CurrentProfile;
             if (currentProfile == null)
             {
                 // Make DB not throw its toys when started with cmd line args without -profile
-                var xmlFile = XDocument.Parse(YarKickstart);
+                var xmlFile = XDocument.Parse(YarKickstartProfile);
                 ProfileManager.CurrentProfile = Profile.Load(xmlFile.Root);
 
                 // Make OrderBot not throw its toys when it tries to load a profile that needs plugins that haven't compiled yet.
                 var path = Path.Combine(GlobalSettings.Instance.BotsPath, "YARBot", "kickstart.xml");
                 xmlFile.Save(path);
-                _lastProfile = GlobalSettings.Instance.LastProfile;
                 GlobalSettings.Instance.LastProfile = path;
             }
-
-            // If DB is started with command line arguments then after it logs into DB it will 
-            // Init and Enable plugins from the wrong thread ('Bot Main' instead of application thread id 1)
-
-            Task.Factory.StartNew(LoginCoordinator, TaskCreationOptions.LongRunning);
         }
 
-        private static string _pluginPath;
-        private static bool _isWaiting = true;
-        private static List<string> _enabledPlugins;
-        private static string _lastProfile;
+        private static void OnPluginsLoaded_WrapPlugins(object sender, EventArgs eventArgs)
+        {           
+            // this event fires multiple times during startup
+            // wrap plugins so that OnInitialized and OnEnabled fire from the correct thread (1: UI/Dispatcher).
 
-        private static void LoginCoordinator()
-        {
-            if (!ZetaDia.Memory.IsProcessOpen || !ZetaDia.Memory.Executor.IsInitialized)
-                return;
-
-            PluginManager.OnPluginsReloaded += OnPluginsLoaded;
-
-            while (true)
+            var containers = PluginManager.Plugins.ToArray();
+            for (var i = 0; i < containers.Length; i++)
             {
-                try
+                var container = containers[i];
+                var yarContainer = container.Plugin as YARPluginWrapper;
+                if (yarContainer == null)
                 {
-                    using (ZetaDia.Memory.AcquireFrame())
-                    {
-                        if (ZetaDia.Service.IsValid && ZetaDia.Service.Hero.IsValid && ZetaDia.Service.Hero.HeroId > 0 && BotMain.IsRunning)
-                        { 
-                            Logger.Info("Arrived at hero selection screen");
-
-                            // There is no way to prevent DB from 'reloading' plugins from /plugins/ directory when started with CMDLine/login.
-                            // but we can stop it from enabling plugins and then do it ourselves from the proper thread.                            
-
-                            _enabledPlugins = CharacterSettings.Instance.EnabledPlugins;
-                            CharacterSettings.Instance.EnabledPlugins = new List<string>();
-                            break;
-                        }
-                    }
+                    container.Plugin = new YARPluginWrapper(container.Plugin);
                 }
-                catch (Exception ex)
+                else if (!yarContainer.IsValid)
                 {
-                    Logger.InfoFormat("{0}", ex);
-                    break;
+                    // DB thinks the empty wrapper is a real plugin, remove it.
+                    PluginManager.Plugins.Remove(container);
                 }
-                Thread.Sleep(500);
             }
         }
 
-        private static void OnPluginsLoaded(object sender, EventArgs eventArgs)
+        /// <summary>
+        /// A wrapper for plugins that routes some methods through the application dispatcher.
+        /// </summary>
+        public class YARPluginWrapper : IPlugin
         {
-            PluginManager.OnPluginsReloaded -= OnPluginsLoaded;
-
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                if (_enabledPlugins != null)
-                {                    
-                    PluginManager.SetEnabledPlugins(_enabledPlugins.ToArray());
-
-                    var comms = PluginManager.Plugins.FirstOrDefault(p => p.Plugin.Name.ToLower().Contains("YAR Comms"));
-                    if(comms != null && !comms.Enabled)
-                        comms.Enabled = true;
-                }
-                else
-                {                    
-                    PluginManager.SetEnabledPlugins(PluginManager.Plugins.Select(p => p.Plugin.Name).ToArray());
-                }
-
-                //GlobalSettings.Instance.LastProfile = _lastProfile;
-            });
-        }
-
-        public void Dispose()
-        {
-
-        }
-
-        public void Start()
-        {
-
-        }
-
-        public void Stop()
-        {
-
-        }
-
-        public void Pulse()
-        {
-
-        }
-
-        public void Initialize()
-        {
+            private readonly IPlugin _plugin;
+            public YARPluginWrapper() { }
+            public YARPluginWrapper(IPlugin plugin) { _plugin = plugin; }
+            public bool Equals(IPlugin other) => !IsValid || _plugin.Equals(other);
+            public void OnPulse() => _plugin?.OnPulse();
+            public void OnInitialize() => Application.Current.Dispatcher.Invoke(() => _plugin?.OnInitialize());
+            public void OnShutdown() => Application.Current.Dispatcher.Invoke(() => _plugin?.OnShutdown());
+            public void OnEnabled() => Application.Current.Dispatcher.Invoke(() => _plugin?.OnEnabled());
+            public void OnDisabled() => Application.Current.Dispatcher.Invoke(() => _plugin?.OnDisabled());
+            public string Author => _plugin?.Author;
+            public Version Version => _plugin?.Version;
+            public string Name => _plugin?.Name;
+            public string Description => _plugin?.Description;
+            public Window DisplayWindow => _plugin?.DisplayWindow;
+            public bool IsValid => _plugin != null;
         }
 
         public bool TryGetBotProfile(string path, out Profile profile)
@@ -165,8 +121,11 @@ namespace YARKickstart
             return false;
         }
 
-        public string Name { get { return "YARKickstart"; } }
-
+        public void Dispose() { }
+        public void Start() { }
+        public void Stop() { }
+        public void Pulse() { }
+        public void Initialize() { }
         public Composite Logic { get { return new Action(ret => RunStatus.Failure); } }
     }
 

@@ -88,9 +88,6 @@
             this.GoldStats = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.tabPage6 = new System.Windows.Forms.TabPage();
             this.CommConnections = new System.Windows.Forms.DataVisualization.Charting.Chart();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.pictureBoxDonate = new System.Windows.Forms.PictureBox();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.btnClose = new System.Windows.Forms.Button();
             this.TrayIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.labelStats = new System.Windows.Forms.Label();
@@ -130,9 +127,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.GoldStats)).BeginInit();
             this.tabPage6.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.CommConnections)).BeginInit();
-            this.tabPage3.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxDonate)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -144,7 +138,6 @@
             this.tabControl1.Controls.Add(this.tabPage1);
             this.tabControl1.Controls.Add(this.tabPage2);
             this.tabControl1.Controls.Add(this.tabPage4);
-            this.tabControl1.Controls.Add(this.tabPage3);
             this.tabControl1.Location = new System.Drawing.Point(12, 12);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
@@ -373,6 +366,7 @@
             treeNode9});
             this.treeView1.Size = new System.Drawing.Size(173, 395);
             this.treeView1.TabIndex = 3;
+            this.treeView1.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeView1_AfterSelect);
             // 
             // tabPage4
             // 
@@ -562,39 +556,6 @@
             this.CommConnections.Size = new System.Drawing.Size(643, 105);
             this.CommConnections.TabIndex = 4;
             this.CommConnections.Text = "chart1";
-            // 
-            // tabPage3
-            // 
-            this.tabPage3.Controls.Add(this.pictureBoxDonate);
-            this.tabPage3.Controls.Add(this.pictureBox1);
-            this.tabPage3.Location = new System.Drawing.Point(4, 22);
-            this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(685, 423);
-            this.tabPage3.TabIndex = 2;
-            this.tabPage3.Text = "About";
-            this.tabPage3.UseVisualStyleBackColor = true;
-            // 
-            // pictureBoxDonate
-            // 
-            this.pictureBoxDonate.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.pictureBoxDonate.Image = global::YetAnotherRelogger.Properties.Resources.btn_donateCC_LG;
-            this.pictureBoxDonate.Location = new System.Drawing.Point(518, 335);
-            this.pictureBoxDonate.Name = "pictureBoxDonate";
-            this.pictureBoxDonate.Size = new System.Drawing.Size(147, 47);
-            this.pictureBoxDonate.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
-            this.pictureBoxDonate.TabIndex = 1;
-            this.pictureBoxDonate.TabStop = false;
-            this.pictureBoxDonate.Click += new System.EventHandler(this.pictureBoxDonate_Click);
-            // 
-            // pictureBox1
-            // 
-            this.pictureBox1.Image = global::YetAnotherRelogger.Properties.Resources.YAR_LOGO_small;
-            this.pictureBox1.Location = new System.Drawing.Point(6, 6);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(215, 113);
-            this.pictureBox1.TabIndex = 0;
-            this.pictureBox1.TabStop = false;
             // 
             // btnClose
             // 
@@ -788,10 +749,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.GoldStats)).EndInit();
             this.tabPage6.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.CommConnections)).EndInit();
-            this.tabPage3.ResumeLayout(false);
-            this.tabPage3.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxDonate)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -805,11 +762,8 @@
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.Button btnClose;
         private System.Windows.Forms.NotifyIcon TrayIcon;
-        private System.Windows.Forms.TabPage tabPage3;
-        private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.TreeView treeView1;
         private System.Windows.Forms.Panel SettingsPanel;
-        private System.Windows.Forms.PictureBox pictureBoxDonate;
         public System.Windows.Forms.Label labelStats;
         private System.Windows.Forms.TabPage tabPage4;
         private System.Windows.Forms.TabControl tabControl2;
