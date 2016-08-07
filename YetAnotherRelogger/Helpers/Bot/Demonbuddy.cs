@@ -486,21 +486,21 @@ namespace YetAnotherRelogger.Helpers.Bot
                     Thread.Sleep(500);
                 }
 
-                // When DB starts and creates a new .exe file it renames the associated .config file
-                // The original Demonbuddy.exe.config is required for plugins using SharpSVN.dll
-                // So until this issue is fixed, copy and rename the config.
-                var dbfolder = Path.GetDirectoryName(Parent.Demonbuddy.Location);
-                var configs = System.IO.Directory.GetFiles(dbfolder, "*.config");
-                var targetFileName = "Demonbuddy.exe.config";
-                if (configs.Any())
-                {
-                    var sourcePath = configs.FirstOrDefault(c => c != targetFileName);
-                    if (!string.IsNullOrEmpty(sourcePath) && File.Exists(sourcePath))
-                    {
-                        var targetPath = Path.Combine(dbfolder, targetFileName);
-                        File.Copy(sourcePath, targetPath);
-                    }
-                }            
+                //// When DB starts and creates a new .exe file it renames the associated .config file
+                //// The original Demonbuddy.exe.config is required for plugins using SharpSVN.dll
+                //// So until this issue is fixed, copy and rename the config.
+                //var dbfolder = Path.GetDirectoryName(Parent.Demonbuddy.Location);
+                //var configs = System.IO.Directory.GetFiles(dbfolder, "*.config");
+                //var targetFileName = "Demonbuddy.exe.config";
+                //if (configs.Any())
+                //{
+                //    var sourcePath = configs.FirstOrDefault(c => c != targetFileName);
+                //    if (!string.IsNullOrEmpty(sourcePath) && File.Exists(sourcePath))
+                //    {
+                //        var targetPath = Path.Combine(dbfolder, targetFileName);
+                //        File.Copy(sourcePath, targetPath);
+                //    }
+                //}            
 
                 // Window postion & resizing
                 if (ManualPosSize)

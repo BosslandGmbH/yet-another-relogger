@@ -66,7 +66,7 @@ namespace YetAnotherRelogger.Helpers
         {
             try
             {
-                Logger.Instance.Write("Installing latest bot: {0}", path);
+                Logger.Instance.Write("Installing latest YARBot: {0}", path);
                 if (File.Exists(path))
                     File.Delete(path);
                 else if (!Directory.Exists(Path.GetDirectoryName(path)))
