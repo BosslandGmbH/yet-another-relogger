@@ -66,7 +66,7 @@ namespace YetAnotherRelogger.Forms.Wizard
         public bool ValidateInput()
         {
             return (WM.ValidateTextbox(textBox1) &
-                    WM.ValidateTextbox(textBox2) &
+                    //WM.ValidateTextbox(textBox2) &
                     WM.ValidateTextbox(textBox3) &
                     WM.ValidateTextbox(textBox4)
                 );

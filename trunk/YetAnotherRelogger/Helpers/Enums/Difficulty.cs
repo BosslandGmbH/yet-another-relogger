@@ -17,5 +17,8 @@
         Torment8,
         Torment9,
         Torment10,
+        Torment11,
+        Torment12,
+        Torment13,
     }
 }
