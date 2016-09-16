@@ -84,6 +84,7 @@ namespace YARKickstart
                 if (yarContainer == null)
                 {
                     container.Plugin = new YARPluginWrapper(container.Plugin);
+                    container.Plugin.OnInitialize();
                 }
                 else if (!yarContainer.IsValid)
                 {
