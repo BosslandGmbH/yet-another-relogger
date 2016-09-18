@@ -203,6 +203,10 @@ namespace YARPLUGIN
 
             Send("RequestProfile");
 
+            Send("NewDifficultyLevel", true);
+
+            ProfileManager.OnProfileLoaded += OnProfileLoaded;
+
             Send("Initialized");
         }
 
@@ -878,10 +882,10 @@ namespace YARPLUGIN
                     LoadProfile(data);
                     break;
                 case "DifficultyLevel":
-                    var difficulty_level = Convert.ToInt32(data.Trim());
-                    if (difficulty_level >= 0)
+                    var difficultyLevel = Convert.ToInt32(data.Trim());
+                    if (difficultyLevel >= 0)
                     {
-                        var difficulty = (GameDifficulty)System.Enum.Parse(typeof(GameDifficulty), data.Trim(), true);
+                        var difficulty = (GameDifficulty)Enum.Parse(typeof(GameDifficulty), data.Trim(), true);
                         Log("Recieved DifficultyLevel: {0}", difficulty);
                         CharacterSettings.Instance.GameDifficulty = difficulty;
                     }
