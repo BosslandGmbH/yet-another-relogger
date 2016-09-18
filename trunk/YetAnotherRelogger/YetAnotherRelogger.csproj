@@ -100,11 +100,9 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Demonbuddy">
+    <Reference Include="Demonbuddy, Version=1.1.3069.470, Culture=neutral, PublicKeyToken=eff32ccf253d66d4, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\DB-Current\Demonbuddy.exe</HintPath>
-    </Reference>
-    <Reference Include="fecuoaevgv">
-      <HintPath>..\..\..\..\DB-Current\fecuoaevgv.exe</HintPath>
     </Reference>
     <Reference Include="GreyMagic">
       <HintPath>..\..\..\..\DB-Current\GreyMagic.dll</HintPath>
