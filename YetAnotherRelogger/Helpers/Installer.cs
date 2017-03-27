@@ -72,12 +72,30 @@ namespace YetAnotherRelogger.Helpers
                 else if (!Directory.Exists(Path.GetDirectoryName(path)))
                     Directory.CreateDirectory(Path.GetDirectoryName(path));
 
-                File.WriteAllText(path, Resources.Bot);
+                File.WriteAllText(path, Resources.YARBot);
             }
             catch (Exception ex)
             {
                 DebugHelper.Exception(ex);
             }
+        }
+
+        public static void InstallRoutine(string path)
+        {
+            //try
+            //{
+            //    Logger.Instance.Write("Installing latest Routine: {0}", path);
+            //    if (File.Exists(path))
+            //        File.Delete(path);
+            //    else if (!Directory.Exists(Path.GetDirectoryName(path)))
+            //        Directory.CreateDirectory(Path.GetDirectoryName(path));
+
+            //    File.WriteAllText(path, Resources.TrinityRoutine);
+            //}
+            //catch (Exception ex)
+            //{
+            //    DebugHelper.Exception(ex);
+            //}
         }
 
 

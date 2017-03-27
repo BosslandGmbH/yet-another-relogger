@@ -61,37 +61,6 @@ namespace YetAnotherRelogger.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to using System;
-        ///using System.Windows;
-        ///using System.Reflection;
-        ///using System.Diagnostics;
-        ///using System.IO;
-        ///using System.Linq.Expressions;
-        ///using System.Net.Mime;
-        ///using System.Threading;
-        ///using System.Threading.Tasks;
-        ///using System.Xml.Linq;
-        ///using Zeta.Bot;
-        ///using Zeta.Bot.Profile;
-        ///using Zeta.Bot.Settings;
-        ///using Zeta.Common.Plugins;
-        ///using Zeta.Game;
-        ///using Zeta.TreeSharp;
-        ///using Action = Zeta.TreeSharp.Action;
-        ///
-        ///namespace YARKickstart
-        ///{
-        ///    public class YARKickstart : IBot
-        ///    {
-        ///        private s [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string Bot {
-            get {
-                return ResourceManager.GetString("Bot", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap btn_donateCC_LG {
@@ -166,6 +135,35 @@ namespace YetAnotherRelogger.Properties {
             get {
                 object obj = ResourceManager.GetObject("YAR_LOGO_small", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to using System;
+        ///using System.Collections.Generic;
+        ///using System.Windows;
+        ///using System.Reflection;
+        ///using System.Diagnostics;
+        ///using System.IO;
+        ///using System.Linq;
+        ///using System.Linq.Expressions;
+        ///using System.Net.Mime;
+        ///using System.Threading;
+        ///using System.Threading.Tasks;
+        ///using System.Xml.Linq;
+        ///using Zeta.Bot;
+        ///using Zeta.Bot.Logic;
+        ///using Zeta.Bot.Profile;
+        ///using Zeta.Bot.Settings;
+        ///using Zeta.Common;
+        ///using Zeta.Common.Plugins;
+        ///using Zeta.Game;
+        ///using Zeta.TreeSharp;
+        ///using Action = Zeta.TreeSharp.Ac [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string YARBot {
+            get {
+                return ResourceManager.GetString("YARBot", resourceCulture);
             }
         }
     }

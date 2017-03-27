@@ -136,7 +136,7 @@
   <data name="btn_donateCC_LG" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Images\btn_donateCC_LG.gif;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
-  <data name="Bot" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\YARBot.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="YARBot" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\yarbot.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
 </root>

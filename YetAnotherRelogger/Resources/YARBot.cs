@@ -46,15 +46,12 @@ namespace YARKickstart
 
             Logger.Info("YARBot Initialized");
 
-            PluginManager.OnPluginsReloaded += OnPluginsLoaded_WrapPlugins;
+            //PluginManager.OnPluginsReloaded += OnPluginsLoaded_WrapPlugins;
 
-            using (ZetaDia.Memory.AcquireFrame())
-            {
-                // No need to do anything if DB is already logged in. 
-                if (ZetaDia.Service.IsValid && ZetaDia.Service.Hero.IsValid)
-                    return;
-            }
-
+            // No need to do anything if DB is already logged in. 
+            if (IsLoggedIn)
+                return;
+         
             IsKickstarted = true;
 
             var currentProfile = ProfileManager.CurrentProfile;
@@ -69,52 +66,92 @@ namespace YARKickstart
                 xmlFile.Save(path);
                 GlobalSettings.Instance.LastProfile = path;
             }
+
+            Task.Run(() => KillAfterLogin());
         }
 
-        private static void OnPluginsLoaded_WrapPlugins(object sender, EventArgs eventArgs)
-        {           
-            // this event fires multiple times during startup
-            // wrap plugins so that OnInitialized and OnEnabled fire from the correct thread (1: UI/Dispatcher).
-
-            var containers = PluginManager.Plugins.ToArray();
-            for (var i = 0; i < containers.Length; i++)
+        public async Task<bool> KillAfterLogin()
+        {
+            while (!IsLoggedIn)
             {
-                var container = containers[i];
-                var yarContainer = container.Plugin as YARPluginWrapper;
-                if (yarContainer == null)
+                await Task.Delay(250);                
+            }
+            ExitDemonBuddy();
+            return true;
+        }
+
+        public bool IsLoggedIn
+        {
+            get
+            {
+                using (ZetaDia.Memory.AcquireFrame())
                 {
-                    container.Plugin = new YARPluginWrapper(container.Plugin);
-                    container.Plugin.OnInitialize();
-                }
-                else if (!yarContainer.IsValid)
-                {
-                    // DB thinks the empty wrapper is a real plugin, remove it.
-                    PluginManager.Plugins.Remove(container);
+                    return ZetaDia.Service.IsValid && ZetaDia.Service.Hero.IsValid;
                 }
             }
         }
 
-        /// <summary>
-        /// A wrapper for plugins that routes some methods through the application dispatcher.
-        /// </summary>
-        public class YARPluginWrapper : IPlugin
+        internal static void ExitDemonBuddy()
         {
-            private readonly IPlugin _plugin;
-            public YARPluginWrapper() { }
-            public YARPluginWrapper(IPlugin plugin) { _plugin = plugin; }
-            public bool Equals(IPlugin other) => !IsValid || _plugin.Equals(other);
-            public void OnPulse() => _plugin?.OnPulse();
-            public void OnInitialize() => Application.Current.Dispatcher.Invoke(() => _plugin?.OnInitialize());
-            public void OnShutdown() => Application.Current.Dispatcher.Invoke(() => _plugin?.OnShutdown());
-            public void OnEnabled() => Application.Current.Dispatcher.Invoke(() => _plugin?.OnEnabled());
-            public void OnDisabled() => Application.Current.Dispatcher.Invoke(() => _plugin?.OnDisabled());
-            public string Author => _plugin?.Author;
-            public Version Version => _plugin?.Version;
-            public string Name => _plugin?.Name;
-            public string Description => _plugin?.Description;
-            public Window DisplayWindow => _plugin?.DisplayWindow;
-            public bool IsValid => _plugin != null;
+            Logger.Info("YARBot Ending DemonBuddy Process");
+            try
+            {
+                if (Thread.CurrentThread != Application.Current.Dispatcher.Thread)
+                {
+                    Application.Current.Dispatcher.Invoke(ExitDemonBuddy);
+                    return;
+                }
+                Application.Current.Shutdown();
+            }
+            catch (Exception)
+            {
+            }
         }
+
+        //private static void OnPluginsLoaded_WrapPlugins(object sender, EventArgs eventArgs)
+        //{
+        //    // this event fires multiple times during startup
+        //    // wrap plugins so that OnInitialized and OnEnabled fire from the correct thread (1: UI/Dispatcher).
+
+        //    var containers = PluginManager.Plugins.ToArray();
+        //    for (var i = 0; i < containers.Length; i++)
+        //    {
+        //        var container = containers[i];
+        //        var yarContainer = container.Plugin as YARPluginWrapper;
+        //        if (yarContainer == null)
+        //        {
+        //            container.Plugin = new YARPluginWrapper(container.Plugin);
+        //            container.Plugin.OnInitialize();
+        //        }
+        //        else if (!yarContainer.IsValid)
+        //        {
+        //            // DB thinks the empty wrapper is a real plugin, remove it.
+        //            PluginManager.Plugins.Remove(container);
+        //        }
+        //    }
+        //}
+
+        ///// <summary>
+        ///// A wrapper for plugins that routes some methods through the application dispatcher.
+        ///// </summary>
+        //public class YARPluginWrapper : IPlugin
+        //{
+        //    private readonly IPlugin _plugin;
+        //    public YARPluginWrapper() { }
+        //    public YARPluginWrapper(IPlugin plugin) { _plugin = plugin; }
+        //    public bool Equals(IPlugin other) => !IsValid || _plugin.Equals(other);
+        //    public void OnPulse() => _plugin?.OnPulse();
+        //    public void OnInitialize() => Application.Current.Dispatcher.Invoke(() => _plugin?.OnInitialize());
+        //    public void OnShutdown() => Application.Current.Dispatcher.Invoke(() => _plugin?.OnShutdown());
+        //    public void OnEnabled() => Application.Current.Dispatcher.Invoke(() => _plugin?.OnEnabled());
+        //    public void OnDisabled() => Application.Current.Dispatcher.Invoke(() => _plugin?.OnDisabled());
+        //    public string Author => _plugin?.Author;
+        //    public Version Version => _plugin?.Version;
+        //    public string Name => _plugin?.Name;
+        //    public string Description => _plugin?.Description;
+        //    public Window DisplayWindow => _plugin?.DisplayWindow;
+        //    public bool IsValid => _plugin != null;
+        //}
 
         public bool TryGetBotProfile(string path, out Profile profile)
         {
