@@ -192,8 +192,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                 for (int i = 0; i <= 3; i++)
                 {
                     // Test if logfile exists for current process starttime + 1 minute
-                    logfile = string.Format("{0}\\{1} {2}.txt", logdir, Proc.Id,
-                        starttime.AddMinutes(i).ToString("yyyy-MM-dd HH.mm"));
+                    logfile = $"{logdir}\\{Proc.Id} {starttime.AddMinutes(i).ToString("yyyy-MM-dd HH.mm")}.txt";
                     if (File.Exists(logfile))
                     {
                         success = true;
@@ -230,9 +229,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                                 if (Logging && line.Contains("Attached to Diablo III with pid"))
                                 {
                                     LoginTime =
-                                        DateTime.Parse(string.Format("{0:yyyy-MM-dd} {1}",
-                                            starttime.ToUniversalTime(),
-                                            time));
+                                        DateTime.Parse($"{starttime.ToUniversalTime():yyyy-MM-dd} {time}");
                                     Logger.Instance.Write("Found login time: {0}", LoginTime);
                                     return true;
                                 }
@@ -331,16 +328,17 @@ namespace YetAnotherRelogger.Helpers.Bot
                 string arguments = "-pid=" + Parent.Diablo.Proc.Id;
                 arguments += " -key=" + Key;
                 arguments += " -autostart";
-                arguments += string.Format(" -routine=\"{0}\"", CombatRoutine);
+                //arguments += $" -routine=TrinityRoutine";
+                //arguments += $" -routine=\"{CombatRoutine}\"";
 
-                arguments += string.Format(" -bnetaccount=\"{0}\"", Parent.Diablo.Username);
-                arguments += string.Format(" -bnetpassword=\"{0}\"", Parent.Diablo.Password);
+                arguments += $" -bnetaccount=\"{Parent.Diablo.Username}\"";
+                arguments += $" -bnetpassword=\"{Parent.Diablo.Password}\"";
 
                 if (Parent.Diablo.UseAuthenticator)
                 {
                     //-bnetaccount="blah@blah.com" -bnetpassword="LOL" -authenticatorrestorecode="..." -authenticatorserial="EU-..."
-                    arguments += string.Format(" -authenticatorrestorecode=\"{0}\"", Parent.Diablo.RestoreCode);
-                    arguments += string.Format(" -authenticatorserial=\"{0}\"", Parent.Diablo.Serial);
+                    arguments += $" -authenticatorrestorecode=\"{Parent.Diablo.RestoreCode}\"";
+                    arguments += $" -authenticatorserial=\"{Parent.Diablo.Serial}\"";
                 }
 
                 //if (profilepath != null)
@@ -395,18 +393,22 @@ namespace YetAnotherRelogger.Helpers.Bot
                 if (ForceEnableAllPlugins)
                     arguments += " -YarEnableAll";
 
-                Debug.WriteLine(string.Format("DB Arguments: {0}", arguments));
+                Debug.WriteLine($"DB Arguments: {arguments}");
 
                 var p = new ProcessStartInfo(Location, arguments) { WorkingDirectory = Path.GetDirectoryName(Location), UseShellExecute = false};
                 p = UserAccount.ImpersonateStartInfo(p, Parent);
 
                 // Check/Install latest Communicator plugin
-                string pluginPath = string.Format("{0}\\Plugins\\YAR\\Plugin.cs", p.WorkingDirectory);
+                string pluginPath = $"{p.WorkingDirectory}\\Plugins\\YAR\\Plugin.cs";
                 Installer.InstallPlugin(pluginPath);
 
                 // Check/Install latest Kickstart Bot
-                string botPath = string.Format("{0}\\Bots\\YARBot\\YARBot.cs", p.WorkingDirectory);
+                string botPath = $"{p.WorkingDirectory}\\Bots\\YARBot\\YARBot.cs";
                 Installer.InstallBot(botPath);
+
+                // Check/Install latest Routine Stub
+                string routinePath = $"{p.WorkingDirectory}\\Routines\\Trinity\\TrinityRoutine.cs";
+                Installer.InstallRoutine(routinePath);
 
                 DateTime timeout;
                 try // Try to start Demonbuddy

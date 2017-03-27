@@ -331,9 +331,9 @@ namespace YARPLUGIN
         public void OnPulse()
         {
             _bs.IsInGame = ZetaDia.IsInGame;
-            _bs.IsLoadingWorld = ZetaDia.IsLoadingWorld;
+            _bs.IsLoadingWorld = ZetaDia.Globals.IsLoadingWorld;
 
-            if (!ZetaDia.IsInGame || ZetaDia.IsLoadingWorld || ZetaDia.Me == null || !ZetaDia.Me.IsValid)
+            if (!ZetaDia.IsInGame || ZetaDia.Globals.IsLoadingWorld || ZetaDia.Me == null || !ZetaDia.Me.IsValid)
                 return;
 
             Pulse();
@@ -562,7 +562,7 @@ namespace YARPLUGIN
                     return RunStatus.Failure;
                 }
 
-                if (!ZetaDia.IsInGame || ZetaDia.Me == null || !ZetaDia.Me.IsValid || ZetaDia.IsLoadingWorld)
+                if (!ZetaDia.IsInGame || ZetaDia.Me == null || !ZetaDia.Me.IsValid || ZetaDia.Globals.IsLoadingWorld)
                 {
                     return RunStatus.Failure;
                 }
@@ -570,14 +570,14 @@ namespace YARPLUGIN
                 LogWorker();
 
                 // in-game / character data 
-                _bs.IsLoadingWorld = ZetaDia.IsLoadingWorld;
+                _bs.IsLoadingWorld = ZetaDia.Globals.IsLoadingWorld;
                 _bs.Coinage = 0;
                 _bs.Experience = 0;
                 try
                 {
                     if (ZetaDia.Me != null && ZetaDia.Me.IsValid)
                     {
-                        _bs.Coinage = ZetaDia.PlayerData.Coinage;
+                        _bs.Coinage = ZetaDia.Storage.PlayerDataManager.ActivePlayerData.Coinage;
                         Int64 exp;
                         if (ZetaDia.Me.Level < 60)
                             exp = ZetaDia.Me.CurrentExperience;
