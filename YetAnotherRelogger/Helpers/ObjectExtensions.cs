@@ -1,39 +1,41 @@
-﻿using System.ArrayExtensions;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using YetAnotherRelogger.Helpers.ArrayExtensions;
+using YetAnotherRelogger.Helpers.Attributes;
 
-namespace System
+namespace YetAnotherRelogger.Helpers
 {
     public static class ObjectExtensions
     {
-        private static readonly MethodInfo CloneMethod = typeof (Object).GetMethod("MemberwiseClone",
+        private static readonly MethodInfo s_cloneMethod = typeof (object).GetMethod("MemberwiseClone",
             BindingFlags.NonPublic | BindingFlags.Instance);
 
         public static bool IsPrimitive(this Type type)
         {
-            if (type == typeof (String))
+            if (type == typeof (string))
                 return true;
             return (type.IsValueType & type.IsPrimitive);
         }
 
-        public static Object Copy(this Object originalObject)
+        public static object Copy(this object originalObject)
         {
-            return InternalCopy(originalObject, new Dictionary<Object, Object>(new ReferenceEqualityComparer()));
+            return InternalCopy(originalObject, new Dictionary<object, object>(new ReferenceEqualityComparer()));
         }
 
-        private static Object InternalCopy(Object originalObject, IDictionary<Object, Object> visited)
+        private static object InternalCopy(object originalObject, IDictionary<object, object> visited)
         {
             if (originalObject == null)
                 return null;
-            Type typeToReflect = originalObject.GetType();
+            var typeToReflect = originalObject.GetType();
             if (IsPrimitive(typeToReflect))
                 return originalObject;
             if (visited.ContainsKey(originalObject))
                 return visited[originalObject];
 
-            foreach (MemberInfo memberInfo in originalObject.GetType().GetMembers())
+            foreach (var memberInfo in originalObject.GetType().GetMembers())
             {
-                foreach (object attribute in memberInfo.GetCustomAttributes(true))
+                foreach (var attribute in memberInfo.GetCustomAttributes(true))
                 {
                     if (attribute is NoCopy)
                     {
@@ -42,10 +44,10 @@ namespace System
                 }
             }
 
-            object cloneObject = CloneMethod.Invoke(originalObject, null);
+            var cloneObject = s_cloneMethod.Invoke(originalObject, null);
             if (typeToReflect.IsArray)
             {
-                Type arrayType = typeToReflect.GetElementType();
+                var arrayType = typeToReflect.GetElementType();
                 if (IsPrimitive(arrayType) == false)
                 {
                     var clonedArray = (Array) cloneObject;
@@ -77,26 +79,26 @@ namespace System
                 BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.FlattenHierarchy,
             Func<FieldInfo, bool> filter = null)
         {
-            foreach (FieldInfo fieldInfo in typeToReflect.GetFields(bindingFlags))
+            foreach (var fieldInfo in typeToReflect.GetFields(bindingFlags))
             {
                 if (filter != null && filter(fieldInfo) == false)
                     continue;
                 if (IsPrimitive(fieldInfo.FieldType))
                     continue;
-                object originalFieldValue = fieldInfo.GetValue(originalObject);
-                object clonedFieldValue = originalFieldValue == null ? null : InternalCopy(originalFieldValue, visited);
+                var originalFieldValue = fieldInfo.GetValue(originalObject);
+                var clonedFieldValue = originalFieldValue == null ? null : InternalCopy(originalFieldValue, visited);
                 fieldInfo.SetValue(cloneObject, clonedFieldValue);
             }
         }
 
         public static T Copy<T>(this T original)
         {
-            System.Diagnostics.Debug.WriteLine(string.Format("Cloning {0}", original.GetType().Name));
-            return (T) Copy((Object) original);
+            System.Diagnostics.Debug.WriteLine($"Cloning {original.GetType().Name}");
+            return (T) Copy((object) original);
         }
     }
 
-    public class ReferenceEqualityComparer : EqualityComparer<Object>
+    public class ReferenceEqualityComparer : EqualityComparer<object>
     {
         public override bool Equals(object x, object y)
         {
@@ -127,27 +129,27 @@ namespace System
 
         internal class ArrayTraverse
         {
-            private readonly int[] maxLengths;
+            private readonly int[] _maxLengths;
             public int[] Position;
 
             public ArrayTraverse(Array array)
             {
-                maxLengths = new int[array.Rank];
-                for (int i = 0; i < array.Rank; ++i)
+                _maxLengths = new int[array.Rank];
+                for (var i = 0; i < array.Rank; ++i)
                 {
-                    maxLengths[i] = array.GetLength(i) - 1;
+                    _maxLengths[i] = array.GetLength(i) - 1;
                 }
                 Position = new int[array.Rank];
             }
 
             public bool Step()
             {
-                for (int i = 0; i < Position.Length; ++i)
+                for (var i = 0; i < Position.Length; ++i)
                 {
-                    if (Position[i] < maxLengths[i])
+                    if (Position[i] < _maxLengths[i])
                     {
                         Position[i]++;
-                        for (int j = 0; j < i; j++)
+                        for (var j = 0; j < i; j++)
                         {
                             Position[j] = 0;
                         }

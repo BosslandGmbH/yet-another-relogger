@@ -5,11 +5,11 @@ namespace YetAnotherRelogger.Forms.Wizard
 {
     public partial class Heroes : UserControl
     {
-        private readonly WizardMain WM;
+        private readonly WizardMain _wm;
 
         public Heroes(WizardMain parent)
         {
-            WM = parent;
+            _wm = parent;
             InitializeComponent();
             VisibleChanged += Heroes_VisibleChanged;
             this.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
@@ -18,7 +18,7 @@ namespace YetAnotherRelogger.Forms.Wizard
         private void Heroes_VisibleChanged(object sender, EventArgs e)
         {
             if (Visible)
-                WM.NextStep("Heroes");
+                _wm.NextStep("Heroes");
         }
 
         private void Heroes_Load(object sender, EventArgs e)

@@ -9,7 +9,7 @@ namespace YetAnotherRelogger.Forms.Wizard
 {
     public partial class WizardMain : Form
     {
-        private readonly BotClass bot;
+        private readonly BotClass _bot;
         public SetAffinity AffinityDemonbuddy;
         public SetAffinity AffinityDiablo;
         public int FinishCount;
@@ -17,12 +17,12 @@ namespace YetAnotherRelogger.Forms.Wizard
         private int _stepCount;
         private Advanced _ucAdvanced;
         private DemonbuddyOptions _ucDemonbuddy;
-        public DiabloOptions _ucDiablo;
+        public DiabloOptions UcDiablo;
         private Heroes _ucHeroes;
         private ProfileSchedule _ucProfileSchedule;
         private WeekSchedule _ucWeekSchedule;
-        private int index = -1;
-        private bool shouldClose;
+        private int _index = -1;
+        private bool _shouldClose;
 
         public WizardMain()
         {
@@ -31,14 +31,14 @@ namespace YetAnotherRelogger.Forms.Wizard
 
         public WizardMain(int index)
         {
-            this.index = index;
-            bot = BotSettings.Instance.Bots[index];
+            this._index = index;
+            _bot = BotSettings.Instance.Bots[index];
             InitializeComponent();
         }
 
         public void NextStep(string title)
         {
-            Text = string.Format("{0} (Step {1}/{2})", title, _stepCount - 2, FinishCount - 2);
+            Text = $"{title} (Step {_stepCount - 2}/{FinishCount - 2})";
         }
 
         private void WizardMain_Load(object sender, EventArgs e)
@@ -49,7 +49,7 @@ namespace YetAnotherRelogger.Forms.Wizard
             _stepCount = _mainCount; // set start point
 
             _ucDemonbuddy = new DemonbuddyOptions(this);
-            _ucDiablo = new DiabloOptions(this);
+            UcDiablo = new DiabloOptions(this);
             _ucWeekSchedule = new WeekSchedule(this);
             _ucHeroes = new Heroes(this);
             _ucProfileSchedule = new ProfileSchedule(this);
@@ -57,12 +57,12 @@ namespace YetAnotherRelogger.Forms.Wizard
 
 
             Controls.Add(_ucDemonbuddy);
-            Controls.Add(_ucDiablo);
+            Controls.Add(UcDiablo);
             Controls.Add(_ucWeekSchedule);
             //Controls.Add(ucHeroes);
             Controls.Add(_ucProfileSchedule);
             Controls.Add(_ucAdvanced);
-            _ucDiablo.Visible =
+            UcDiablo.Visible =
                 _ucWeekSchedule.Visible = _ucProfileSchedule.Visible = _ucHeroes.Visible = _ucAdvanced.Visible = false;
 
             FinishCount = Controls.Count - 1; // Get Finish count
@@ -70,93 +70,93 @@ namespace YetAnotherRelogger.Forms.Wizard
             AffinityDiablo = new SetAffinity();
             AffinityDemonbuddy = new SetAffinity();
 
-            if (bot != null)
+            if (_bot != null)
                 LoadData();
         }
 
         private void LoadData()
         {
             // Load data
-            _ucDemonbuddy.textBox1.Text = bot.Name;
-            _ucDemonbuddy.textBox2.Text = bot.Description;
+            _ucDemonbuddy.textBox1.Text = _bot.Name;
+            _ucDemonbuddy.textBox2.Text = _bot.Description;
 
             // Advanced section
-            _ucAdvanced.checkBox2.Checked = bot.CreateWindowsUser;
-            _ucAdvanced.checkBox1.Checked = bot.UseWindowsUser;
-            _ucAdvanced.textBox1.Text = bot.WindowsUserName;
-            _ucAdvanced.maskedTextBox1.Text = bot.WindowsUserPassword;
-            _ucAdvanced.textBox3.Text = bot.D3PrefsLocation;
-            _ucAdvanced.checkBox3.Checked = bot.UseDiabloClone;
-            _ucAdvanced.textBox2.Text = bot.DiabloCloneLocation;
+            _ucAdvanced.checkBox2.Checked = _bot.CreateWindowsUser;
+            _ucAdvanced.checkBox1.Checked = _bot.UseWindowsUser;
+            _ucAdvanced.textBox1.Text = _bot.WindowsUserName;
+            _ucAdvanced.maskedTextBox1.Text = _bot.WindowsUserPassword;
+            _ucAdvanced.textBox3.Text = _bot.D3PrefsLocation;
+            _ucAdvanced.checkBox3.Checked = _bot.UseDiabloClone;
+            _ucAdvanced.textBox2.Text = _bot.DiabloCloneLocation;
 
             // Demonbuddy
-            _ucDemonbuddy.textBox4.Text = bot.Demonbuddy.Location;
-            _ucDemonbuddy.textBox3.Text = bot.Demonbuddy.Key;
+            _ucDemonbuddy.textBox4.Text = _bot.Demonbuddy.Location;
+            _ucDemonbuddy.textBox3.Text = _bot.Demonbuddy.Key;
 
-            _ucDemonbuddy.comboBox1.Text = bot.Demonbuddy.CombatRoutine;
-            _ucDemonbuddy.checkBox1.Checked = bot.Demonbuddy.NoFlash;
-            _ucDemonbuddy.checkBox2.Checked = bot.Demonbuddy.AutoUpdate;
-            _ucDemonbuddy.checkBox3.Checked = bot.Demonbuddy.NoUpdate;
-            _ucDemonbuddy.textBox9.Text = bot.Demonbuddy.BuddyAuthUsername;
-            _ucDemonbuddy.maskedTextBox2.Text = bot.Demonbuddy.BuddyAuthPassword;
-            _ucDemonbuddy.comboBox2.SelectedIndex = bot.Demonbuddy.Priority;
-            _ucDemonbuddy.checkBox5.Checked = bot.Demonbuddy.ForceEnableAllPlugins;
+            _ucDemonbuddy.comboBox1.Text = _bot.Demonbuddy.CombatRoutine;
+            _ucDemonbuddy.checkBox1.Checked = _bot.Demonbuddy.NoFlash;
+            _ucDemonbuddy.checkBox2.Checked = _bot.Demonbuddy.AutoUpdate;
+            _ucDemonbuddy.checkBox3.Checked = _bot.Demonbuddy.NoUpdate;
+            _ucDemonbuddy.textBox9.Text = _bot.Demonbuddy.BuddyAuthUsername;
+            _ucDemonbuddy.maskedTextBox2.Text = _bot.Demonbuddy.BuddyAuthPassword;
+            _ucDemonbuddy.comboBox2.SelectedIndex = _bot.Demonbuddy.Priority;
+            _ucDemonbuddy.checkBox5.Checked = _bot.Demonbuddy.ForceEnableAllPlugins;
             // Demonbuddy manual position
-            _ucDemonbuddy.checkBox4.Checked = bot.Demonbuddy.ManualPosSize;
-            _ucDemonbuddy.textBox6.Text = bot.Demonbuddy.X.ToString();
-            _ucDemonbuddy.textBox5.Text = bot.Demonbuddy.Y.ToString();
-            _ucDemonbuddy.textBox10.Text = bot.Demonbuddy.W.ToString();
-            _ucDemonbuddy.textBox11.Text = bot.Demonbuddy.H.ToString();
+            _ucDemonbuddy.checkBox4.Checked = _bot.Demonbuddy.ManualPosSize;
+            _ucDemonbuddy.textBox6.Text = _bot.Demonbuddy.X.ToString();
+            _ucDemonbuddy.textBox5.Text = _bot.Demonbuddy.Y.ToString();
+            _ucDemonbuddy.textBox10.Text = _bot.Demonbuddy.W.ToString();
+            _ucDemonbuddy.textBox11.Text = _bot.Demonbuddy.H.ToString();
 
             // Diablo
-            _ucDiablo.username.Text = bot.Diablo.Username;
-            _ucDiablo.password.Text = bot.Diablo.Password;
-            _ucDiablo.diablo3Path.Text = bot.Diablo.Location;
-            _ucDiablo.language.SelectedItem = bot.Diablo.Language;
-            _ucDiablo.region.SelectedItem = bot.Diablo.Region;
-            _ucDiablo.checkBox1.Checked = bot.Diablo.UseAuthenticator;
-            _ucDiablo.useInnerSpace.Checked = bot.Diablo.UseIsBoxer;
-            _ucDiablo.isBoxerLaunchAll.Checked = bot.Diablo.ISBoxerLaunchCharacterSet;
-            _ucDiablo.characterSet.Text = bot.Diablo.CharacterSet;
-            _ucDiablo.displaySlot.Text = bot.Diablo.DisplaySlot;
-            _ucDiablo.removeWindowFrame.Checked = bot.Diablo.NoFrame;
+            UcDiablo.username.Text = _bot.Diablo.Username;
+            UcDiablo.password.Text = _bot.Diablo.Password;
+            UcDiablo.diablo3Path.Text = _bot.Diablo.Location;
+            UcDiablo.language.SelectedItem = _bot.Diablo.Language;
+            UcDiablo.region.SelectedItem = _bot.Diablo.Region;
+            UcDiablo.checkBox1.Checked = _bot.Diablo.UseAuthenticator;
+            UcDiablo.useInnerSpace.Checked = _bot.Diablo.UseIsBoxer;
+            UcDiablo.isBoxerLaunchAll.Checked = _bot.Diablo.IsBoxerLaunchCharacterSet;
+            UcDiablo.characterSet.Text = _bot.Diablo.CharacterSet;
+            UcDiablo.displaySlot.Text = _bot.Diablo.DisplaySlot;
+            UcDiablo.removeWindowFrame.Checked = _bot.Diablo.NoFrame;
 
             // Affinity Diablo
-            if (bot.Diablo.CpuCount != Environment.ProcessorCount)
+            if (_bot.Diablo.CpuCount != Environment.ProcessorCount)
             {
-                bot.Diablo.ProcessorAffinity = bot.Diablo.AllProcessors;
-                bot.Diablo.CpuCount = Environment.ProcessorCount;
+                _bot.Diablo.ProcessorAffinity = _bot.Diablo.AllProcessors;
+                _bot.Diablo.CpuCount = Environment.ProcessorCount;
             }
 
-            if (AffinityDiablo.cpus.Count != bot.Diablo.CpuCount)
+            if (AffinityDiablo.Cpus.Count != _bot.Diablo.CpuCount)
             {
                 Logger.Instance.Write(
                     "For whatever reason Diablo and UI see different number of CPUs, affinity disabled");
             }
             else
             {
-                for (int i = 0; i < bot.Diablo.CpuCount; i++)
+                for (var i = 0; i < _bot.Diablo.CpuCount; i++)
                 {
-                    AffinityDiablo.cpus[i].Checked = ((bot.Diablo.ProcessorAffinity & (1 << i)) != 0);
+                    AffinityDiablo.Cpus[i].Checked = ((_bot.Diablo.ProcessorAffinity & (1 << i)) != 0);
                 }
             }
             // Affinity Demonbuddy
-            if (bot.Demonbuddy.CpuCount != Environment.ProcessorCount)
+            if (_bot.Demonbuddy.CpuCount != Environment.ProcessorCount)
             {
-                bot.Demonbuddy.ProcessorAffinity = bot.Demonbuddy.AllProcessors;
-                bot.Demonbuddy.CpuCount = Environment.ProcessorCount;
+                _bot.Demonbuddy.ProcessorAffinity = _bot.Demonbuddy.AllProcessors;
+                _bot.Demonbuddy.CpuCount = Environment.ProcessorCount;
             }
 
-            if (AffinityDemonbuddy.cpus.Count != bot.Demonbuddy.CpuCount)
+            if (AffinityDemonbuddy.Cpus.Count != _bot.Demonbuddy.CpuCount)
             {
                 Logger.Instance.Write(
                     "For whatever reason Demonbuddy and UI see different number of CPUs, affinity disabled");
             }
             else
             {
-                for (int i = 0; i < bot.Demonbuddy.CpuCount; i++)
+                for (var i = 0; i < _bot.Demonbuddy.CpuCount; i++)
                 {
-                    AffinityDemonbuddy.cpus[i].Checked = ((bot.Demonbuddy.ProcessorAffinity & (1 << i)) != 0);
+                    AffinityDemonbuddy.Cpus[i].Checked = ((_bot.Demonbuddy.ProcessorAffinity & (1 << i)) != 0);
                 }
             }
 
@@ -169,37 +169,37 @@ namespace YetAnotherRelogger.Forms.Wizard
                 d.RestoreCode = _ucDiablo.textBox8.Text;
              */
 
-            string SerialCode = bot.Diablo.Serial;
+            var serialCode = _bot.Diablo.Serial;
             string[] words;
-            words = SerialCode.Split('-');
+            words = serialCode.Split('-');
 
-            _ucDiablo.authField1.Text = words[0];
-            _ucDiablo.authField2.Text = words[1];
-            _ucDiablo.authField3.Text = words[2];
-            _ucDiablo.authField4.Text = words[3];
-            _ucDiablo.textBox8.Text = bot.Diablo.RestoreCode;
+            UcDiablo.authField1.Text = words[0];
+            UcDiablo.authField2.Text = words[1];
+            UcDiablo.authField3.Text = words[2];
+            UcDiablo.authField4.Text = words[3];
+            UcDiablo.textBox8.Text = _bot.Diablo.RestoreCode;
 
 
-            _ucDiablo.processorAffinity.SelectedIndex = bot.Diablo.Priority;
+            UcDiablo.processorAffinity.SelectedIndex = _bot.Diablo.Priority;
 
             // Diablo manual position
-            _ucDiablo.manualPositionAndSize.Checked = bot.Diablo.ManualPosSize;
-            _ucDiablo.positionX.Text = bot.Diablo.X.ToString();
-            _ucDiablo.positionY.Text = bot.Diablo.Y.ToString();
-            _ucDiablo.width.Text = bot.Diablo.W.ToString();
-            _ucDiablo.height.Text = bot.Diablo.H.ToString();
+            UcDiablo.manualPositionAndSize.Checked = _bot.Diablo.ManualPosSize;
+            UcDiablo.positionX.Text = _bot.Diablo.X.ToString();
+            UcDiablo.positionY.Text = _bot.Diablo.Y.ToString();
+            UcDiablo.width.Text = _bot.Diablo.W.ToString();
+            UcDiablo.height.Text = _bot.Diablo.H.ToString();
 
             // Profile Schedule
-            _ucProfileSchedule.Profiles = bot.ProfileSchedule.Profiles;
-            _ucProfileSchedule.textBox1.Text = bot.ProfileSchedule.MaxRandomTime.ToString();
-            _ucProfileSchedule.textBox2.Text = bot.ProfileSchedule.MaxRandomRuns.ToString();
-            _ucProfileSchedule.checkBox1.Checked = bot.ProfileSchedule.Random;
+            _ucProfileSchedule.Profiles = _bot.ProfileSchedule.Profiles;
+            _ucProfileSchedule.textBox1.Text = _bot.ProfileSchedule.MaxRandomTime.ToString();
+            _ucProfileSchedule.textBox2.Text = _bot.ProfileSchedule.MaxRandomRuns.ToString();
+            _ucProfileSchedule.checkBox1.Checked = _bot.ProfileSchedule.Random;
 
             // Load Weekschedule
-            _ucWeekSchedule.textBox1.Text = bot.Week.MinRandom.ToString();
-            _ucWeekSchedule.textBox2.Text = bot.Week.MaxRandom.ToString();
-            _ucWeekSchedule.checkBox1.Checked = bot.Week.Shuffle;
-            _ucWeekSchedule.LoadSchedule(bot);
+            _ucWeekSchedule.textBox1.Text = _bot.Week.MinRandom.ToString();
+            _ucWeekSchedule.textBox2.Text = _bot.Week.MaxRandom.ToString();
+            _ucWeekSchedule.checkBox1.Checked = _bot.Week.Shuffle;
+            _ucWeekSchedule.LoadSchedule(_bot);
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -253,23 +253,23 @@ namespace YetAnotherRelogger.Forms.Wizard
                 db.H = result;
 
                 // Diablo
-                d.Username = _ucDiablo.username.Text;
-                d.Password = _ucDiablo.password.Text;
-                d.Location = _ucDiablo.diablo3Path.Text;
-                d.Language = _ucDiablo.language.SelectedItem.ToString();
-                d.Region = _ucDiablo.region.SelectedItem.ToString();
-                d.UseAuthenticator = _ucDiablo.checkBox1.Checked;
-                d.Serial = string.Format("{0}-{1}-{2}-{3}", _ucDiablo.authField1.Text, _ucDiablo.authField2.Text,
-                    _ucDiablo.authField3.Text, _ucDiablo.authField4.Text);
-                d.Serial2 = string.Format("{0}{1}{2}{3}", _ucDiablo.authField1.Text, _ucDiablo.authField2.Text,
-                    _ucDiablo.authField3.Text, _ucDiablo.authField4.Text);
-                d.RestoreCode = _ucDiablo.textBox8.Text;
-                d.Priority = _ucDiablo.processorAffinity.SelectedIndex;
-                d.UseIsBoxer = _ucDiablo.useInnerSpace.Checked;
-                d.ISBoxerLaunchCharacterSet = _ucDiablo.isBoxerLaunchAll.Checked;
-                d.CharacterSet = _ucDiablo.characterSet.Text;
-                d.DisplaySlot = _ucDiablo.displaySlot.Text;
-                d.NoFrame = _ucDiablo.removeWindowFrame.Checked;
+                d.Username = UcDiablo.username.Text;
+                d.Password = UcDiablo.password.Text;
+                d.Location = UcDiablo.diablo3Path.Text;
+                d.Language = UcDiablo.language.SelectedItem.ToString();
+                d.Region = UcDiablo.region.SelectedItem.ToString();
+                d.UseAuthenticator = UcDiablo.checkBox1.Checked;
+                d.Serial =
+                    $"{UcDiablo.authField1.Text}-{UcDiablo.authField2.Text}-{UcDiablo.authField3.Text}-{UcDiablo.authField4.Text}";
+                d.Serial2 =
+                    $"{UcDiablo.authField1.Text}{UcDiablo.authField2.Text}{UcDiablo.authField3.Text}{UcDiablo.authField4.Text}";
+                d.RestoreCode = UcDiablo.textBox8.Text;
+                d.Priority = UcDiablo.processorAffinity.SelectedIndex;
+                d.UseIsBoxer = UcDiablo.useInnerSpace.Checked;
+                d.IsBoxerLaunchCharacterSet = UcDiablo.isBoxerLaunchAll.Checked;
+                d.CharacterSet = UcDiablo.characterSet.Text;
+                d.DisplaySlot = UcDiablo.displaySlot.Text;
+                d.NoFrame = UcDiablo.removeWindowFrame.Checked;
 
                 // Affinity Diablo
                 if (d.CpuCount != Environment.ProcessorCount)
@@ -278,17 +278,17 @@ namespace YetAnotherRelogger.Forms.Wizard
                     d.CpuCount = Environment.ProcessorCount;
                 }
 
-                if (AffinityDiablo.cpus.Count != d.CpuCount)
+                if (AffinityDiablo.Cpus.Count != d.CpuCount)
                 {
                     Logger.Instance.Write(
                         "For whatever reason Diablo and UI see different number of CPUs, affinity disabled");
                 }
                 else
                 {
-                    int intProcessorAffinity = 0;
-                    for (int i = 0; i < d.CpuCount; i++)
+                    var intProcessorAffinity = 0;
+                    for (var i = 0; i < d.CpuCount; i++)
                     {
-                        if (AffinityDiablo.cpus[i].Checked)
+                        if (AffinityDiablo.Cpus[i].Checked)
                             intProcessorAffinity |= (1 << i);
                     }
                     if (intProcessorAffinity == 0)
@@ -305,17 +305,17 @@ namespace YetAnotherRelogger.Forms.Wizard
                     db.CpuCount = Environment.ProcessorCount;
                 }
 
-                if (AffinityDemonbuddy.cpus.Count != db.CpuCount)
+                if (AffinityDemonbuddy.Cpus.Count != db.CpuCount)
                 {
                     Logger.Instance.Write(
                         "For whatever reason Demonbuddy and UI see different number of CPUs, affinity disabled");
                 }
                 else
                 {
-                    int intProcessorAffinity = 0;
-                    for (int i = 0; i < db.CpuCount; i++)
+                    var intProcessorAffinity = 0;
+                    for (var i = 0; i < db.CpuCount; i++)
                     {
-                        if (AffinityDemonbuddy.cpus[i].Checked)
+                        if (AffinityDemonbuddy.Cpus[i].Checked)
                             intProcessorAffinity |= (1 << i);
                     }
                     if (intProcessorAffinity == 0)
@@ -325,16 +325,16 @@ namespace YetAnotherRelogger.Forms.Wizard
                 if (AffinityDemonbuddy != null)
                     AffinityDemonbuddy.Dispose();
 
-                d.ManualPosSize = _ucDiablo.manualPositionAndSize.Checked;
+                d.ManualPosSize = UcDiablo.manualPositionAndSize.Checked;
                 if (d.ManualPosSize)
                 {
-                    int.TryParse(_ucDiablo.positionX.Text, out result);
+                    int.TryParse(UcDiablo.positionX.Text, out result);
                     d.X = result;
-                    int.TryParse(_ucDiablo.positionY.Text, out result);
+                    int.TryParse(UcDiablo.positionY.Text, out result);
                     d.Y = result;
-                    int.TryParse(_ucDiablo.width.Text, out result);
+                    int.TryParse(UcDiablo.width.Text, out result);
                     d.W = result;
-                    int.TryParse(_ucDiablo.height.Text, out result);
+                    int.TryParse(UcDiablo.height.Text, out result);
                     d.H = result;
                 }
 
@@ -354,24 +354,24 @@ namespace YetAnotherRelogger.Forms.Wizard
                 b.ProfileSchedule = ps;
 
 
-                if (bot != null && index >= 0)
+                if (_bot != null && _index >= 0)
                 {
                     Logger.Instance.WriteGlobal("Editing bot: {0}", b.Name);
 
                     // Copy some important stuff from old bot
 
-                    b.IsStarted = BotSettings.Instance.Bots[index].IsStarted;
-                    b.IsEnabled = BotSettings.Instance.Bots[index].IsEnabled;
-                    b.IsRunning = BotSettings.Instance.Bots[index].IsRunning;
-                    b.Diablo.Proc = BotSettings.Instance.Bots[index].Diablo.Proc;
-                    b.Demonbuddy.Proc = BotSettings.Instance.Bots[index].Demonbuddy.Proc;
-                    b.Demonbuddy.MainWindowHandle = BotSettings.Instance.Bots[index].Demonbuddy.MainWindowHandle;
-                    b.Diablo.MainWindowHandle = BotSettings.Instance.Bots[index].Diablo.MainWindowHandle;
-                    b.AntiIdle = BotSettings.Instance.Bots[index].AntiIdle;
-                    b.Week.ForceStart = BotSettings.Instance.Bots[index].Week.ForceStart;
-                    b.RunningTime = BotSettings.Instance.Bots[index].RunningTime;
+                    b.IsStarted = BotSettings.Instance.Bots[_index].IsStarted;
+                    b.IsEnabled = BotSettings.Instance.Bots[_index].IsEnabled;
+                    b.IsRunning = BotSettings.Instance.Bots[_index].IsRunning;
+                    b.Diablo.Proc = BotSettings.Instance.Bots[_index].Diablo.Proc;
+                    b.Demonbuddy.Proc = BotSettings.Instance.Bots[_index].Demonbuddy.Proc;
+                    b.Demonbuddy.MainWindowHandle = BotSettings.Instance.Bots[_index].Demonbuddy.MainWindowHandle;
+                    b.Diablo.MainWindowHandle = BotSettings.Instance.Bots[_index].Diablo.MainWindowHandle;
+                    b.AntiIdle = BotSettings.Instance.Bots[_index].AntiIdle;
+                    b.Week.ForceStart = BotSettings.Instance.Bots[_index].Week.ForceStart;
+                    b.RunningTime = BotSettings.Instance.Bots[_index].RunningTime;
 
-                    BotSettings.Instance.Bots[index] = b;
+                    BotSettings.Instance.Bots[_index] = b;
                 }
                 else
                 {
@@ -380,7 +380,7 @@ namespace YetAnotherRelogger.Forms.Wizard
                 }
 
                 BotSettings.Instance.Save();
-                shouldClose = true;
+                _shouldClose = true;
                 ActiveForm.Close();
 
                 BotSettings.Instance.Save();
@@ -422,7 +422,7 @@ namespace YetAnotherRelogger.Forms.Wizard
 
         private void WizardMain_Closing(object sender, CancelEventArgs e)
         {
-            if (!shouldClose &&
+            if (!_shouldClose &&
                 MessageBox.Show("This will close the wizard without saving.\nAre you sure?", "Warning",
                     MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.No)
                 e.Cancel = true;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Xml.Serialization;
+using YetAnotherRelogger.Helpers.Attributes;
 using YetAnotherRelogger.Helpers.Enums;
 using YetAnotherRelogger.Helpers.Tools;
 
@@ -33,17 +34,11 @@ namespace YetAnotherRelogger.Helpers.Bot
 
         [XmlIgnore]
         [NoCopy]
-        public int MaxRuns
-        {
-            get { return Current.Runs + _addRuns; }
-        }
+        public int MaxRuns => Current.Runs + _addRuns;
 
         [XmlIgnore]
         [NoCopy]
-        public int MaxTime
-        {
-            get { return Current.Minutes + _addTime; }
-        }
+        public int MaxTime => Current.Minutes + _addTime;
 
         [XmlIgnore]
         [NoCopy]
@@ -59,22 +54,22 @@ namespace YetAnotherRelogger.Helpers.Bot
 
                 var rnd = new MersenneTwister();
 
-                int listcount = Profiles.Count(x => !x.IsDone);
+                var listcount = Profiles.Count(x => !x.IsDone);
                 // Check if we need to reset list
                 if (listcount == 0)
                 {
                     Logger.Instance.Write("All profiles are done resetting cycle");
-                    foreach (Profile p in Profiles)
+                    foreach (var p in Profiles)
                         p.IsDone = false; // reset each profile in list
-                    listcount = Profiles.Count();
+                    listcount = Profiles.Count;
                 }
                 Count = 0; // Reset run counter
                 StartTime = DateTime.Now; // Reset Start time
-                IEnumerable<Profile> filtered =
+                var filtered =
                     from x in Profiles.Where(x => !x.IsDone).Select((item, index) => new {item, index})
                     where x.index%2 == rnd.Next(0, listcount - 1)
                     select x.item;
-                List<Profile> enumerable = filtered as List<Profile> ?? filtered.ToList();
+                var enumerable = filtered as List<Profile> ?? filtered.ToList();
                 Current = Random && enumerable.FirstOrDefault() != null
                     ? enumerable.FirstOrDefault()
                     : Profiles.FirstOrDefault(x => !x.IsDone);
@@ -94,7 +89,7 @@ namespace YetAnotherRelogger.Helpers.Bot
         {
             get
             {
-                int maxminutes = (Current.Minutes > 59 ? 59 : Current.Minutes) + _addTime;
+                var maxminutes = (Current.Minutes > 59 ? 59 : Current.Minutes) + _addTime;
                 maxminutes = (maxminutes > 59 ? 59 : maxminutes);
 
                 if ((Current.Runs > 0 && Count >= Current.Runs + _addRuns) ||

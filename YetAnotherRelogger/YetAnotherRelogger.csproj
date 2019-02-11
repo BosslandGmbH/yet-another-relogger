@@ -264,7 +264,6 @@
       <DependentUpon>SelectAction.cs</DependentUpon>
     </Compile>
     <Compile Include="Helpers\ObjectExtensions.cs" />
-    <Compile Include="Helpers\ProfileKickstart.cs" />
     <Compile Include="Helpers\Bot\ProfileSchedule.cs" />
     <Compile Include="Helpers\BuddyAuth.cs" />
     <Compile Include="Helpers\CommandLineArgs.cs" />
@@ -299,7 +298,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Settings.cs" />
+    <Compile Include="Properties\Settings.cs" />
     <Compile Include="StatsUpdater.cs" />
     <Compile Include="Updater\CRC.cs" />
     <Compile Include="Helpers\Tools\General.cs" />

@@ -112,7 +112,6 @@ namespace YARKickstart
         public void Stop() { }
         public void Pulse() { }
         public void Initialize() { }
-        public Composite Logic { get { return new Action(ret => RunStatus.Failure); } }
+        public Composite Logic => new Action(ret => RunStatus.Failure);
     }
-
 }

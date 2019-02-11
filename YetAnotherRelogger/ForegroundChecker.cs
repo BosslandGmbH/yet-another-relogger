@@ -1,8 +1,6 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Threading;
 using YetAnotherRelogger.Helpers;
-using YetAnotherRelogger.Helpers.Bot;
 using YetAnotherRelogger.Helpers.Tools;
 
 namespace YetAnotherRelogger
@@ -10,22 +8,11 @@ namespace YetAnotherRelogger
     public sealed class ForegroundChecker
     {
         #region singleton
-
-        private static readonly ForegroundChecker instance = new ForegroundChecker();
-
-        static ForegroundChecker()
-        {
-        }
-
+        private static ForegroundChecker _instance;
+        public static ForegroundChecker Instance => _instance ?? (_instance = new ForegroundChecker());
         private ForegroundChecker()
         {
         }
-
-        public static ForegroundChecker Instance
-        {
-            get { return instance; }
-        }
-
         #endregion
 
         private Thread _fcThread;
@@ -34,9 +21,7 @@ namespace YetAnotherRelogger
 
         public void Start()
         {
-            if (_fcThread != null)
-                _fcThread.Abort();
-
+            _fcThread?.Abort();
             _fcThread = new Thread(ForegroundCheckerWorker) { IsBackground = true, Name = "ForegroundCheckerWorker" };
             _fcThread.Start();
         }
@@ -52,15 +37,15 @@ namespace YetAnotherRelogger
             {
                 while (true)
                 {
-                    BindingList<BotClass> bots = BotSettings.Instance.Bots;
-                    IntPtr hwnd = WinAPI.GetForegroundWindow();
+                    var bots = BotSettings.Instance.Bots;
+                    var hwnd = WinApi.GetForegroundWindow();
 
                     if (_lastDemonbuddy != hwnd && _lastDiablo != hwnd)
                     {
                         _lastDemonbuddy = _lastDiablo = IntPtr.Zero;
-                        foreach (BotClass bot in bots)
+                        foreach (var bot in bots)
                         {
-                            DateTime time = DateTime.UtcNow;
+                            var time = DateTime.UtcNow;
                             if (!bot.IsStarted || !bot.IsRunning || !bot.Diablo.IsRunning || !bot.Demonbuddy.IsRunning)
                                 continue;
                             if (bot.Diablo.Proc.MainWindowHandle != hwnd)
@@ -73,19 +58,19 @@ namespace YetAnotherRelogger
                                 bot.Diablo.Proc.Id);
 
                             // Bring demonbuddy to front
-                            WinAPI.ShowWindow(_lastDemonbuddy, WinAPI.WindowShowStyle.ShowNormal);
-                            WinAPI.SetForegroundWindow(_lastDemonbuddy);
-                            DateTime timeout = DateTime.UtcNow;
-                            while (WinAPI.GetForegroundWindow() != _lastDemonbuddy)
+                            WinApi.ShowWindow(_lastDemonbuddy, WinApi.WindowShowStyle.ShowNormal);
+                            WinApi.SetForegroundWindow(_lastDemonbuddy);
+                            var timeout = DateTime.UtcNow;
+                            while (WinApi.GetForegroundWindow() != _lastDemonbuddy)
                             {
                                 if (General.DateSubtract(timeout, false) > 500)
                                 {
-                                    WinAPI.ShowWindow(_lastDemonbuddy, WinAPI.WindowShowStyle.ForceMinimized);
+                                    WinApi.ShowWindow(_lastDemonbuddy, WinApi.WindowShowStyle.ForceMinimized);
                                     Thread.Sleep(300);
-                                    WinAPI.ShowWindow(_lastDemonbuddy, WinAPI.WindowShowStyle.ShowNormal);
+                                    WinApi.ShowWindow(_lastDemonbuddy, WinApi.WindowShowStyle.ShowNormal);
                                     Thread.Sleep(300);
-                                    WinAPI.SetForegroundWindow(_lastDemonbuddy);
-                                    if (WinAPI.GetForegroundWindow() != _lastDemonbuddy)
+                                    WinApi.SetForegroundWindow(_lastDemonbuddy);
+                                    if (WinApi.GetForegroundWindow() != _lastDemonbuddy)
                                         Logger.Instance.WriteGlobal("<{0}> Failed to bring Demonbuddy to front",
                                             bot.Name);
                                     break;
@@ -94,17 +79,17 @@ namespace YetAnotherRelogger
                             }
 
                             // Switch back to diablo
-                            WinAPI.ShowWindow(_lastDiablo, WinAPI.WindowShowStyle.ShowNormal);
-                            WinAPI.SetForegroundWindow(_lastDiablo);
-                            while (WinAPI.GetForegroundWindow() != _lastDiablo)
+                            WinApi.ShowWindow(_lastDiablo, WinApi.WindowShowStyle.ShowNormal);
+                            WinApi.SetForegroundWindow(_lastDiablo);
+                            while (WinApi.GetForegroundWindow() != _lastDiablo)
                             {
                                 if (General.DateSubtract(timeout, false) > 500)
                                 {
-                                    WinAPI.ShowWindow(_lastDiablo, WinAPI.WindowShowStyle.ForceMinimized);
+                                    WinApi.ShowWindow(_lastDiablo, WinApi.WindowShowStyle.ForceMinimized);
                                     Thread.Sleep(300);
-                                    WinAPI.ShowWindow(_lastDiablo, WinAPI.WindowShowStyle.ShowNormal);
+                                    WinApi.ShowWindow(_lastDiablo, WinApi.WindowShowStyle.ShowNormal);
                                     Thread.Sleep(300);
-                                    WinAPI.SetForegroundWindow(_lastDiablo);
+                                    WinApi.SetForegroundWindow(_lastDiablo);
                                     break;
                                 }
                                 Thread.Sleep(100);

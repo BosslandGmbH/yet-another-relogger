@@ -14,7 +14,7 @@ namespace YetAnotherRelogger.Helpers
                 {
                     Color = Color.Red,
                     Loglevel = level,
-                    Message = string.Format("Exception: [{0}]{1}{2}", exception.Message, Environment.NewLine, exception)
+                    Message = $"Exception: [{exception.Message}]{Environment.NewLine}{exception}"
                 });
         }
 
@@ -25,7 +25,7 @@ namespace YetAnotherRelogger.Helpers
                 {
                     Color = Color.DarkGreen,
                     Loglevel = Loglevel.Verbose,
-                    Message = string.Format("[{0}] {1}", caller, string.Format(message, args))
+                    Message = $"[{caller}] {string.Format(message, args)}"
                 });
         }
 
@@ -36,7 +36,7 @@ namespace YetAnotherRelogger.Helpers
                 {
                     Color = Color.DarkGreen,
                     Loglevel = Loglevel.Verbose,
-                    Message = string.Format("<{0}> [{1}] {2}", bot.Name, caller, string.Format(message, args))
+                    Message = $"<{bot.Name}> [{caller}] {string.Format(message, args)}"
                 });
         }
 
@@ -47,7 +47,7 @@ namespace YetAnotherRelogger.Helpers
                 {
                     Color = Color.DarkGreen,
                     Loglevel = Loglevel.Verbose,
-                    Message = string.Format("<{0}> {1}", bot.Name, string.Format(message, args))
+                    Message = $"<{bot.Name}> {string.Format(message, args)}"
                 });
         }
 

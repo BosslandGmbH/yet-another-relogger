@@ -23,9 +23,9 @@ namespace YetAnotherRelogger.Forms
 {
     public partial class MainForm2 : Form
     {
-        private bool bClose;
+        private bool _bClose;
         private Thread _restartBotsThread;
-        private ContextMenu m_menu;
+        private ContextMenu _mMenu;
 
         public MainForm2()
         {
@@ -36,7 +36,7 @@ namespace YetAnotherRelogger.Forms
 
         private void MainForm2_Load(object sender, EventArgs e)
         {
-            Point screenMaxSize = new Point(SystemInformation.VirtualScreen.Width, SystemInformation.VirtualScreen.Height);
+            var screenMaxSize = new Point(SystemInformation.VirtualScreen.Width, SystemInformation.VirtualScreen.Height);
             if (!CommandLineArgs.SafeMode)
             {
                 // Set window location
@@ -62,11 +62,11 @@ namespace YetAnotherRelogger.Forms
 
             Resize += MainForm2_Resize;
 
-            Text = string.Format("R-YAR [{0}] BETA", Assembly.GetExecutingAssembly().GetName().Version.ToString());
+            Text = $"R-YAR [{Assembly.GetExecutingAssembly().GetName().Version.ToString()}] BETA";
 
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-            string version = fvi.FileVersion;
+            var assembly = Assembly.GetExecutingAssembly();
+            var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+            var version = fvi.FileVersion;
 
             Logger.Instance.WriteGlobal("rrrix's Yet Another Relogger fork Version {0}", version);
 
@@ -102,11 +102,11 @@ namespace YetAnotherRelogger.Forms
             ToggleIcon();
             TrayIcon.Icon = Icon;
             TrayIcon.DoubleClick += TrayIcon_DoubleClick;
-            m_menu = new ContextMenu();
-            m_menu.MenuItems.Add(0, new MenuItem("Show", Show_Click));
-            m_menu.MenuItems.Add(1, new MenuItem("Hide", Hide_Click));
-            m_menu.MenuItems.Add(2, new MenuItem("Exit", Exit_Click));
-            TrayIcon.ContextMenu = m_menu;
+            _mMenu = new ContextMenu();
+            _mMenu.MenuItems.Add(0, new MenuItem("Show", Show_Click));
+            _mMenu.MenuItems.Add(1, new MenuItem("Hide", Hide_Click));
+            _mMenu.MenuItems.Add(2, new MenuItem("Exit", Exit_Click));
+            TrayIcon.ContextMenu = _mMenu;
 
             // Minimize on start
             if (Settings.Default.MinimizeOnStart)
@@ -126,7 +126,7 @@ namespace YetAnotherRelogger.Forms
 
         protected void MainForm2_Closing(object sender, CancelEventArgs e)
         {
-            if (!bClose && Settings.Default.CloseToTray)
+            if (!_bClose && Settings.Default.CloseToTray)
             {
                 e.Cancel = true;
                 HideMe();
@@ -184,22 +184,22 @@ namespace YetAnotherRelogger.Forms
 
         private void dataGridView1_MouseUp(object sender, MouseEventArgs e)
         {
-            DataGridView.HitTestInfo hitTestInfo = botGrid.HitTest(e.X, e.Y);
+            var hitTestInfo = botGrid.HitTest(e.X, e.Y);
             if (hitTestInfo.Type == DataGridViewHitTestType.Cell)
             {
                 if (e.Button == MouseButtons.Right)
                 {
                     contextMenuStrip1.Show(botGrid, new Point(e.X, e.Y));
-                    selectRow(hitTestInfo.RowIndex);
+                    SelectRow(hitTestInfo.RowIndex);
                 }
                 else if (e.Button == MouseButtons.Left)
                 {
-                    selectRow(hitTestInfo.RowIndex);
+                    SelectRow(hitTestInfo.RowIndex);
                 }
             }
         }
 
-        private void selectRow(int index)
+        private void SelectRow(int index)
         {
             foreach (DataGridViewRow row in botGrid.Rows)
                 row.Selected = false;
@@ -245,7 +245,7 @@ namespace YetAnotherRelogger.Forms
 
             foreach (DataGridViewRow row in botGrid.Rows)
             {
-                row.HeaderCell.Value = string.Format("{0:00}", (row.Index + 1));
+                row.HeaderCell.Value = $"{(row.Index + 1):00}";
             }
 
             botGrid.AutoResizeRowHeadersWidth(DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders);
@@ -258,7 +258,7 @@ namespace YetAnotherRelogger.Forms
             ConnectionCheck.Reset();
             // Start All
             foreach (
-                DataGridViewRow row in
+                var row in
                     botGrid.Rows.Cast<DataGridViewRow>().Where(row => (bool)row.Cells["isEnabled"].Value))
             {
                 BotSettings.Instance.Bots[row.Index].Start(checkBoxForce.Checked);
@@ -295,7 +295,7 @@ namespace YetAnotherRelogger.Forms
                 MessageBox.Show(this, "Are you sure you want to close Yet Another Relogger?",
                     "Close Yet Another Relogger?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
-                bClose = true;
+                _bClose = true;
                 Close();
             }
         }
@@ -312,7 +312,7 @@ namespace YetAnotherRelogger.Forms
         {
             Relogger.Instance.Stop();
             // Stop All
-            foreach (BotClass bot in BotSettings.Instance.Bots)
+            foreach (var bot in BotSettings.Instance.Bots)
             {
                 bot.Stop();
             }
@@ -337,17 +337,17 @@ namespace YetAnotherRelogger.Forms
                 if (runningBots.Any())
                 {
                     Relogger.Instance.Stop();
-                    foreach (BotClass bot in runningBots)
+                    foreach (var bot in runningBots)
                     {
-                        Stopwatch swKill = new Stopwatch();
+                        var swKill = new Stopwatch();
                         swKill.Start();
                         bot.Demonbuddy.Stop();
-                        int pid = Convert.ToInt32(bot.DemonbuddyPid);
+                        var pid = Convert.ToInt32(bot.DemonbuddyPid);
                         if (Process.GetProcesses().All(p => p.Id != pid))
                             continue;
                         try
                         {
-                            Process p = Process.GetProcessById(pid);
+                            var p = Process.GetProcessById(pid);
                             while (!p.HasExited && swKill.ElapsedMilliseconds < 10000)
                             {
                                 Thread.Sleep(10);
@@ -440,11 +440,11 @@ namespace YetAnotherRelogger.Forms
         protected override void WndProc(ref Message message)
         {
             // Show first instance form
-            if (message.Msg == SingleInstance.WM_SHOWFIRSTINSTANCE)
+            if (message.Msg == SingleInstance.WmShowfirstinstance)
             {
                 Show();
-                WinAPI.ShowWindow(Handle, WinAPI.WindowShowStyle.ShowNormal);
-                WinAPI.SetForegroundWindow(Handle);
+                WinApi.ShowWindow(Handle, WinApi.WindowShowStyle.ShowNormal);
+                WinApi.SetForegroundWindow(Handle);
             }
             base.WndProc(ref message);
         }
@@ -474,9 +474,9 @@ namespace YetAnotherRelogger.Forms
                     if (botGrid.CurrentRow == null || botGrid.CurrentRow.Index < 0)
                         return;
 
-                    int idx = botGrid.SelectedRows[0].Index;
+                    var idx = botGrid.SelectedRows[0].Index;
 
-                    int newIdx = BotSettings.Instance.Clone(idx);
+                    var newIdx = BotSettings.Instance.Clone(idx);
                     BotSettings.Instance.Save();
 
                     UpdateGridView();
@@ -499,12 +499,12 @@ namespace YetAnotherRelogger.Forms
                     if (botGrid.CurrentRow == null || botGrid.CurrentRow.Index < 0)
                         return;
 
-                    int idx = botGrid.SelectedRows[0].Index;
+                    var idx = botGrid.SelectedRows[0].Index;
 
                     if (idx == 0)
                         return;
 
-                    int newIdx = BotSettings.Instance.MoveUp(idx);
+                    var newIdx = BotSettings.Instance.MoveUp(idx);
                     UpdateGridView();
                     botGrid.ClearSelection();
                     botGrid.CurrentCell = botGrid.Rows[newIdx].Cells[0];
@@ -529,12 +529,12 @@ namespace YetAnotherRelogger.Forms
                     if (botGrid.CurrentRow == null || botGrid.CurrentRow.Index < 0)
                         return;
 
-                    int idx = botGrid.SelectedRows[0].Index;
+                    var idx = botGrid.SelectedRows[0].Index;
 
                     if (idx == botGrid.Rows.Count - 1)
                         return;
 
-                    int newIdx = BotSettings.Instance.MoveDown(idx);
+                    var newIdx = BotSettings.Instance.MoveDown(idx);
                     UpdateGridView();
                     botGrid.ClearSelection();
                     botGrid.CurrentCell = botGrid.Rows[newIdx].Cells[0];
@@ -553,7 +553,7 @@ namespace YetAnotherRelogger.Forms
 
         private void btnOpenLog_Click(object sender, EventArgs e)
         {
-            bool shiftkey = (ModifierKeys & Keys.Shift) != 0;
+            var shiftkey = (ModifierKeys & Keys.Shift) != 0;
 
             if (shiftkey)
             {
@@ -654,7 +654,7 @@ namespace YetAnotherRelogger.Forms
             if (!tmp.Name.Equals(UcSetting.Name))
             {
                 //var c = tabControl1.TabPages[1].Controls;
-                Control.ControlCollection c = SettingsPanel.Controls;
+                var c = SettingsPanel.Controls;
                 if (c.Contains(UcSetting))
                     c.Remove(UcSetting);
 
@@ -681,30 +681,30 @@ namespace YetAnotherRelogger.Forms
                                 (!Visible || WindowState == FormWindowState.Minimized));
         }
 
-        protected void Exit_Click(Object sender, EventArgs e)
+        protected void Exit_Click(object sender, EventArgs e)
         {
-            bClose = true;
+            _bClose = true;
             Close();
         }
 
-        protected void Hide_Click(Object sender, EventArgs e)
+        protected void Hide_Click(object sender, EventArgs e)
         {
             ToggleIcon();
             ShowNotification("Yet Another Relogger", "Is still running");
             HideMe();
         }
 
-        protected void Show_Click(Object sender, EventArgs e)
+        protected void Show_Click(object sender, EventArgs e)
         {
             ShowMe();
-            WinAPI.ShowWindow(Handle, WinAPI.WindowShowStyle.ShowNormal);
+            WinApi.ShowWindow(Handle, WinApi.WindowShowStyle.ShowNormal);
             ToggleIcon();
         }
 
         private void TrayIcon_DoubleClick(object sender, EventArgs e)
         {
             ShowMe();
-            WinAPI.ShowWindow(Handle, WinAPI.WindowShowStyle.ShowNormal);
+            WinApi.ShowWindow(Handle, WinApi.WindowShowStyle.ShowNormal);
             ToggleIcon();
         }
 
@@ -727,7 +727,7 @@ namespace YetAnotherRelogger.Forms
         private void killDemonbuddyToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (BotSettings.Instance.Bots[botGrid.CurrentRow.Index].IsStarted)
-                BotSettings.Instance.Bots[botGrid.CurrentRow.Index].KillDB();
+                BotSettings.Instance.Bots[botGrid.CurrentRow.Index].KillDemonbuddy();
         }
 
         private void killDiabloToolStripMenuItem_Click(object sender, EventArgs e)

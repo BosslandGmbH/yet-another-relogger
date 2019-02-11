@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Xml.Serialization;
 using YetAnotherRelogger.Helpers.Bot;
+using YetAnotherRelogger.Helpers.Enums;
 using YetAnotherRelogger.Helpers.Tools;
 using YetAnotherRelogger.Properties;
 
@@ -14,22 +15,11 @@ namespace YetAnotherRelogger.Helpers
     public class Communicator
     {
         #region singleton
-
-        private static readonly Communicator instance = new Communicator();
-
-        static Communicator()
-        {
-        }
-
+        private static Communicator _instance;
+        public static Communicator Instance => _instance ?? (_instance = new Communicator());
         private Communicator()
         {
         }
-
-        public static Communicator Instance
-        {
-            get { return instance; }
-        }
-
         #endregion
 
         private static int _connections;
@@ -37,7 +27,7 @@ namespace YetAnotherRelogger.Helpers
 
         public static int Connections
         {
-            get { return _connections; }
+            get => _connections;
             set
             {
                 _connections = value < 0 ? 0 : value;
@@ -77,7 +67,7 @@ namespace YetAnotherRelogger.Helpers
         {
             private StreamReader _reader;
             private NamedPipeServerStream _stream;
-            private StreamWriter _writer;
+            private readonly StreamWriter _writer;
 
             public HandleClient(NamedPipeServerStream stream)
             {
@@ -95,8 +85,8 @@ namespace YetAnotherRelogger.Helpers
                     {
                         _stream.Close();
                     }
-                    catch (ObjectDisposedException) { }
-                    catch { }
+                    catch (ObjectDisposedException ex) { }
+                    catch (Exception ex) { }
                     _stream = null;
                 }
                 if (_reader != null)
@@ -106,7 +96,7 @@ namespace YetAnotherRelogger.Helpers
                         _reader.Close();
                     }
                     catch (ObjectDisposedException) { }
-                    catch { }
+                    catch (Exception ex) { }
                     _reader = null;
                 }
                 //if (_writer != null)
@@ -123,16 +113,16 @@ namespace YetAnotherRelogger.Helpers
 
             public void Start()
             {
-                bool isXml = false;
-                string xml = string.Empty;
-                DateTime duration = DateTime.UtcNow;
+                var isXml = false;
+                var xml = string.Empty;
+                var duration = DateTime.UtcNow;
                 Connections++;
                 try
                 {
                     Debug.WriteLine("PipeConnection [{0}]: Connected:{1}", _stream.GetHashCode(), _stream.IsConnected);
                     while (_stream.IsConnected)
                     {
-                        string dataLine = _reader.ReadLine();
+                        var dataLine = _reader.ReadLine();
                         if (dataLine == null)
                         {
                             Thread.Sleep(Program.Sleeptime);
@@ -187,11 +177,10 @@ namespace YetAnotherRelogger.Helpers
                 {
                     try
                     {
-                        BotClass bot =
+                        var bot =
                             BotSettings.Instance.Bots.FirstOrDefault(
                                 b =>
-                                    (b != null && b.Demonbuddy != null && b.Demonbuddy.Proc != null) &&
-                                    b.Demonbuddy.Proc.Id == stats.Pid);
+                                    b?.Demonbuddy?.Proc != null && b.Demonbuddy.Proc.Id == stats.Pid);
                         if (bot != null)
                         {
                             if (bot.AntiIdle.Stats == null)
@@ -226,16 +215,15 @@ namespace YetAnotherRelogger.Helpers
                 Debug.WriteLine("Recieved: " + msg);
                 try
                 {
-                    string pid = msg.Split(':')[0];
-                    string cmd = msg.Substring(pid.Length + 1).Split(' ')[0];
+                    var pid = msg.Split(':')[0];
+                    var cmd = msg.Substring(pid.Length + 1).Split(' ')[0];
                     int x;
                     msg = msg.Substring(((x = pid.Length + cmd.Length + 2) >= msg.Length ? 0 : x));
 
-                    BotClass b =
+                    var b =
                         BotSettings.Instance.Bots.FirstOrDefault(
                             f =>
-                                (f.Demonbuddy != null && f.Demonbuddy.Proc != null) &&
-                                f.Demonbuddy.Proc.Id == Convert.ToInt32(pid));
+                                f.Demonbuddy?.Proc != null && f.Demonbuddy.Proc.Id == Convert.ToInt32(pid));
                     if (b == null)
                     {
                         Send("Error: Unknown process");
@@ -243,7 +231,7 @@ namespace YetAnotherRelogger.Helpers
                         return;
                     }
 
-                    long nowTicks = DateTime.UtcNow.Ticks;
+                    var nowTicks = DateTime.UtcNow.Ticks;
 
                     switch (cmd)
                     {
@@ -272,7 +260,7 @@ namespace YetAnotherRelogger.Helpers
 
                             if (b.ProfileSchedule.IsDone)
                             {
-                                string newprofile = b.ProfileSchedule.GetProfile;
+                                var newprofile = b.ProfileSchedule.GetProfile;
                                 Logger.Instance.Write(b, "Next profile: {0}", newprofile);
                                 Send("LoadProfile " + newprofile);
                             }
@@ -285,7 +273,7 @@ namespace YetAnotherRelogger.Helpers
                             Send("DifficultyLevel " + (int)b.ProfileSchedule.Current.DifficultyLevel);
                             break;
                         case "UserStop":
-                            b.Status = string.Format("User Stop: {0:d-m H:M:s}", DateTime.UtcNow);
+                            b.Status = $"User Stop: {DateTime.UtcNow:d-m H:M:s}";
                             b.AntiIdle.State = IdleState.UserStop;
                             Logger.Instance.Write(b, "Demonbuddy stopped by user");
                             Send("Roger!");
@@ -298,7 +286,7 @@ namespace YetAnotherRelogger.Helpers
                             break;
                         // Giles Compatibility
                         case "ThirdpartyStop":
-                            b.Status = string.Format("Thirdparty Stop: {0:d-m H:M:s}", DateTime.UtcNow);
+                            b.Status = $"Thirdparty Stop: {DateTime.UtcNow:d-m H:M:s}";
                             b.AntiIdle.State = IdleState.UserStop;
                             Logger.Instance.Write(b, "Demonbuddy stopped by Thirdparty");
                             Send("Roger!");

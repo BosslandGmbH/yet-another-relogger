@@ -2,15 +2,15 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Xml.Serialization;
-using YetAnotherRelogger.Helpers.Tools;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using System.Xml.Serialization;
+using YetAnotherRelogger.Helpers.Attributes;
+using YetAnotherRelogger.Helpers.Enums;
+using YetAnotherRelogger.Helpers.Tools;
 using YetAnotherRelogger.Properties;
-
 
 namespace YetAnotherRelogger.Helpers.Bot
 {
@@ -45,7 +45,7 @@ namespace YetAnotherRelogger.Helpers.Bot
         public static extern IntPtr SetForegroundWindow(IntPtr hWnd);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        static extern bool PostMessage(IntPtr hWnd, int Msg, char wParam, int lParam);
+        static extern bool PostMessage(IntPtr hWnd, int msg, char wParam, int lParam);
 
         [DllImport("user32")]
         public static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
@@ -66,7 +66,7 @@ namespace YetAnotherRelogger.Helpers.Bot
         [NoCopy]
         public Process Proc
         {
-            get { return _proc; }
+            get => _proc;
             set
             {
                 if (value != null)
@@ -77,10 +77,7 @@ namespace YetAnotherRelogger.Helpers.Bot
 
         [XmlIgnore]
         [NoCopy]
-        public bool IsRunning
-        {
-            get { return (Proc != null && !Proc.HasExited && !_isStopped); }
-        }
+        public bool IsRunning => (Proc != null && !Proc.HasExited && !_isStopped);
 
         // Buddy Auth
         public string BuddyAuthUsername { get; set; }
@@ -113,8 +110,8 @@ namespace YetAnotherRelogger.Helpers.Bot
         {
             get
             {
-                int intProcessorAffinity = 0;
-                for (int i = 0; i < Environment.ProcessorCount; i++)
+                var intProcessorAffinity = 0;
+                for (var i = 0; i < Environment.ProcessorCount; i++)
                     intProcessorAffinity |= (1 << i);
                 return intProcessorAffinity;
             }
@@ -129,7 +126,7 @@ namespace YetAnotherRelogger.Helpers.Bot
 
         public bool ForceEnableAllPlugins { get; set; }
 
-        const int maxInits = 15;
+        const int MaxInits = 15;
 
         [NoCopy]
         public bool IsInitialized
@@ -148,17 +145,17 @@ namespace YetAnotherRelogger.Helpers.Bot
                 {
                     Parent.AntiIdle.FailedInitCount++;
 
-                    if (Parent.AntiIdle.FailedInitCount >= (Parent.AntiIdle.InitAttempts > 0 ? 1 : maxInits))
+                    if (Parent.AntiIdle.FailedInitCount >= (Parent.AntiIdle.InitAttempts > 0 ? 1 : MaxInits))
                     {
                         Parent.AntiIdle.InitAttempts++;
                         Logger.Instance.Write(Parent, "Demonbuddy:{0}: Failed to initialize more than {1} times",
-                            Parent.Demonbuddy.Proc.Id, maxInits);
+                            Parent.Demonbuddy.Proc.Id, MaxInits);
                         Parent.Standby();
                     }
                     else
                     {
                         Logger.Instance.Write(Parent, "Demonbuddy:{0}: Failed to initialize {1}/{2}",
-                            Parent.Demonbuddy.Proc.Id, Parent.AntiIdle.FailedInitCount, maxInits);
+                            Parent.Demonbuddy.Proc.Id, Parent.AntiIdle.FailedInitCount, MaxInits);
                         Parent.Demonbuddy.Stop(true);
                     }
                     return false;
@@ -177,7 +174,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                     return false;
 
                 // get log dir
-                string logdir = Path.Combine(Path.GetDirectoryName(Location), "Logs");
+                var logdir = Path.Combine(Path.GetDirectoryName(Location), "Logs");
                 if (logdir.Length == 0 || !Directory.Exists(logdir))
                 {
                     // Failed to get log dir so exit here
@@ -185,11 +182,11 @@ namespace YetAnotherRelogger.Helpers.Bot
                     return false;
                 }
                 // get log file
-                string logfile = string.Empty;
-                bool success = false;
-                DateTime starttime = Proc.StartTime;
+                var logfile = string.Empty;
+                var success = false;
+                var starttime = Proc.StartTime;
                 // Loop a few times if log is not found on first attempt and add a minute for each loop
-                for (int i = 0; i <= 3; i++)
+                for (var i = 0; i <= 3; i++)
                 {
                     // Test if logfile exists for current process starttime + 1 minute
                     logfile = $"{logdir}\\{Proc.Id} {starttime.AddMinutes(i).ToString("yyyy-MM-dd HH.mm")}.txt";
@@ -208,12 +205,12 @@ namespace YetAnotherRelogger.Helpers.Bot
                     // [11:03:21.173 N] Logging in...
                     try
                     {
-                        int lineNumber = -1;
+                        var lineNumber = -1;
                         using (var fs = new FileStream(logfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                         {
                             var reader = new StreamReader(fs);
                             var time = new TimeSpan();
-                            bool Logging = false;
+                            var logging = false;
                             while (!reader.EndOfStream)
                             {
                                 // only read 1000 lines from log file, so we don't spend all day looking through the log.
@@ -222,23 +219,23 @@ namespace YetAnotherRelogger.Helpers.Bot
                                 if (lineNumber > 1000)
                                     break;
 
-                                string line = reader.ReadLine();
+                                var line = reader.ReadLine();
                                 if (line == null)
                                     continue;
 
-                                if (Logging && line.Contains("Attached to Diablo III with pid"))
+                                if (logging && line.Contains("Attached to Diablo III with pid"))
                                 {
                                     LoginTime =
                                         DateTime.Parse($"{starttime.ToUniversalTime():yyyy-MM-dd} {time}");
                                     Logger.Instance.Write("Found login time: {0}", LoginTime);
                                     return true;
                                 }
-                                Match m = new Regex(@"^\[(.+) .\] Logging in\.\.\.$",
+                                var m = new Regex(@"^\[(.+) .\] Logging in\.\.\.$",
                                     RegexOptions.Compiled).Match(line);
                                 if (m.Success)
                                 {
                                     time = TimeSpan.Parse(m.Groups[1].Value);
-                                    Logging = true;
+                                    logging = true;
                                 }
 
                                 Thread.Sleep(5); // Be nice for CPU
@@ -325,7 +322,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                 // Reset AntiIdle;
                 Parent.AntiIdle.Reset(true);
 
-                string arguments = "-pid=" + Parent.Diablo.Proc.Id;
+                var arguments = "-pid=" + Parent.Diablo.Proc.Id;
                 arguments += " -key=" + Key;
                 arguments += " -autostart";
                 //arguments += $" -routine=TrinityRoutine";
@@ -399,15 +396,15 @@ namespace YetAnotherRelogger.Helpers.Bot
                 p = UserAccount.ImpersonateStartInfo(p, Parent);
 
                 // Check/Install latest Communicator plugin
-                string pluginPath = $"{p.WorkingDirectory}\\Plugins\\YAR\\Plugin.cs";
+                var pluginPath = $"{p.WorkingDirectory}\\Plugins\\YAR\\Plugin.cs";
                 Installer.InstallPlugin(pluginPath);
 
                 // Check/Install latest Kickstart Bot
-                string botPath = $"{p.WorkingDirectory}\\Bots\\YARBot\\YARBot.cs";
+                var botPath = $"{p.WorkingDirectory}\\Bots\\YARBot\\YARBot.cs";
                 Installer.InstallBot(botPath);
 
                 // Check/Install latest Routine Stub
-                string routinePath = $"{p.WorkingDirectory}\\Routines\\Trinity\\TrinityRoutine.cs";
+                var routinePath = $"{p.WorkingDirectory}\\Routines\\Trinity\\TrinityRoutine.cs";
                 Installer.InstallRoutine(routinePath);
 
                 DateTime timeout;
@@ -559,7 +556,7 @@ namespace YetAnotherRelogger.Helpers.Bot
 
         private bool FindMainWindow()
         {
-            IntPtr handle = FindWindow.EqualsWindowCaption("Demonbuddy", Proc.Id);
+            var handle = FindWindow.EqualsWindowCaption("Demonbuddy", Proc.Id);
             if (handle != IntPtr.Zero)
             {
                 MainWindowHandle = handle;

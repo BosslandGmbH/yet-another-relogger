@@ -8,11 +8,11 @@ namespace YetAnotherRelogger.Forms.Wizard
 {
     public partial class DiabloOptions : UserControl
     {
-        private readonly WizardMain WM;
+        private readonly WizardMain _wm;
 
         public DiabloOptions(WizardMain parent)
         {
-            WM = parent;
+            _wm = parent;
             InitializeComponent();
             this.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
         }
@@ -38,7 +38,7 @@ namespace YetAnotherRelogger.Forms.Wizard
         private void DiabloOptions_VisibleChanged(object sender, EventArgs e)
         {
             if (Visible)
-                WM.NextStep("Diablo Settings");
+                _wm.NextStep("Diablo Settings");
         }
 
         private void checkBox1_CheckedChanged_1(object sender, EventArgs e)
@@ -100,15 +100,15 @@ namespace YetAnotherRelogger.Forms.Wizard
 
         private void button4_Click(object sender, EventArgs e)
         {
-            WM.AffinityDiablo.ShowDialog(this);
+            _wm.AffinityDiablo.ShowDialog(this);
         }
 
         public bool ValidateInput()
         {
-            return (WM.ValidateTextbox(username) &
-                    WM.ValidateTextbox(diablo3Path) &
-                    WM.ValidateMaskedTextbox(password) &
-                    (!useInnerSpace.Checked || (WM.ValidateTextbox(displaySlot) & WM.ValidateTextbox(characterSet)))
+            return (_wm.ValidateTextbox(username) &
+                    _wm.ValidateTextbox(diablo3Path) &
+                    _wm.ValidateMaskedTextbox(password) &
+                    (!useInnerSpace.Checked || (_wm.ValidateTextbox(displaySlot) & _wm.ValidateTextbox(characterSet)))
                 );
         }
 
@@ -126,9 +126,8 @@ namespace YetAnotherRelogger.Forms.Wizard
             // restore the authenticator
             try
             {
-                BattleNetAuthenticator auth = new BattleNetAuthenticator();
-                auth.Restore(string.Format("{0}{1}{2}{3}", authField1.Text, authField2.Text,
-                    authField3.Text, authField4.Text), textBox8.Text);
+                var auth = new BattleNetAuthenticator();
+                auth.Restore($"{authField1.Text}{authField2.Text}{authField3.Text}{authField4.Text}", textBox8.Text);
 
                 CodeField.Text = Convert.ToString(auth.CurrentCode);
             }

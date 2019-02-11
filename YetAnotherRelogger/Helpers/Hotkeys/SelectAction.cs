@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
@@ -24,7 +23,7 @@ namespace YetAnotherRelogger.Helpers.Hotkeys
         {
             get
             {
-                List<Action> newlist = (from action in _actionContainer.Actions
+                var newlist = (from action in _actionContainer.Actions
                     let skip =
                         _actions.Any(test => action.Name.Equals(test.Name) && action.Version.Equals(test.Version))
                     where !skip
@@ -50,8 +49,8 @@ namespace YetAnotherRelogger.Helpers.Hotkeys
             // Add to list
             if (dataGridView1.CurrentRow == null || dataGridView1.CurrentRow.Index < 0)
                 return;
-            DataGridViewRow selected = dataGridView1.CurrentRow;
-            Action action =
+            var selected = dataGridView1.CurrentRow;
+            var action =
                 _actionContainer.Actions.FirstOrDefault(
                     x =>
                         x.Name.Equals(selected.Cells["Name"].Value) && x.Version.Equals(selected.Cells["Version"].Value));
@@ -68,8 +67,8 @@ namespace YetAnotherRelogger.Helpers.Hotkeys
             // Remove from list
             if (dataGridView2.CurrentRow == null || dataGridView2.CurrentRow.Index < 0)
                 return;
-            DataGridViewRow selected = dataGridView2.CurrentRow;
-            Action action =
+            var selected = dataGridView2.CurrentRow;
+            var action =
                 _actions.FirstOrDefault(
                     x =>
                         x.Name.Equals(selected.Cells["Name"].Value) && x.Version.Equals(selected.Cells["Version"].Value));
@@ -87,8 +86,8 @@ namespace YetAnotherRelogger.Helpers.Hotkeys
                 return;
             try
             {
-                int index = dataGridView2.SelectedCells[0].RowIndex;
-                Action test =
+                var index = dataGridView2.SelectedCells[0].RowIndex;
+                var test =
                     _actions.FirstOrDefault(
                         x => x.Name == (string) dataGridView2.Rows[index].Cells["Name"].Value && x.Order > 0);
                 if (test != null)
@@ -104,7 +103,7 @@ namespace YetAnotherRelogger.Helpers.Hotkeys
                         test.Order++;
                 }
                 // Sort and update list
-                List<Action> newlist = _actions.ToList();
+                var newlist = _actions.ToList();
                 newlist.Sort((s1, s2) => s1.Order.CompareTo(s2.Order));
                 _actions = new BindingList<Action>(newlist);
                 UpdateGridview();
@@ -122,9 +121,9 @@ namespace YetAnotherRelogger.Helpers.Hotkeys
                 return;
             try
             {
-                int index = dataGridView2.SelectedCells[0].RowIndex;
-                int max = _actions.Count - 1;
-                Action test =
+                var index = dataGridView2.SelectedCells[0].RowIndex;
+                var max = _actions.Count - 1;
+                var test =
                     _actions.FirstOrDefault(
                         x =>
                             x.Name == (string) dataGridView2.Rows[index].Cells["Name"].Value &&
@@ -142,7 +141,7 @@ namespace YetAnotherRelogger.Helpers.Hotkeys
                         test.Order--;
                 }
                 // Sort and update list
-                List<Action> newlist = _actions.ToList();
+                var newlist = _actions.ToList();
                 newlist.Sort((s1, s2) => s1.Order.CompareTo(s2.Order));
                 _actions = new BindingList<Action>(newlist);
                 UpdateGridview();

@@ -6,6 +6,7 @@ using System.Threading;
 using System.Windows.Forms;
 using YetAnotherRelogger.Helpers;
 using YetAnotherRelogger.Helpers.Bot;
+using YetAnotherRelogger.Helpers.Enums;
 using YetAnotherRelogger.Helpers.Tools;
 using YetAnotherRelogger.Properties;
 
@@ -14,22 +15,11 @@ namespace YetAnotherRelogger
     public sealed class Relogger
     {
         #region singleton
-
-        private static readonly Relogger instance = new Relogger();
-
-        static Relogger()
-        {
-        }
-
+        private static Relogger _instance;
+        public static Relogger Instance => _instance ?? (_instance = new Relogger());
         private Relogger()
         {
         }
-
-        public static Relogger Instance
-        {
-            get { return instance; }
-        }
-
         #endregion
 
         public BotClass CurrentBot;
@@ -46,7 +36,6 @@ namespace YetAnotherRelogger
             _threadRelogger = new Thread(ReloggerWorker) { IsBackground = true, Name = "ReloggerWorker" };
             _threadRelogger.Start();
         }
-
 
         public void Stop()
         {
@@ -65,7 +54,7 @@ namespace YetAnotherRelogger
                 _autoStartDone = true;
                 Logger.Instance.WriteGlobal("Windows auto start delaying with {0} seconds", Settings.Default.StartDelay);
                 Thread.Sleep((int)Settings.Default.StartDelay * 1000);
-                foreach (BotClass bot in BotSettings.Instance.Bots.Where(c => c.IsEnabled))
+                foreach (var bot in BotSettings.Instance.Bots.Where(c => c.IsEnabled))
                 {
                     bot.AntiIdle.Reset(freshstart: true); // Reset AntiIdle
                     bot.IsStarted = true;
@@ -76,7 +65,7 @@ namespace YetAnotherRelogger
             if (CommandLineArgs.AutoStart && !_autoStartDone)
             {
                 _autoStartDone = true;
-                foreach (BotClass bot in BotSettings.Instance.Bots.Where(c => c.IsEnabled))
+                foreach (var bot in BotSettings.Instance.Bots.Where(c => c.IsEnabled))
                 {
                     bot.AntiIdle.Reset(freshstart: true); // Reset AntiIdle
                     bot.IsStarted = true;
@@ -99,7 +88,7 @@ namespace YetAnotherRelogger
                         continue;
                     }
 
-                    List<Process> blizzardErrorProcs =
+                    var blizzardErrorProcs =
                          (from p in Process.GetProcessesByName("BlizzardError.exe")
                           select p).ToList();
                     if (blizzardErrorProcs.Any())
@@ -134,9 +123,9 @@ namespace YetAnotherRelogger
                         continue;
                     }
 
-                    foreach (BotClass bot in BotSettings.Instance.Bots.Where(bot => bot != null).ToList())
+                    foreach (var bot in BotSettings.Instance.Bots.Where(bot => bot != null).ToList())
                     {
-                        if (bot.Demonbuddy != null && bot.Demonbuddy.Proc != null && bot.Demonbuddy.Proc.HasExited && bot.Demonbuddy.Proc.ExitCode == 12)
+                        if (bot.Demonbuddy?.Proc != null && bot.Demonbuddy.Proc.HasExited && bot.Demonbuddy.Proc.ExitCode == 12)
                         {
                             Logger.Instance.Write("Closing YAR due to Tripwire event. Please check the forums for more information.");
                             Application.Exit();
@@ -145,7 +134,7 @@ namespace YetAnotherRelogger
                         if (Program.Pause)
                             break;
 
-                        DateTime time = DateTime.UtcNow; // set current time to calculate sleep time at end of loop
+                        var time = DateTime.UtcNow; // set current time to calculate sleep time at end of loop
                         CurrentBot = bot;
                         //Debug.WriteLine(bot.Name + ":" + ":" + bot.IsRunning);
                         //Debug.WriteLine("State=" + bot.AntiIdle.State);

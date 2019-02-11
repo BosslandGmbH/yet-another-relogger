@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using YetAnotherRelogger.Helpers.Attributes;
+using YetAnotherRelogger.Helpers.Enums;
 using YetAnotherRelogger.Helpers.Tools;
 using YetAnotherRelogger.Properties;
 
@@ -51,11 +53,8 @@ namespace YetAnotherRelogger.Helpers.Bot
                 if (Program.Pause)
                     return "Roger!";
 
-                string debugStats =
-                    String.Format(
-                        "STATS: LastRun:{0:0.00} LastGame:{1:0.00} LastPulse:{2:0.00} IsRunning:{3} IsPaused:{4} IsInGame:{5}",
-                        General.DateSubtract(Stats.LastRun), General.DateSubtract(Stats.LastGame),
-                        General.DateSubtract(Stats.LastPulse), Stats.IsRunning, Stats.IsPaused, Stats.IsInGame);
+                var debugStats =
+                    $"STATS: LastRun:{General.DateSubtract(Stats.LastRun):0.00} LastGame:{General.DateSubtract(Stats.LastGame):0.00} LastPulse:{General.DateSubtract(Stats.LastPulse):0.00} IsRunning:{Stats.IsRunning} IsPaused:{Stats.IsPaused} IsInGame:{Stats.IsInGame}";
                 Debug.WriteLine(debugStats);
                 //Logger.Instance.Write(debugStats);
                 if (Settings.Default.StartBotIfStopped && !Stats.IsRunning && General.DateSubtract(Stats.LastRun) > 90)
@@ -140,28 +139,28 @@ namespace YetAnotherRelogger.Helpers.Bot
             LastCoinageReset = DateTime.MinValue;
         }
 
-        public void UpdateCoinage(long NewCoinage)
+        public void UpdateCoinage(long newCoinage)
         {
-            if (NewCoinage < 0)
+            if (newCoinage < 0)
             {
                 Debug.WriteLine("We could not read Coinage assuming problem");
                 return;
             }
-            if (NewCoinage == 0)
+            if (newCoinage == 0)
             {
                 Debug.WriteLine("We got 0 gold, which is often a glitch, assuming problem");
                 return;
             }
 
             Debug.WriteLine("We received Coinage info! Old: {0}; New {1}, we are {2}",
-                LastCoinage, NewCoinage, (LastCoinage != NewCoinage) ? "good" : "lazy");
+                LastCoinage, newCoinage, (LastCoinage != newCoinage) ? "good" : "lazy");
 
-            if (NewCoinage < LastCoinage)
+            if (newCoinage < LastCoinage)
             {
                 // We either repaired, or went shopping, all is well
                 LastCoinageIncrease = DateTime.UtcNow;
             }
-            else if (NewCoinage > LastCoinage)
+            else if (newCoinage > LastCoinage)
             {
                 // We got more monies, all is well
                 LastCoinageIncrease = DateTime.UtcNow;
@@ -170,7 +169,7 @@ namespace YetAnotherRelogger.Helpers.Bot
             // Otherwise we are stuck on the same gold, and that's not profitable.
             // Yes, the if above could be: NewCoinage != LastCoinage, but I wanted
             // to explain why we have those two
-            LastCoinage = NewCoinage;
+            LastCoinage = newCoinage;
         }
 
         public string Reply()
@@ -206,7 +205,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                 case IdleState.CheckIdle:
                 {
                     _lastIdleAction = DateTime.UtcNow; // Update Last Idle action time
-                    string idleAction = IdleAction;
+                    var idleAction = IdleAction;
                     if (idleAction != "Roger!")
                         Logger.Instance.Write("Idle action: {0}", idleAction);
                     return idleAction;

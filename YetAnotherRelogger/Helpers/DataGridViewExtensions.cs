@@ -1,5 +1,4 @@
-﻿using System;
-using System.Reflection;
+﻿using System.Reflection;
 using System.Windows.Forms;
 
 namespace YetAnotherRelogger.Helpers
@@ -8,11 +7,10 @@ namespace YetAnotherRelogger.Helpers
     {
         public static void DoubleBuffered(this DataGridView dgv, bool setting)
         {
-            Type dgvType = dgv.GetType();
-            PropertyInfo pi = dgvType.GetProperty("DoubleBuffered",
+            var dgvType = dgv.GetType();
+            var pi = dgvType.GetProperty("DoubleBuffered",
                   BindingFlags.Instance | BindingFlags.NonPublic);
-            pi.SetValue(dgv, setting, null);
+            pi?.SetValue(dgv, setting, null);
         }
-
     }
 }

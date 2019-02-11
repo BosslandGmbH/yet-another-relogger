@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Xml.Serialization;
+using YetAnotherRelogger.Helpers.Attributes;
 using YetAnotherRelogger.Helpers.Stats;
 using YetAnotherRelogger.Helpers.Tools;
 
@@ -35,7 +36,7 @@ namespace YetAnotherRelogger.Helpers.Bot
         public BotClass()
         {
             Name = string.Empty;
-            Description = String.Empty;
+            Description = string.Empty;
             AntiIdle = new AntiIdleClass();
             ChartStats = new ChartStats();
         }
@@ -47,10 +48,10 @@ namespace YetAnotherRelogger.Helpers.Bot
 
         public DemonbuddyClass Demonbuddy
         {
-            get { return _demonbuddy; }
+            get => _demonbuddy;
             set
             {
-                DemonbuddyClass db = value;
+                var db = value;
                 db.Parent = this;
                 _demonbuddy = db;
             }
@@ -58,10 +59,10 @@ namespace YetAnotherRelogger.Helpers.Bot
 
         public DiabloClass Diablo
         {
-            get { return _diablo; }
+            get => _diablo;
             set
             {
-                DiabloClass d = value;
+                var d = value;
                 d.Parent = this;
                 _diablo = d;
             }
@@ -70,10 +71,10 @@ namespace YetAnotherRelogger.Helpers.Bot
         [XmlIgnore]
         public AntiIdleClass AntiIdle
         {
-            get { return _antiIdle; }
+            get => _antiIdle;
             set
             {
-                AntiIdleClass ai = value;
+                var ai = value;
                 ai.Parent = this;
                 _antiIdle = ai;
             }
@@ -119,8 +120,8 @@ namespace YetAnotherRelogger.Helpers.Bot
         [NoCopy]
         public string Status
         {
-            get { return _status; }
-            set { SetField(ref _status, value, "Status"); }
+            get => _status;
+            set => SetField(ref _status, value, "Status");
         }
 
         [XmlIgnore]
@@ -131,8 +132,8 @@ namespace YetAnotherRelogger.Helpers.Bot
         [NoCopy]
         public string RunningTime
         {
-            get { return _runningtime; }
-            set { SetField(ref _runningtime, value, "RunningTime"); }
+            get => _runningtime;
+            set => SetField(ref _runningtime, value, "RunningTime");
         }
 
         [XmlIgnore]
@@ -143,8 +144,8 @@ namespace YetAnotherRelogger.Helpers.Bot
         [NoCopy]
         public string DemonbuddyPid
         {
-            get { return _demonbuddyPid; }
-            set { SetField(ref _demonbuddyPid, value, "DemonbuddyPid"); }
+            get => _demonbuddyPid;
+            set => SetField(ref _demonbuddyPid, value, "DemonbuddyPid");
         }
 
         #region Advanced Options Variables
@@ -204,9 +205,8 @@ namespace YetAnotherRelogger.Helpers.Bot
                 {
                     try
                     {
-                        PropertyChangedEventHandler handler = PropertyChanged;
-                        if (handler != null)
-                            handler(this, new PropertyChangedEventArgs(propertyName));
+                        var handler = PropertyChanged;
+                        handler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
                     }
                     catch (Exception ex)
                     {
@@ -269,7 +269,7 @@ namespace YetAnotherRelogger.Helpers.Bot
             _diablo.Stop();
         }
 
-        public void KillDB()
+        public void KillDemonbuddy()
         {
             Logger.Instance.Write(this, "Killing Demonbuddy");
             _demonbuddy.Stop(true);

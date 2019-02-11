@@ -97,8 +97,5 @@ namespace YetAnotherRelogger.Helpers
             //    DebugHelper.Exception(ex);
             //}
         }
-
-
-
     }
 }

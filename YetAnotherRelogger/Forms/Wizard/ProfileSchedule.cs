@@ -12,12 +12,12 @@ namespace YetAnotherRelogger.Forms.Wizard
 {
     public partial class ProfileSchedule : UserControl
     {
-        private readonly WizardMain WM;
+        private readonly WizardMain _wm;
 
         public ProfileSchedule(WizardMain parent)
         {
 
-            WM = parent;
+            _wm = parent;
             InitializeComponent();
 
             var col = new DataGridViewComboBoxColumn
@@ -92,7 +92,7 @@ namespace YetAnotherRelogger.Forms.Wizard
         {
             if (Visible)
             {
-                WM.NextStep("Profile Settings");
+                _wm.NextStep("Profile Settings");
                 UpdateGridview();
             }
         }
@@ -123,7 +123,7 @@ namespace YetAnotherRelogger.Forms.Wizard
 
         private void dataGridView1_MouseUp(object sender, MouseEventArgs e)
         {
-            DataGridView.HitTestInfo hitTestInfo = profileGrid.HitTest(e.X, e.Y);
+            var hitTestInfo = profileGrid.HitTest(e.X, e.Y);
             if (!profileGrid.CurrentRow.IsNewRow && hitTestInfo.Type == DataGridViewHitTestType.Cell)
             {
                 if (e.Button == MouseButtons.Right)
@@ -148,9 +148,9 @@ namespace YetAnotherRelogger.Forms.Wizard
             profileGrid.Columns["DifficultyLevel"].Visible = false;
 
             // GameDifficulty
-            for (int i = 0; i < Profiles.Count; i++)
+            for (var i = 0; i < Profiles.Count; i++)
             {
-                Difficulty pl = Profiles[i].DifficultyLevel;
+                var pl = Profiles[i].DifficultyLevel;
                 profileGrid.Rows[i].Cells["Difficulty"].Value = pl;
             }
         }

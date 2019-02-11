@@ -36,17 +36,17 @@ namespace YetAnotherRelogger
                 }
 
                 // Run as admin check
-                WindowsIdentity identity = WindowsIdentity.GetCurrent();
-                if (identity != null)
-                    IsRunAsAdmin = (new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator));
+                var identity = WindowsIdentity.GetCurrent();
+                IsRunAsAdmin = (new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator));
 
                 // Get Commandline args
                 CommandLineArgs.Get();
 
                 if (CommandLineArgs.SafeMode)
                 {
-                    DialogResult result = MessageBox.Show("Launching in safe mode!\nThis will reset some features",
-                        "YetAnotherRelogger Safe Mode", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+                    var result = MessageBox.Show(@"Launching in safe mode!
+This will reset some features",
+                        @"YetAnotherRelogger Safe Mode", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
                     if (result == DialogResult.Cancel)
                         return;
                 }
@@ -101,29 +101,27 @@ namespace YetAnotherRelogger
     // http://www.codeproject.com/Articles/32908/C-Single-Instance-App-With-the-Ability-To-Restore
     public static class SingleInstance
     {
-        public static readonly int WM_SHOWFIRSTINSTANCE = WinAPI.RegisterWindowMessage("WM_SHOWFIRSTINSTANCE|{0}",
+        public static readonly int WmShowfirstinstance = WinApi.RegisterWindowMessage("WM_SHOWFIRSTINSTANCE|{0}",
             ProgramInfo.AssemblyGuid);
 
-        private static Mutex mutex;
+        private static Mutex _mutex;
 
         public static bool Start()
         {
-            bool onlyInstance;
-            string mutexName = String.Format("Local\\{0}", ProgramInfo.AssemblyGuid);
+            var mutexName = $"Local\\{ProgramInfo.AssemblyGuid}";
 
             // if you want your app to be limited to a single instance
             // across ALL SESSIONS (multiple users & terminal services), then use the following line instead:
             // string mutexName = String.Format("Global\\{0}", ProgramInfo.AssemblyGuid);
-
-            mutex = new Mutex(true, mutexName, out onlyInstance);
+            _mutex = new Mutex(true, mutexName, out var onlyInstance);
             return onlyInstance;
         }
 
         public static void ShowFirstInstance()
         {
-            WinAPI.PostMessage(
-                (IntPtr) WinAPI.HWND_BROADCAST,
-                WM_SHOWFIRSTINSTANCE,
+            WinApi.PostMessage(
+                (IntPtr) WinApi.HwndBroadcast,
+                WmShowfirstinstance,
                 IntPtr.Zero,
                 IntPtr.Zero);
         }
@@ -132,7 +130,7 @@ namespace YetAnotherRelogger
         {
             try
             {
-                mutex.ReleaseMutex();
+                _mutex.ReleaseMutex();
             }
             catch (Exception ex)
             {
@@ -151,8 +149,8 @@ namespace YetAnotherRelogger
         {
             get
             {
-                object[] attributes = Assembly.GetEntryAssembly().GetCustomAttributes(typeof (GuidAttribute), false);
-                return attributes.Length == 0 ? String.Empty : ((GuidAttribute) attributes[0]).Value;
+                var attributes = Assembly.GetEntryAssembly().GetCustomAttributes(typeof (GuidAttribute), false);
+                return attributes.Length == 0 ? string.Empty : ((GuidAttribute) attributes[0]).Value;
             }
         }
     }

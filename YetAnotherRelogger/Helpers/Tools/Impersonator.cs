@@ -9,21 +9,21 @@ namespace YetAnotherRelogger.Helpers.Tools
 {
     public enum LogonType
     {
-        LOGON32_LOGON_INTERACTIVE = 2,
-        LOGON32_LOGON_NETWORK = 3,
-        LOGON32_LOGON_BATCH = 4,
-        LOGON32_LOGON_SERVICE = 5,
-        LOGON32_LOGON_UNLOCK = 7,
-        LOGON32_LOGON_NETWORK_CLEARTEXT = 8, // Win2K or higher
-        LOGON32_LOGON_NEW_CREDENTIALS = 9 // Win2K or higher
+        Logon32LogonInteractive = 2,
+        Logon32LogonNetwork = 3,
+        Logon32LogonBatch = 4,
+        Logon32LogonService = 5,
+        Logon32LogonUnlock = 7,
+        Logon32LogonNetworkCleartext = 8, // Win2K or higher
+        Logon32LogonNewCredentials = 9 // Win2K or higher
     };
 
     public enum LogonProvider
     {
-        LOGON32_PROVIDER_DEFAULT = 0,
-        LOGON32_PROVIDER_WINNT35 = 1,
-        LOGON32_PROVIDER_WINNT40 = 2,
-        LOGON32_PROVIDER_WINNT50 = 3
+        Logon32ProviderDefault = 0,
+        Logon32ProviderWinnt35 = 1,
+        Logon32ProviderWinnt40 = 2,
+        Logon32ProviderWinnt50 = 3
     };
 
     public enum ImpersonationLevel
@@ -106,8 +106,8 @@ namespace YetAnotherRelogger.Helpers.Tools
         /// <param name="password">The password. <see cref="System.String" /></param>
         public Impersonator(string userName, string domainName, string password)
         {
-            Impersonate(userName, domainName, password, LogonType.LOGON32_LOGON_INTERACTIVE,
-                LogonProvider.LOGON32_PROVIDER_DEFAULT);
+            Impersonate(userName, domainName, password, LogonType.Logon32LogonInteractive,
+                LogonProvider.Logon32ProviderDefault);
         }
 
         /// <summary>
@@ -133,8 +133,8 @@ namespace YetAnotherRelogger.Helpers.Tools
         /// <param name="password">The password. <see cref="System.String" /></param>
         public void Impersonate(string userName, string domainName, string password)
         {
-            Impersonate(userName, domainName, password, LogonType.LOGON32_LOGON_INTERACTIVE,
-                LogonProvider.LOGON32_PROVIDER_DEFAULT);
+            Impersonate(userName, domainName, password, LogonType.Logon32LogonInteractive,
+                LogonProvider.Logon32ProviderDefault);
         }
 
         /// <summary>
@@ -153,8 +153,8 @@ namespace YetAnotherRelogger.Helpers.Tools
         {
             UndoImpersonation();
 
-            IntPtr logonToken = IntPtr.Zero;
-            IntPtr logonTokenDuplicate = IntPtr.Zero;
+            var logonToken = IntPtr.Zero;
+            var logonTokenDuplicate = IntPtr.Zero;
             try
             {
                 // revert to the application pool identity, saving the identity of the current requestor
@@ -198,8 +198,7 @@ namespace YetAnotherRelogger.Helpers.Tools
         private void UndoImpersonation()
         {
             // restore saved requestor identity
-            if (_wic != null)
-                _wic.Undo();
+            _wic?.Undo();
             _wic = null;
         }
     }

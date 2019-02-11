@@ -5,12 +5,12 @@ namespace YetAnotherRelogger.Forms.Wizard
 {
     public partial class Advanced : UserControl
     {
-        private readonly WizardMain WM;
+        private readonly WizardMain _wm;
 
         public Advanced(WizardMain parent)
         {
             InitializeComponent();
-            WM = parent;
+            _wm = parent;
             this.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
         }
 
@@ -22,7 +22,7 @@ namespace YetAnotherRelogger.Forms.Wizard
         private void Advanced_VisibleChanged(object sender, EventArgs e)
         {
             if (Visible)
-                WM.NextStep("Advanced Settings");
+                _wm.NextStep("Advanced Settings");
         }
 
         private void button2_Click(object sender, EventArgs e)

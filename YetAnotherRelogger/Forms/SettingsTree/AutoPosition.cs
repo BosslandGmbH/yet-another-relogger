@@ -33,24 +33,24 @@ namespace YetAnotherRelogger.Forms.SettingsTree
 
         private void AutoPosition_Load(object sender, EventArgs e)
         {
-            toggleStuff(false);
-            updateGridView();
+            ToggleStuff(false);
+            UpdateGridView();
         }
 
         private void radioButton2_CheckedChanged(object sender, EventArgs e)
         {
-            toggleStuff(false);
+            ToggleStuff(false);
             Settings.Default.AutoPosDemonbuddyCascade = radioButton2.Checked;
         }
 
         private void radioButton1_CheckedChanged(object sender, EventArgs e)
         {
-            toggleStuff(true);
+            ToggleStuff(true);
             Settings.Default.AutoPosDemonbuddyCascade = !radioButton1.Checked;
         }
 
 
-        private void toggleStuff(bool enable)
+        private void ToggleStuff(bool enable)
         {
             radioButton3.Enabled = enable;
             radioButton4.Enabled = enable;
@@ -78,10 +78,10 @@ namespace YetAnotherRelogger.Forms.SettingsTree
         private void button3_Click(object sender, EventArgs e)
         {
             AutoPos.UpdateScreens();
-            updateGridView();
+            UpdateGridView();
         }
 
-        private void updateGridView()
+        private void UpdateGridView()
         {
             dataGridView1.DataSource = null;
             dataGridView1.DataSource = Settings.Default.AutoPosScreens;
@@ -103,8 +103,8 @@ namespace YetAnotherRelogger.Forms.SettingsTree
                 return;
             try
             {
-                int index = dataGridView1.SelectedCells[0].RowIndex;
-                AutoPos.ScreensClass test =
+                var index = dataGridView1.SelectedCells[0].RowIndex;
+                var test =
                     Settings.Default.AutoPosScreens.FirstOrDefault(
                         x => x.Name == (string) dataGridView1.Rows[index].Cells["Name"].Value && x.Order > 0);
                 if (test != null)
@@ -121,7 +121,7 @@ namespace YetAnotherRelogger.Forms.SettingsTree
                 }
                 // Sort and update list
                 Settings.Default.AutoPosScreens.Sort((s1, s2) => s1.Order.CompareTo(s2.Order));
-                updateGridView();
+                UpdateGridView();
             }
             catch (Exception ex)
             {
@@ -136,9 +136,9 @@ namespace YetAnotherRelogger.Forms.SettingsTree
                 return;
             try
             {
-                int index = dataGridView1.SelectedCells[0].RowIndex;
-                int max = Settings.Default.AutoPosScreens.Count - 1;
-                AutoPos.ScreensClass test =
+                var index = dataGridView1.SelectedCells[0].RowIndex;
+                var max = Settings.Default.AutoPosScreens.Count - 1;
+                var test =
                     Settings.Default.AutoPosScreens.FirstOrDefault(
                         x =>
                             x.Name == (string) dataGridView1.Rows[index].Cells["Name"].Value &&
@@ -157,7 +157,7 @@ namespace YetAnotherRelogger.Forms.SettingsTree
                 }
                 // Sort and update list
                 Settings.Default.AutoPosScreens.Sort((s1, s2) => s1.Order.CompareTo(s2.Order));
-                updateGridView();
+                UpdateGridView();
             }
             catch (Exception ex)
             {

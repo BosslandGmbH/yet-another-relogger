@@ -38,12 +38,12 @@ namespace YetAnotherRelogger.Helpers.Bot
         {
             var day = (int) DateTime.Now.DayOfWeek; // Get number for current day of the week 
             day = (day == 0 ? 7 : day); // day fix sunday is 7
-            DaySchedule currentDay = GetDaySchedule(day);
+            var currentDay = GetDaySchedule(day);
             //DaySchedule nextDay = GetDaySchedule((day == 7 ? 1 : day + 1));
-            int currentHour = ClockFix(Convert.ToInt32(DateTime.Now.ToString("HH")));
-            int prevHour = ClockFix((currentHour - 1 != -1 ? currentHour - 1 : 0));
+            var currentHour = ClockFix(Convert.ToInt32(DateTime.Now.ToString("HH")));
+            var prevHour = ClockFix((currentHour - 1 != -1 ? currentHour - 1 : 0));
 
-            bool thisHour = currentDay.Hours[currentHour];
+            var thisHour = currentDay.Hours[currentHour];
 
             Debug.WriteLine("isRunning:{0} thishour:{1} day:{2}", isRunning, thisHour, day);
             if (isRunning)
@@ -86,17 +86,17 @@ namespace YetAnotherRelogger.Helpers.Bot
         {
             var day = (int) DateTime.Now.DayOfWeek; // Get number for current day of the week 
             day = (day == 0 ? 7 : day); // day fix sunday is 7
-            int currentHour = ClockFix(Convert.ToInt32(DateTime.Now.ToString("HH")));
+            var currentHour = ClockFix(Convert.ToInt32(DateTime.Now.ToString("HH")));
 
-            DateTime date = DateTime.Now;
+            var date = DateTime.Now;
 
-            int x = 1;
-            bool first = true;
-            for (int i = day; i <= 8; i++)
+            var x = 1;
+            var first = true;
+            for (var i = day; i <= 8; i++)
             {
                 Debug.WriteLine("Day: " + i);
-                DaySchedule currentDay = GetDaySchedule(i);
-                for (int h = (first ? currentHour : 0); h < 24; h++)
+                var currentDay = GetDaySchedule(i);
+                for (var h = (first ? currentHour : 0); h < 24; h++)
                 {
                     if (currentDay.Hours[h] && start)
                     {
@@ -129,20 +129,19 @@ namespace YetAnotherRelogger.Helpers.Bot
 
         public void GenerateNewSchedule()
         {
-            int n = 0; // Box number
-            var md = new DaySchedule();
-            for (int d = 1; d <= 7; d++)
+            var n = 0; // Box number
+            for (var d = 1; d <= 7; d++)
             {
-                md = GetDaySchedule(d);
-                for (int h = 0; h < 24; h++)
+                var md = GetDaySchedule(d);
+                for (var h = 0; h < 24; h++)
                 {
-                    md.Hours[h] = Forms.Wizard.WeekSchedule.getSchedule[n].isEnabled;
+                    md.Hours[h] = Forms.Wizard.WeekSchedule.GetSchedule[n].IsEnabled;
                     n++; // increase box number
                 }
             }
         }
 
-        private int ClockFix(int hour)
+        private static int ClockFix(int hour)
         {
 // Small work around for 24 hour to 00 hour for array fix
             return (hour == 24 ? 0 : hour);
@@ -186,7 +185,7 @@ namespace YetAnotherRelogger.Helpers.Bot
         public DaySchedule()
         {
             Hours = new bool[24];
-            for (int i = 0; i < 24; i++)
+            for (var i = 0; i < 24; i++)
             {
                 Hours[i] = new bool();
             }

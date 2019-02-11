@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Windows.Forms;
-using YetAnotherRelogger.Helpers.Bot;
 using YetAnotherRelogger.Helpers.Tools;
 
 namespace YetAnotherRelogger.Helpers.Hotkeys.Actions
@@ -10,30 +9,15 @@ namespace YetAnotherRelogger.Helpers.Hotkeys.Actions
     {
         private Hotkey _hotkey;
 
-        public string Name
-        {
-            get { return "RepositionCurrent"; }
-        }
+        public string Name => "RepositionCurrent";
 
-        public string Author
-        {
-            get { return "sinterlkaas"; }
-        }
+        public string Author => "sinterlkaas";
 
-        public string Description
-        {
-            get { return "Reposition Current Window"; }
-        }
+        public string Description => "Reposition Current Window";
 
-        public Version Version
-        {
-            get { return new Version(1, 0, 0); }
-        }
+        public Version Version => new Version(1, 0, 0);
 
-        public Form ConfigWindow
-        {
-            get { return null; }
-        }
+        public Form ConfigWindow => null;
 
         public void OnInitialize(Hotkey hotkey)
         {
@@ -50,12 +34,12 @@ namespace YetAnotherRelogger.Helpers.Hotkeys.Actions
                 _hotkey.Key, Name);
 
             // Get active window
-            IntPtr hwnd = WinAPI.GetForegroundWindow();
+            var hwnd = WinApi.GetForegroundWindow();
 
-            BotClass test = BotSettings.Instance.Bots.FirstOrDefault(x => x.Diablo.MainWindowHandle == hwnd);
+            var test = BotSettings.Instance.Bots.FirstOrDefault(x => x.Diablo.MainWindowHandle == hwnd);
             if (test != null)
             {
-                DiabloClass diablo = test.Diablo;
+                var diablo = test.Diablo;
                 if (diablo == null)
                     return;
                 AutoPosition.ManualPositionWindow(hwnd, diablo.X, diablo.Y, diablo.W, diablo.H);
@@ -64,7 +48,7 @@ namespace YetAnotherRelogger.Helpers.Hotkeys.Actions
             test = BotSettings.Instance.Bots.FirstOrDefault(x => x.Demonbuddy.MainWindowHandle == hwnd);
             if (test != null)
             {
-                DemonbuddyClass demonbuddy = test.Demonbuddy;
+                var demonbuddy = test.Demonbuddy;
                 if (demonbuddy == null)
                     return;
                 AutoPosition.ManualPositionWindow(hwnd, demonbuddy.X, demonbuddy.Y, demonbuddy.W, demonbuddy.H);
@@ -75,7 +59,7 @@ namespace YetAnotherRelogger.Helpers.Hotkeys.Actions
 
         public bool Equals(IHotkeyAction other)
         {
-            return (other.Name == Name) && (other.Version == Version);
+            return (other?.Name == Name) && (other?.Version == Version);
         }
     }
 }

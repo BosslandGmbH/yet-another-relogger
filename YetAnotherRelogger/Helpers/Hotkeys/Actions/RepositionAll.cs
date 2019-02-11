@@ -7,30 +7,15 @@ namespace YetAnotherRelogger.Helpers.Hotkeys.Actions
     {
         private Hotkey _hotkey;
 
-        public string Name
-        {
-            get { return "RepositionAll"; }
-        }
+        public string Name => "RepositionAll";
 
-        public string Author
-        {
-            get { return "sinterlkaas"; }
-        }
+        public string Author => "sinterlkaas";
 
-        public string Description
-        {
-            get { return "Reposition All Windows"; }
-        }
+        public string Description => "Reposition All Windows";
 
-        public Version Version
-        {
-            get { return new Version(1, 0, 0); }
-        }
+        public Version Version => new Version(1, 0, 0);
 
-        public Form ConfigWindow
-        {
-            get { return null; }
-        }
+        public Form ConfigWindow => null;
 
         public void OnInitialize(Hotkey hotkey)
         {
@@ -48,10 +33,9 @@ namespace YetAnotherRelogger.Helpers.Hotkeys.Actions
             AutoPosition.PositionWindows();
         }
 
-
         public bool Equals(IHotkeyAction other)
         {
-            return (other.Name == Name) && (other.Version == Version);
+            return (other?.Name == Name) && (other?.Version == Version);
         }
     }
 }

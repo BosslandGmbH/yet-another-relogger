@@ -10,14 +10,14 @@ namespace YetAnotherRelogger.Helpers.Tools
         {
             try
             {
-                RegistryKey key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run");
+                var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run");
                 if (key == null)
                 {
                     Logger.Instance.WriteGlobal(
                         "Failed to get registry key \"Software\\Microsoft\\Windows\\CurrentVersion\\Run\"");
                     return false;
                 }
-                key.SetValue("YetAnotherRelogger", string.Format("\"{0}\" -winstart", Application.ExecutablePath));
+                key.SetValue("YetAnotherRelogger", $"\"{Application.ExecutablePath}\" -winstart");
                 key.Close();
                 return true;
             }
@@ -33,7 +33,7 @@ namespace YetAnotherRelogger.Helpers.Tools
         {
             try
             {
-                RegistryKey key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run");
+                var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run");
                 if (key == null)
                 {
                     Logger.Instance.WriteGlobal(
@@ -53,18 +53,18 @@ namespace YetAnotherRelogger.Helpers.Tools
             }
         }
 
-        public static bool ChangeLocale(string Language)
+        public static bool ChangeLocale(string language)
         {
             try
             {
-                string locale = General.GetLocale(Language);
-                RegistryKey key = Registry.CurrentUser.CreateSubKey(@"Software\Blizzard Entertainment\D3");
+                var locale = General.GetLocale(language);
+                var key = Registry.CurrentUser.CreateSubKey(@"Software\Blizzard Entertainment\D3");
                 if (key == null)
                 {
                     Logger.Instance.Write("Failed to get registry key for changing locale!");
                     return false;
                 }
-                Logger.Instance.Write("Language set: {0} : {1}", Language, locale);
+                Logger.Instance.Write("Language set: {0} : {1}", language, locale);
                 key.SetValue("Locale", locale);
                 key.Close();
                 return true;
@@ -77,20 +77,20 @@ namespace YetAnotherRelogger.Helpers.Tools
             }
         }
 
-        public static bool ChangeRegion(string Region)
+        public static bool ChangeRegion(string region)
         {
             try
             {
-                RegistryKey key = Registry.CurrentUser.CreateSubKey(@"Software\Blizzard Entertainment\Battle.net\D3\");
+                var key = Registry.CurrentUser.CreateSubKey(@"Software\Blizzard Entertainment\Battle.net\D3\");
                 if (key == null)
                 {
                     Logger.Instance.Write("Failed to get registry key for changing region!");
                     return false;
                 }
 
-                string regionUrl = "";
+                string regionUrl;
 
-                switch (Region)
+                switch (region)
                 {
                     case "Beta":
                         regionUrl = "beta.actual.battle.net";
@@ -108,11 +108,11 @@ namespace YetAnotherRelogger.Helpers.Tools
                         regionUrl = "cn.actual.battle.net";
                         break;
                     default:
-                        Logger.Instance.Write("Unknown region ({0}) using Europe as our default region", Region);
+                        Logger.Instance.Write("Unknown region ({0}) using Europe as our default region", region);
                         regionUrl = "eu.actual.battle.net";
                         break;
                 }
-                Logger.Instance.Write("Region set: {0} : {1}", Region, regionUrl);
+                Logger.Instance.Write("Region set: {0} : {1}", region, regionUrl);
                 key.SetValue("RegionUrl", regionUrl);
                 key.Close();
                 return true;

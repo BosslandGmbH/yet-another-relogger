@@ -11,10 +11,10 @@ namespace YetAnotherRelogger.Helpers.Tools
         public FileListCache(string path)
         {
             _rootpath = path;
-            updatelist(path);
+            UpdateList(path);
         }
 
-        private void updatelist(string path, bool newlist = true)
+        private void UpdateList(string path, bool newlist = true)
         {
             if (newlist)
                 FileList = new HashSet<MyFile>();
@@ -23,26 +23,26 @@ namespace YetAnotherRelogger.Helpers.Tools
                 FileList.Add(new MyFile
                 {
                     Path = path.Substring(_rootpath.Length + 1),
-                    directory = true
+                    Directory = true
                 });
             }
-            foreach (string file in Directory.GetFiles(path))
+            foreach (var file in Directory.GetFiles(path))
             {
                 FileList.Add(new MyFile
                 {
                     Path = file.Substring(_rootpath.Length + 1),
-                    directory = false
+                    Directory = false
                 });
             }
 
-            foreach (string dir in Directory.GetDirectories(path))
-                updatelist(dir, false);
+            foreach (var dir in Directory.GetDirectories(path))
+                UpdateList(dir, false);
         }
 
         public struct MyFile
         {
             public string Path;
-            public bool directory;
+            public bool Directory;
         }
     }
 }

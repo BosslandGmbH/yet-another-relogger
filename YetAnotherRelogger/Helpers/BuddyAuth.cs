@@ -15,36 +15,25 @@ namespace YetAnotherRelogger.Helpers
     public class BuddyAuth
     {
         #region singleton
-
-        private static readonly BuddyAuth instance = new BuddyAuth();
-
-        static BuddyAuth()
-        {
-        }
-
+        private static BuddyAuth _instance;
+        public static BuddyAuth Instance => _instance ?? (_instance = new BuddyAuth());
         private BuddyAuth()
         {
         }
-
-        public static BuddyAuth Instance
-        {
-            get { return instance; }
-        }
-
         #endregion
 
         private readonly HashSet<BuddyAuthWebClient> _buddyAuthWebClients = new HashSet<BuddyAuthWebClient>();
 
         public bool KillSession(BotClass bot)
         {
-            string username = bot.Demonbuddy.BuddyAuthUsername;
-            string password = bot.Demonbuddy.BuddyAuthPassword;
+            var username = bot.Demonbuddy.BuddyAuthUsername;
+            var password = bot.Demonbuddy.BuddyAuthPassword;
 
             // if username and password are empty stop here!
             if (username.Length <= 0 && password.Length <= 0)
                 return false;
 
-            BuddyAuthWebClient client =
+            var client =
                 _buddyAuthWebClients.FirstOrDefault(c => c.Username.Equals(username) && c.Password.Equals(password));
             if (client == null)
             {
@@ -70,11 +59,15 @@ namespace YetAnotherRelogger.Helpers
         {
             Username = username;
             Password = password;
-            _webClient = new CookieAwareWebClient();
-            _webClient.Headers["Content-type"] = "application/x-www-form-urlencoded";
-            _webClient.Headers["Host"] = "buddyauth.com";
-            _webClient.Headers["User-Agent"] =
-                "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:13.0) Gecko/20100101 Firefox/13.0.1";
+            _webClient = new CookieAwareWebClient
+            {
+                Headers =
+                {
+                    ["Content-type"] = "application/x-www-form-urlencoded",
+                    ["Host"] = "buddyauth.com",
+                    ["User-Agent"] = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:13.0) Gecko/20100101 Firefox/13.0.1"
+                }
+            };
         }
 
         public bool IsLoggedIn
@@ -95,7 +88,7 @@ namespace YetAnotherRelogger.Helpers
                 Login();
             lock (_webClientLock)
             {
-                string input = _webClient.DownloadString("http://buddyauth.com/User/Sessions");
+                var input = _webClient.DownloadString(SessionsUrl);
                 var regex =
                     new Regex(
                         "<tr>[^<]+<td>.+name=\"selectedSessions\\[([0-9]+)\\].Id\".+value=\"(.+)\"[^<]+<input[^<]+<input[^<]+<[^<]+<td>Demonbuddy</td>[^<]+<td>([^<]+)<");
@@ -104,15 +97,15 @@ namespace YetAnotherRelogger.Helpers
                 {
                     // Get login time for each session
                     // Sample: 7/30/2012 7:51:45 PM
-                    string number = match.Groups[1].ToString();
-                    string id = match.Groups[2].ToString();
-                    string time = match.Groups[3].ToString().Trim();
-                    DateTime result = DateTime.Parse(time, new CultureInfo("en-US", false));
+                    var number = match.Groups[1].ToString();
+                    var id = match.Groups[2].ToString();
+                    var time = match.Groups[3].ToString().Trim();
+                    var result = DateTime.Parse(time, new CultureInfo("en-US", false));
 
                     Debug.WriteLine("Found Session: id:{0} time:{1}", id, result);
-                    session.id = int.Parse(id);
-                    session.time = result;
-                    session.number = int.Parse(number);
+                    session.Id = int.Parse(id);
+                    session.Time = result;
+                    session.Number = int.Parse(number);
                     sessions.Add(session);
                 }
             }
@@ -124,40 +117,40 @@ namespace YetAnotherRelogger.Helpers
         {
             lock (_webClientLock)
             {
-                DateTime logintime = bot.Demonbuddy.LoginTime;
-                _webClient.Headers["Referer"] = "http://buddyauth.com/User/Sessions";
+                var logintime = bot.Demonbuddy.LoginTime;
+                _webClient.Headers["Referer"] = SessionsUrl;
                 var data = new NameValueCollection();
-                Session match = GetSessions()
+                var match = GetSessions()
                     .Where(
                         i =>
-                            logintime.Subtract(i.time).TotalSeconds < 16 &&
-                            logintime.Subtract(i.time).TotalSeconds > -16)
-                    .OrderBy(i => logintime.Subtract(i.time).TotalSeconds).FirstOrDefault();
+                            logintime.Subtract(i.Time).TotalSeconds < 16 &&
+                            logintime.Subtract(i.Time).TotalSeconds > -16)
+                    .OrderBy(i => logintime.Subtract(i.Time).TotalSeconds).FirstOrDefault();
 
-                if (match.id == 0)
+                if (match.Id == 0)
                 {
                     Logger.Instance.Write(bot, "BuddyAuth: No session found.");
                     return;
                 }
 
-                data.Set("selectedSessions[" + match.number + "].Id", Convert.ToString(match.id));
-                data.Set("selectedSessions[" + match.number + "].IsChecked", "true");
+                data.Set("selectedSessions[" + match.Number + "].Id", Convert.ToString(match.Id));
+                data.Set("selectedSessions[" + match.Number + "].IsChecked", "true");
 
                 try
                 {
-                    int retry = 3;
+                    var retry = 3;
                     do
                     {
                         try
                         {
-                            _webClient.UploadValues("http://buddyauth.com/User/Sessions", data);
+                            _webClient.UploadValues(SessionsUrl, data);
                             Logger.Instance.Write(bot, "BuddyAuth: Session with id: {0} killed! (Time difference: {1})",
-                                match.id, logintime.Subtract(match.time).TotalSeconds);
+                                match.Id, logintime.Subtract(match.Time).TotalSeconds);
                             return;
                         }
                         catch (WebException wex)
                         {
-                            HttpStatusCode code = ((HttpWebResponse) wex.Response).StatusCode;
+                            var code = ((HttpWebResponse) wex.Response).StatusCode;
                             if (code != HttpStatusCode.InternalServerError &&
                                 code != HttpStatusCode.BadGateway &&
                                 code != HttpStatusCode.ServiceUnavailable &&
@@ -188,10 +181,10 @@ namespace YetAnotherRelogger.Helpers
         {
             lock (_webClientLock)
             {
-                _webClient.Headers["Referer"] = "http://buddyauth.com/Account/LogOn";
-                _webClient.UploadString("http://buddyauth.com/Account/LogOn",
+                _webClient.Headers["Referer"] = LogOnUrl;
+                _webClient.UploadString(LogOnUrl,
                     "UserName=" + Username + "&Password=" + Password + "&RememberMe=true");
-                foreach (Cookie cookie in _webClient.Cookies.GetCookies(new Uri("http://buddyauth.com/Account/LogOn")))
+                foreach (Cookie cookie in _webClient.Cookies.GetCookies(new Uri(LogOnUrl)))
                 {
                     if (!cookie.ToString().Contains(".ASPXAUTH="))
                         continue;
@@ -204,9 +197,9 @@ namespace YetAnotherRelogger.Helpers
 
         public struct Session
         {
-            public int id;
-            public int number;
-            public DateTime time;
+            public int Id;
+            public int Number;
+            public DateTime Time;
         }
     }
 }
