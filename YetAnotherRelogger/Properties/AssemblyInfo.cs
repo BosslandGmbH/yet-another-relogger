@@ -7,11 +7,11 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 
 [assembly: AssemblyTitle("YetAnotherRelogger")]
-[assembly: AssemblyDescription(null)]
+[assembly: AssemblyDescription("A relogger that handles D3 and DB.")]
 [assembly: AssemblyConfiguration(null)]
-[assembly: AssemblyCompany(null)]
-[assembly: AssemblyProduct("YetAnotherRelogger")]
-[assembly: AssemblyCopyright(null)]
+[assembly: AssemblyCompany("Bossland GmbH")]
+[assembly: AssemblyProduct("Demonbuddy")]
+[assembly: AssemblyCopyright("Copyright © xzjv, TarasBulba, rrrix, jubisman, Phelon and many more 2012 - 2019")]
 [assembly: AssemblyTrademark(null)]
 [assembly: AssemblyCulture(null)]
 
@@ -36,6 +36,6 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 
-[assembly: AssemblyVersion("4.250.0.5")]
-[assembly: AssemblyFileVersion("4.250.0.5")]
+[assembly: AssemblyVersion("1.0.9999.0")]
+[assembly: AssemblyFileVersion("1.0.9999.0")]
 [assembly: NeutralResourcesLanguage("en")]

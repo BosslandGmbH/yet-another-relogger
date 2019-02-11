@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following 
@@ -8,7 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Authenticator")]
 [assembly: AssemblyDescription("Authenticator implementation")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCopyright("Copyright - Colin Mackie 2013")]
+[assembly: AssemblyCompany("Bossland GmbH")]
+[assembly: AssemblyProduct("Demonbuddy")]
+[assembly: AssemblyCopyright("Copyright © Colin Mackie 2013")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -30,7 +31,6 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("2.0.10.190")]
-#if !NETCF
-[assembly: AssemblyFileVersion("2.0.10.190")]
-#endif
+
+[assembly: AssemblyVersion("1.0.9999.0")]
+[assembly: AssemblyFileVersion("1.0.9999.0")]

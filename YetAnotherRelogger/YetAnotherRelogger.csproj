@@ -100,13 +100,6 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Demonbuddy, Version=1.1.3069.470, Culture=neutral, PublicKeyToken=eff32ccf253d66d4, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\DB-Current\Demonbuddy.exe</HintPath>
-    </Reference>
-    <Reference Include="GreyMagic">
-      <HintPath>..\..\..\..\DB-Current\GreyMagic.dll</HintPath>
-    </Reference>
     <Reference Include="InputSimulator">
       <HintPath>..\ThirdParty\InputSimulator.dll</HintPath>
     </Reference>
@@ -429,6 +422,14 @@
     <None Include="Images\YAR_LOGO_small.png" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\Demonbuddy\Demonbuddy.csproj">
+      <Project>{e7f256cb-7848-4494-b69b-d33557147baf}</Project>
+      <Name>Demonbuddy</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Generic\GreyMagic\GreyMagic\GreyMagic.vcxproj">
+      <Project>{5aecafbf-5c55-4be6-ae17-eccf5b2d65f8}</Project>
+      <Name>GreyMagic</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Authenticator\Authenticator.csproj">
       <Project>{eaf2d5ce-d817-453a-8a32-3d531570ae04}</Project>
       <Name>Authenticator</Name>
