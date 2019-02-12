@@ -2,11 +2,11 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Serialization;
+using Serilog;
 using YetAnotherRelogger.Helpers.Attributes;
 using YetAnotherRelogger.Helpers.Enums;
 using YetAnotherRelogger.Helpers.Tools;
@@ -16,6 +16,8 @@ namespace YetAnotherRelogger.Helpers.Bot
 {
     public class DemonbuddyClass
     {
+        private static readonly ILogger s_logger = Logger.Instance.GetLogger<DemonbuddyClass>();
+
         [XmlIgnore]
         public Rectangle AutoPos;
         [XmlIgnore]
@@ -24,7 +26,7 @@ namespace YetAnotherRelogger.Helpers.Bot
         private bool _crashTenderRestart;
         [XmlIgnore]
         private bool _isStopped;
-        private DateTime _lastRepsonse;
+        private DateTime _lastResponse;
         [XmlIgnore]
         private Process _proc;
 
@@ -33,30 +35,6 @@ namespace YetAnotherRelogger.Helpers.Bot
             CpuCount = Environment.ProcessorCount;
             ProcessorAffinity = AllProcessors;
         }
-
-        #region WINAPI
-        [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
-        public static extern IntPtr GetFocus();
-
-        [DllImport("user32.dll")]
-        public static extern IntPtr GetForegroundWindow();
-
-        [DllImport("user32.dll")]
-        public static extern IntPtr SetForegroundWindow(IntPtr hWnd);
-
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        static extern bool PostMessage(IntPtr hWnd, int msg, char wParam, int lParam);
-
-        [DllImport("user32")]
-        public static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
-
-        [DllImport("user32")]
-        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        static extern uint GetCurrentThreadId();
-        #endregion
-
 
         [XmlIgnore]
         [NoCopy]
@@ -86,10 +64,7 @@ namespace YetAnotherRelogger.Helpers.Bot
         [XmlIgnore]
         [NoCopy]
         public DateTime LoginTime { get; set; }
-
-        [XmlIgnore]
-        public bool FoundLoginTime { get; set; }
-
+        
         // Demonbuddy
         public string Location { get; set; }
         public string Key { get; set; }
@@ -148,14 +123,12 @@ namespace YetAnotherRelogger.Helpers.Bot
                     if (Parent.AntiIdle.FailedInitCount >= (Parent.AntiIdle.InitAttempts > 0 ? 1 : MaxInits))
                     {
                         Parent.AntiIdle.InitAttempts++;
-                        Logger.Instance.Write(Parent, "Demonbuddy:{0}: Failed to initialize more than {1} times",
-                            Parent.Demonbuddy.Proc.Id, MaxInits);
+                        s_logger.Warning("Demonbuddy:{Id}: Failed to initialize more than {MaxInits} times", Parent.Demonbuddy.Proc.Id, MaxInits);
                         Parent.Standby();
                     }
                     else
                     {
-                        Logger.Instance.Write(Parent, "Demonbuddy:{0}: Failed to initialize {1}/{2}",
-                            Parent.Demonbuddy.Proc.Id, Parent.AntiIdle.FailedInitCount, MaxInits);
+                        s_logger.Warning("Demonbuddy:{Id}: Failed to initialize {FailedInitCount}/{MaxInits}", Parent.Demonbuddy.Proc.Id, Parent.AntiIdle.FailedInitCount, MaxInits);
                         Parent.Demonbuddy.Stop(true);
                     }
                     return false;
@@ -178,7 +151,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                 if (logdir.Length == 0 || !Directory.Exists(logdir))
                 {
                     // Failed to get log dir so exit here
-                    Logger.Instance.Write(Parent, "Demonbuddy:{0}: Failed to find logdir", Proc.Id);
+                    s_logger.Warning("Demonbuddy:{Id}: Failed to find logdir", Proc.Id);
                     return false;
                 }
                 // get log file
@@ -189,7 +162,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                 for (var i = 0; i <= 3; i++)
                 {
                     // Test if logfile exists for current process starttime + 1 minute
-                    logfile = $"{logdir}\\{Proc.Id} {starttime.AddMinutes(i).ToString("yyyy-MM-dd HH.mm")}.txt";
+                    logfile = $"{logdir}\\{Proc.Id} {starttime.AddMinutes(i):yyyy-MM-dd HH.mm}.txt";
                     if (File.Exists(logfile))
                     {
                         success = true;
@@ -199,7 +172,7 @@ namespace YetAnotherRelogger.Helpers.Bot
 
                 if (success)
                 {
-                    Logger.Instance.Write(Parent, "Demonbuddy:{0}: Found matching log: {1}", Proc.Id, logfile);
+                    s_logger.Information("Demonbuddy:{Id}: Found matching log: {logfile}", Proc.Id, logfile);
 
                     // Read Log file
                     // [11:03:21.173 N] Logging in...
@@ -225,13 +198,11 @@ namespace YetAnotherRelogger.Helpers.Bot
 
                                 if (logging && line.Contains("Attached to Diablo III with pid"))
                                 {
-                                    LoginTime =
-                                        DateTime.Parse($"{starttime.ToUniversalTime():yyyy-MM-dd} {time}");
-                                    Logger.Instance.Write("Found login time: {0}", LoginTime);
+                                    LoginTime = DateTime.Parse($"{starttime.ToUniversalTime():yyyy-MM-dd} {time}");
+                                    s_logger.Information("Found login time: {LoginTime}", LoginTime);
                                     return true;
                                 }
-                                var m = new Regex(@"^\[(.+) .\] Logging in\.\.\.$",
-                                    RegexOptions.Compiled).Match(line);
+                                var m = new Regex(@"^\[(.+) .\] Logging in\.\.\.$", RegexOptions.Compiled).Match(line);
                                 if (m.Success)
                                 {
                                     time = TimeSpan.Parse(m.Groups[1].Value);
@@ -240,18 +211,17 @@ namespace YetAnotherRelogger.Helpers.Bot
 
                                 Thread.Sleep(5); // Be nice for CPU
                             }
-                            Logger.Instance.Write(Parent, "Demonbuddy:{0}: Failed to find login time", Proc.Id);
+                            s_logger.Warning("Demonbuddy:{Id}: Failed to find login time", Proc.Id);
                             return false;
                         }
                     }
                     catch (Exception ex)
                     {
-                        Logger.Instance.Write(Parent, "Demonbuddy:{0}: Error accured while reading log", Proc.Id);
-                        DebugHelper.Exception(ex);
+                        s_logger.Error(ex, "Demonbuddy:{Id}: Error accured while reading log", Proc.Id);
                     }
                 }
                 // Else print error + return false
-                Logger.Instance.Write(Parent, "Demonbuddy:{0}: Failed to find matching log", Proc.Id);
+                s_logger.Warning("Demonbuddy:{Id}: Failed to find matching log", Proc.Id);
                 return false;
             }
         }
@@ -262,40 +232,36 @@ namespace YetAnotherRelogger.Helpers.Bot
                 return;
 
             if (Proc.Responding)
-                _lastRepsonse = DateTime.UtcNow;
+                _lastResponse = DateTime.UtcNow;
 
             if (DateTime.UtcNow.Subtract(Proc.StartTime).TotalMilliseconds < (90 * 1000))
                 return;
 
-            if (Settings.Default.AllowKillDemonbuddy && DateTime.UtcNow.Subtract(_lastRepsonse).TotalSeconds > 90)
+            if (Settings.Default.AllowKillDemonbuddy && _lastResponse.AddSeconds(120) < DateTime.UtcNow)
             {
-                Logger.Instance.Write(Parent, "Demonbuddy:{0}: Is unresponsive for more than 120 seconds", Proc.Id);
-                Logger.Instance.Write(Parent, "Demonbuddy:{0}: Killing process", Proc.Id);
+                s_logger.Information("Demonbuddy:{Id}: Is unresponsive for more than 120 seconds", Proc.Id);
+                s_logger.Warning("Demonbuddy:{Id}: Killing process", Proc.Id);
                 try
                 {
                     Proc.Kill();
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Write(Parent, "Failed to kill process", ex.Message);
-                    DebugHelper.Exception(ex);
+                    s_logger.Error(ex, "Failed to kill process");
                 }
             }
-
-            else if (Settings.Default.AllowKillDemonbuddy && DateTime.UtcNow.Subtract(_lastRepsonse).TotalSeconds > 90)
+            else if (Settings.Default.AllowKillDemonbuddy && _lastResponse.AddSeconds(90) < DateTime.UtcNow)
             {
-                Logger.Instance.Write(Parent, "Demonbuddy:{0}: Is unresponsive for more than 90 seconds", Proc.Id);
-                Logger.Instance.Write(Parent, "Demonbuddy:{0}: Closing process", Proc.Id);
+                s_logger.Information("Demonbuddy:{Id}: Is unresponsive for more than 90 seconds", Proc.Id);
+                s_logger.Warning("Demonbuddy:{Id}: Closing process", Proc.Id);
                 try
                 {
                     if (Proc != null && !Proc.HasExited)
                         Proc.CloseMainWindow();
-                    //Proc.Kill();
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Write(Parent, "Failed to kill process", ex.Message);
-                    DebugHelper.Exception(ex);
+                    s_logger.Error(ex, "Failed to close process");
                 }
             }
         }
@@ -307,7 +273,7 @@ namespace YetAnotherRelogger.Helpers.Bot
 
             if (!File.Exists(Location))
             {
-                Logger.Instance.Write("File not found: {0}", Location);
+                s_logger.Error("File not found: {Location}", Location);
                 return;
             }
 
@@ -362,9 +328,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                 //else if (!noprofile)
                 //    Logger.Instance.Write(
                 //        "Warning: Launching Demonbuddy without a starting profile (Add a profile to the profilescheduler for this bot)");
-
-
-
+                
                 if (NoFlash)
                     arguments += " -noflash";
                 if (AutoUpdate)
@@ -392,7 +356,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                 if (ForceEnableAllPlugins)
                     arguments += " -YarEnableAll";
 
-                Debug.WriteLine($"DB Arguments: {arguments}");
+                s_logger.Verbose("DB Arguments: {arguments}", arguments);
 
                 var p = new ProcessStartInfo(Location, arguments) { WorkingDirectory = Path.GetDirectoryName(Location), UseShellExecute = false};
                 p = UserAccount.ImpersonateStartInfo(p, Parent);
@@ -406,9 +370,8 @@ namespace YetAnotherRelogger.Helpers.Bot
                     if (Program.IsRunAsAdmin)
                         Proc.PriorityClass = General.GetPriorityClass(Priority);
                     else
-                        Logger.Instance.Write(Parent, "Failed to change priority (No admin rights)");
-
-
+                        s_logger.Error("Failed to change priority (No admin rights)");
+                    
                     // Set affinity
                     if (CpuCount != Environment.ProcessorCount)
                     {
@@ -416,22 +379,19 @@ namespace YetAnotherRelogger.Helpers.Bot
                         CpuCount = Environment.ProcessorCount;
                     }
                     Proc.ProcessorAffinity = (IntPtr)ProcessorAffinity;
-
-
-
-                    Logger.Instance.Write(Parent, "Demonbuddy:{0}: Waiting for process to become ready", Proc.Id);
+                    
+                    s_logger.Information("Demonbuddy:{Id}: Waiting for process to become ready", Proc.Id);
 
                     timeout = DateTime.UtcNow;
                     while (true)
                     {
                         if (Program.Pause)
                         {
-                            timeout = DateTime.UtcNow;
                             return;
                         }
                         if (General.DateSubtract(timeout) > 60)
                         {
-                            Logger.Instance.Write(Parent, "Demonbuddy:{0}: Failed to start!", Proc.Id);
+                            s_logger.Warning("Demonbuddy:{Id}: Failed to start!", Proc.Id);
                             Parent.Restart();
                             return;
                         }
@@ -443,15 +403,16 @@ namespace YetAnotherRelogger.Helpers.Bot
                             if (Proc != null && Proc.HasExited && Proc.ExitCode == 12)
                             {
                                 Proc.WaitForExit();
-                                Logger.Instance.Write("Closing YAR due to Tripwire event. Please check the forums for more information.");
+                                s_logger.Fatal("Closing YAR due to Tripwire event. Please check the forums for more information.");
                                 Application.Exit();
                             }
 
                             if (Proc.WaitForInputIdle(100) || CrashChecker.IsResponding(MainWindowHandle))
                                 break;
                         }
-                        catch
+                        catch (Exception ex)
                         {
+                            s_logger.Error(ex, "Error while waiting for idle input");
                         }
                     }
 
@@ -460,7 +421,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                 }
                 catch (Exception ex)
                 {
-                    DebugHelper.Exception(ex);
+                    s_logger.Error(ex, "Error during startup");
                     Parent.Stop();
                 }
 
@@ -494,11 +455,11 @@ namespace YetAnotherRelogger.Helpers.Bot
                 // Window postion & resizing
                 if (ManualPosSize)
                     AutoPosition.ManualPositionWindow(MainWindowHandle, X, Y, W, H, Parent);
-                Logger.Instance.Write(Parent, "Demonbuddy:{0}: Process is ready", Proc.Id);
+                s_logger.Information("Demonbuddy:{Id}: Process is ready", Proc.Id);
 
                 // Wait for demonbuddy to be Initialized (this means we are logged in)
                 // If we don't wait here the Region changeing for diablo fails!
-                Logger.Instance.Write(Parent, "Demonbuddy:{0}: Waiting for demonbuddy to log into Diablo", Proc.Id);
+                s_logger.Information("Demonbuddy:{Id}: Waiting for demonbuddy to log into Diablo", Proc.Id);
                 while (!IsInitialized && !_isStopped)
                     Thread.Sleep(1000);
                 // We made to many attempts break here
@@ -536,9 +497,8 @@ namespace YetAnotherRelogger.Helpers.Bot
                 //!!!
                 */
 
-
                 // We are ready to go
-                Logger.Instance.Write(Parent, "Demonbuddy:{0}: Initialized! We are ready to go", Proc.Id);
+                s_logger.Information("Demonbuddy:{Id}: Initialized! We are ready to go", Proc.Id);
                 Parent.AntiIdle.FailedInitCount = 0; // only reset counter
                 break;
             } // while (Parent.IsStarted && Parent.Diablo.IsRunning)
@@ -550,14 +510,14 @@ namespace YetAnotherRelogger.Helpers.Bot
             if (handle != IntPtr.Zero)
             {
                 MainWindowHandle = handle;
-                Logger.Instance.Write(Parent, "Found Demonbuddy: MainWindow ({0})", handle);
+                s_logger.Verbose("Found Demonbuddy: MainWindow ({handle})", handle);
                 return true;
             }
             handle = FindWindow.EqualsWindowCaption("Demonbuddy - BETA", Proc.Id);
             if (handle != IntPtr.Zero)
             {
                 MainWindowHandle = handle;
-                Logger.Instance.Write(Parent, "Found Demonbuddy - BETA: MainWindow ({0})", handle);
+                s_logger.Verbose("Found Demonbuddy - BETA: MainWindow ({handle})", handle);
                 return true;
             }
             return false;
@@ -573,35 +533,34 @@ namespace YetAnotherRelogger.Helpers.Bot
             // Force close
             if (force)
             {
-                Logger.Instance.Write(Parent, "Demonbuddy:{0}: Process is not responding, killing!", Proc.Id);
+                s_logger.Warning("Demonbuddy:{Id}: Process is not responding, killing!", Proc.Id);
                 Proc.Kill();
                 return;
             }
 
             if (Proc != null && !Proc.HasExited)
             {
-                Logger.Instance.Write(Parent, "Demonbuddy:{0}: Closing window", Proc.Id);
+                s_logger.Information("Demonbuddy:{Id}: Closing window", Proc.Id);
                 Proc.CloseMainWindow();
             }
             if (Parent.Diablo.Proc == null || Parent.Diablo.Proc.HasExited)
             {
-                Logger.Instance.Write(Parent, "Demonbuddy:{0}: Waiting to close", Proc.Id);
+                s_logger.Verbose("Demonbuddy:{Id}: Waiting to close", Proc.Id);
                 Proc.CloseMainWindow();
                 Parent.AntiIdle.State = IdleState.Terminate;
                 Proc.WaitForExit(60000);
                 if (Proc == null || Proc.HasExited)
                 {
-                    Logger.Instance.Write(Parent, "Demonbuddy:{0}: Closed.", Proc.Id);
+                    s_logger.Information("Demonbuddy:{Id}: Closed.", Proc.Id);
                     return;
                 }
             }
 
             if (Proc.HasExited)
-                Logger.Instance.Write(Parent, "Demonbuddy:{0}: Closed.", Proc.Id);
-
+                s_logger.Information("Demonbuddy:{Id}: Closed.", Proc.Id);
             else if (!Proc.Responding)
             {
-                Logger.Instance.Write(Parent, "Demonbuddy:{0}: Failed to close! kill process", Proc.Id);
+                s_logger.Error("Demonbuddy:{Id}: Failed to close! kill process", Proc.Id);
                 Proc.Kill();
             }
         }
@@ -609,10 +568,9 @@ namespace YetAnotherRelogger.Helpers.Bot
         public void CrashTender(string profilepath = null)
         {
             _crashTenderRestart = true;
-            Logger.Instance.Write(Parent, "CrashTender: Stopping Demonbuddy:{0}", Proc.Id);
+            s_logger.Information("CrashTender: Stopping Demonbuddy:{Id}", Proc.Id);
             Stop(true); // Force DB to stop
-            Logger.Instance.Write(Parent, "CrashTender: Starting Demonbuddy without a starting profile");
-
+            s_logger.Information("CrashTender: Starting Demonbuddy without a starting profile");
 
             if (profilepath != null)
                 Start(profilepath: profilepath, crashtenderstart: true);

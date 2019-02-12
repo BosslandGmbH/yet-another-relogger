@@ -118,6 +118,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Serilog">
+      <Version>2.8.0</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -139,10 +144,6 @@
   <ProjectExtensions>
     <VisualStudio AllowExistingFolder="true" />
   </ProjectExtensions>
-  <PropertyGroup>
-    <PostBuildEvent>xcopy /Y $(ProjectDir)\..\..\YetAnotherRelogger\Resources\Plugin.cs C:\db\Plugins\YAR\
-xcopy /Y $(ProjectDir)\..\..\YetAnotherRelogger\Resources\YARBot.cs C:\db\Bots\YARBot\</PostBuildEvent>
-  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
