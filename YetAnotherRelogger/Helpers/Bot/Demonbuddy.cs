@@ -328,6 +328,8 @@ namespace YetAnotherRelogger.Helpers.Bot
                 //arguments += $" -routine=TrinityRoutine";
                 //arguments += $" -routine=\"{CombatRoutine}\"";
 
+                arguments += $" -logformat=Json -logport={Settings.Default.LogListenerPort}";
+
                 arguments += $" -bnetaccount=\"{Parent.Diablo.Username}\"";
                 arguments += $" -bnetpassword=\"{Parent.Diablo.Password}\"";
 
