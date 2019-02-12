@@ -34,7 +34,7 @@ namespace YetAnotherRelogger
                     SingleInstance.ShowFirstInstance();
                     return;
                 }
-
+                
                 // Run as admin check
                 var identity = WindowsIdentity.GetCurrent();
                 IsRunAsAdmin = (new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator));
@@ -55,7 +55,7 @@ This will reset some features",
                 BotSettings.Instance.Load();
                 Settings.Default.Reload();
                 Settings.Default.Upgrade();
-
+                
                 if (Settings.Default.AutoPosScreens == null ||
                     (Settings.Default.AutoPosScreens != null && Settings.Default.AutoPosScreens.Count == 0))
                     AutoPosition.UpdateScreens();
@@ -63,6 +63,12 @@ This will reset some features",
                 // Start background threads
                 Relogger.Instance.Start();
                 Communicator.Instance.Start();
+
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Mainform = new MainForm2();
+
+                UdpLogListener.Instance.Start();
 
                 if (!CommandLineArgs.SafeMode)
                 {
@@ -78,10 +84,6 @@ This will reset some features",
                     AutoPosition.UpdateScreens();
                 }
 
-
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-                Mainform = new MainForm2();
                 Application.Run(Mainform);
             }
             catch (Exception ex)
@@ -89,6 +91,7 @@ This will reset some features",
                 Logger.Instance.WriteGlobal(ex.ToString());
             }
             // Clean up
+            UdpLogListener.Instance.Stop();
             SingleInstance.Stop();
             Settings.Default.Save();
             Logger.Instance.WriteGlobal("Closed!");
