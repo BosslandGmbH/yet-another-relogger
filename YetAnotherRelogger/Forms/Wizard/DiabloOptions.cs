@@ -1,12 +1,13 @@
 ﻿using System;
 using System.IO;
 using System.Windows.Forms;
+using YetAnotherRelogger.Authenticator;
 using YetAnotherRelogger.Helpers.Tools;
 using YetAnotherRelogger.Properties;
 
 namespace YetAnotherRelogger.Forms.Wizard
 {
-    public partial class DiabloOptions : UserControl
+    public sealed partial class DiabloOptions : UserControl
     {
         private readonly WizardMain _wm;
 
@@ -14,7 +15,7 @@ namespace YetAnotherRelogger.Forms.Wizard
         {
             _wm = parent;
             InitializeComponent();
-            this.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
+            Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
         }
 
         private void DiabloOptions_Load(object sender, EventArgs e)
@@ -61,9 +62,9 @@ namespace YetAnotherRelogger.Forms.Wizard
         {
             var ofd = new OpenFileDialog
             {
-                Filter = "Diablo III.exe|*.exe",
+                Filter = @"Diablo III.exe|*.exe",
                 FileName = "Diablo III.exe",
-                Title = "Browse to Diablo III.exe"
+                Title = @"Browse to Diablo III.exe"
             };
             if (ofd.ShowDialog() == DialogResult.OK)
                 diablo3Path.Text = ofd.FileName;
@@ -88,9 +89,9 @@ namespace YetAnotherRelogger.Forms.Wizard
                 // Locate Inner space
                 var ofd = new OpenFileDialog
                 {
-                    Filter = "Inner Space.exe|*.exe",
+                    Filter = @"Inner Space.exe|*.exe",
                     FileName = "Inner Space.exe",
-                    Title = "Browse to Inner Space.exe"
+                    Title = @"Browse to Inner Space.exe"
                 };
                 if (ofd.ShowDialog() == DialogResult.OK)
                     Settings.Default.ISBoxerPath = ofd.FileName;
@@ -122,7 +123,6 @@ namespace YetAnotherRelogger.Forms.Wizard
 
         private void authenticatorTestButton_Click(object sender, EventArgs e)
         {
-
             // restore the authenticator
             try
             {
@@ -133,9 +133,8 @@ namespace YetAnotherRelogger.Forms.Wizard
             }
             catch (InvalidRestoreResponseException re)
             {
-                MessageBox.Show(this, re.Message, "YAR", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                MessageBox.Show(this, re.Message, @"YetAnotherRelogger", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
-
         }
     }
 }

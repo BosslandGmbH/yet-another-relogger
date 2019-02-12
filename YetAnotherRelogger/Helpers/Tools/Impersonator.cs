@@ -90,7 +90,7 @@ namespace YetAnotherRelogger.Helpers.Tools
         /// <param name="logonType">Type of the logon.</param>
         /// <param name="logonProvider">
         ///     The logon provider.
-        ///     <see cref="Mit.Sharepoint.WebParts.EventLogQuery.Network.LogonProvider" />
+        ///     <see cref="LogonProvider" />
         /// </param>
         public Impersonator(string userName, string domainName, string password, LogonType logonType,
             LogonProvider logonProvider)
@@ -146,7 +146,7 @@ namespace YetAnotherRelogger.Helpers.Tools
         /// <param name="logonType">Type of the logon.</param>
         /// <param name="logonProvider">
         ///     The logon provider.
-        ///     <see cref="Mit.Sharepoint.WebParts.EventLogQuery.Network.LogonProvider" />
+        ///     <see cref="LogonProvider" />
         /// </param>
         public void Impersonate(string userName, string domainName, string password, LogonType logonType,
             LogonProvider logonProvider)

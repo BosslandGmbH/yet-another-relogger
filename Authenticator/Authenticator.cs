@@ -1,21 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Security.Cryptography;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Xml;
-using System.Xml.Serialization;
-
-using Org.BouncyCastle.Crypto;
+﻿using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Paddings;
-using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Parameters;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
+using System.Xml;
 
 #if NUNIT
 using NUnit.Framework;
@@ -25,12 +19,12 @@ using NUnit.Framework;
 using OpenNETCF.Security.Cryptography;
 #endif
 
-namespace YetAnotherRelogger
+namespace YetAnotherRelogger.Authenticator
 {
-	/// <summary>
-	/// Class that implements base RFC 4226 an RFC 6238 authenticator
-	/// </summary>
-	public abstract class Authenticator : ICloneable
+    /// <summary>
+    /// Class that implements base RFC 4226 an RFC 6238 authenticator
+    /// </summary>
+    public abstract class Authenticator : ICloneable
 	{
 		/// <summary>
 		/// Number of bytes making up the salt
@@ -599,13 +593,12 @@ namespace YetAnotherRelogger
 			writer.WriteEndElement();
 		}
 
-		/// <summary>
-		/// Handle conversion from our old format where we XORed the key as per BMA1.x
-		/// </summary>
-		/// <param name="key">SecretKey value</param>
-		/// <param name="serial">Serial value</param>
-		/// <returns>XORed string</returns>
-		private static string ConvertAndriodSecretData(string secretData)
+        /// <summary>
+        /// Handle conversion from our old format where we XORed the key as per BMA1.x
+        /// </summary>
+        /// <param name="secretData">SecretKey value</param>
+        /// <returns>XORed string</returns>
+        private static string ConvertAndriodSecretData(string secretData)
 		{
 			// we used to keep compatability with Android which was XORed with a secret key
 			byte[] bytes = Authenticator.StringToByteArray(secretData);
@@ -695,13 +688,13 @@ namespace YetAnotherRelogger
 			return BitConverter.ToString(bytes).Replace("-", string.Empty);
 		}
 
-		/// <summary>
-		/// Encrypt a string with a given key
-		/// </summary>
-		/// <param name="plain">data to encrypt - hex representation of byte array</param>
-		/// <param name="key">key to use to encrypt</param>
-		/// <returns>hex coded encrypted string</returns>
-		public static string Encrypt(string plain, string password)
+        /// <summary>
+        /// Encrypt a string with a given key
+        /// </summary>
+        /// <param name="plain">data to encrypt - hex representation of byte array</param>
+        /// <param name="password">key to use to encrypt</param>
+        /// <returns>hex coded encrypted string</returns>
+        public static string Encrypt(string plain, string password)
 		{
 			byte[] inBytes = Authenticator.StringToByteArray(plain);
 			byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
@@ -740,14 +733,14 @@ namespace YetAnotherRelogger
 			return salt + Authenticator.ByteArrayToString(outBytes);
 		}
 
-		/// <summary>
-		/// Decrypt a hex-coded string using our MD5 or PBKDF2 generated key
-		/// </summary>
-		/// <param name="data">data string to be decrypted</param>
-		/// <param name="key">decryption key</param>
-		/// <param name="PBKDF2">flag to indicate we are using PBKDF2 to generate derived key</param>
-		/// <returns>hex coded decrypted string</returns>
-		public static string Decrypt(string data, string password, bool PBKDF2)
+        /// <summary>
+        /// Decrypt a hex-coded string using our MD5 or PBKDF2 generated key
+        /// </summary>
+        /// <param name="data">data string to be decrypted</param>
+        /// <param name="password">decryption key</param>
+        /// <param name="PBKDF2">flag to indicate we are using PBKDF2 to generate derived key</param>
+        /// <returns>hex coded decrypted string</returns>
+        public static string Decrypt(string data, string password, bool PBKDF2)
 		{
 			byte[] key;
 			byte[] saltBytes = Authenticator.StringToByteArray(data.Substring(0, SALT_LENGTH * 2));

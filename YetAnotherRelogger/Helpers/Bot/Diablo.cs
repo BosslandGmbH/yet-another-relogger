@@ -47,7 +47,7 @@ namespace YetAnotherRelogger.Helpers.Bot
         public static extern IntPtr SetForegroundWindow(IntPtr hWnd);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        private static bool PostMessage(IntPtr hWnd, int msg, char wParam, int lParam);
+        private static extern bool PostMessage(IntPtr hWnd, int msg, char wParam, int lParam);
 
         [DllImport("user32")]
         public static extern bool AttachThreadInput(uint idAttach, uint idAttachTo, bool fAttach);
@@ -56,7 +56,7 @@ namespace YetAnotherRelogger.Helpers.Bot
         public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        private static uint GetCurrentThreadId();
+        private static extern uint GetCurrentThreadId();
         #endregion
 
         /// <summary>

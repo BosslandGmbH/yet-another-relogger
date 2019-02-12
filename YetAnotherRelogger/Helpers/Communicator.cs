@@ -85,8 +85,8 @@ namespace YetAnotherRelogger.Helpers
                     {
                         _stream.Close();
                     }
-                    catch (ObjectDisposedException ex) { }
-                    catch (Exception ex) { }
+                    catch (ObjectDisposedException) { }
+                    catch (Exception) { }
                     _stream = null;
                 }
                 if (_reader != null)
@@ -96,7 +96,7 @@ namespace YetAnotherRelogger.Helpers
                         _reader.Close();
                     }
                     catch (ObjectDisposedException) { }
-                    catch (Exception ex) { }
+                    catch (Exception) { }
                     _reader = null;
                 }
                 //if (_writer != null)

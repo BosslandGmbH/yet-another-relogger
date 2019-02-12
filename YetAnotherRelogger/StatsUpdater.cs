@@ -87,7 +87,7 @@ namespace YetAnotherRelogger
                                     diabloCpuUsage += usage.Cpu;
                                     diabloRamUsage += usage.Memory;
                                 }
-                                catch(Exception ex)
+                                catch(Exception)
                                 {
                                 }
                             }
@@ -101,7 +101,7 @@ namespace YetAnotherRelogger
                                     demonbuddyCpuUsage += usage.Cpu;
                                     demonbuddyRamUsage += usage.Memory;
                                 }
-                                catch (Exception ex)
+                                catch (Exception)
                                 {
                                 }
                             }

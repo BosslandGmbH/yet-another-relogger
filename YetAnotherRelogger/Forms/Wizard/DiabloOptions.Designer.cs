@@ -1,6 +1,5 @@
 ﻿namespace YetAnotherRelogger.Forms.Wizard
-{
-    partial class DiabloOptions
+{sealed partial class DiabloOptions
     {
         /// <summary> 
         /// Required designer variable.
