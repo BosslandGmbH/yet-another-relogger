@@ -40,7 +40,7 @@ namespace YetAnotherRelogger
         public void StatsUpdaterWorker()
         {
             // Wait here till mainform is up
-            while (Program.Mainform == null)
+            while (Program.Mainform == null || !Program.Mainform.IsHandleCreated)
                 Thread.Sleep(100);
 
             var usages = new CpuRamUsage();
