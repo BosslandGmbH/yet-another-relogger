@@ -247,7 +247,6 @@
     <Compile Include="Helpers\Bot\Demonbuddy.cs" />
     <Compile Include="Helpers\Bot\Diablo.cs" />
     <Compile Include="Helpers\Logger.cs" />
-    <Compile Include="Helpers\Installer.cs" />
     <Compile Include="Helpers\BotSettings.cs" />
     <Compile Include="Helpers\Bot\WeekSchedule.cs" />
     <Compile Include="Helpers\Stats\ChartStats.cs" />
@@ -265,8 +264,6 @@
     <Compile Include="Helpers\Tools\UserAccount.cs" />
     <None Include="app.config" />
     <None Include="Properties\app.manifest" />
-    <Resource Include="Resources\Plugin.cs" />
-    <Resource Include="Resources\YARBot.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -374,7 +371,7 @@
     <None Include="Images\YAR_LOGO_small.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\Plugins\yet-another-relogger\Authenticator\YetAnotherRelogger.Authenticator.csproj">
+    <ProjectReference Include="$(SolutionDir)\Plugins\yet-another-relogger\YetAnotherRelogger.Authenticator\YetAnotherRelogger.Authenticator.csproj">
       <Project>{eaf2d5ce-d817-453a-8a32-3d531570ae04}</Project>
       <Name>YetAnotherRelogger.Authenticator</Name>
     </ProjectReference>

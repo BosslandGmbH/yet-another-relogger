@@ -397,18 +397,6 @@ namespace YetAnotherRelogger.Helpers.Bot
                 var p = new ProcessStartInfo(Location, arguments) { WorkingDirectory = Path.GetDirectoryName(Location), UseShellExecute = false};
                 p = UserAccount.ImpersonateStartInfo(p, Parent);
 
-                // Check/Install latest Communicator plugin
-                var pluginPath = $"{p.WorkingDirectory}\\Plugins\\YAR\\Plugin.cs";
-                Installer.InstallPlugin(pluginPath);
-
-                // Check/Install latest Kickstart Bot
-                var botPath = $"{p.WorkingDirectory}\\Bots\\YARBot\\YARBot.cs";
-                Installer.InstallBot(botPath);
-
-                // Check/Install latest Routine Stub
-                var routinePath = $"{p.WorkingDirectory}\\Routines\\Trinity\\TrinityRoutine.cs";
-                Installer.InstallRoutine(routinePath);
-
                 DateTime timeout;
                 try // Try to start Demonbuddy
                 {
