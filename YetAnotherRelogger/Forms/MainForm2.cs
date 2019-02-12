@@ -35,10 +35,17 @@ namespace YetAnotherRelogger.Forms
 
         private void MainForm2_Load(object sender, EventArgs e)
         {
-            _logger = Logger.Instance.GetLogger<MainForm2>();
-            LogUpdateTimer.Start();
             Version version = Assembly.GetEntryAssembly().GetName().Version;
             var name = Assembly.GetEntryAssembly().GetName().Name;
+#if DEBUG
+            name += " - DEBUG";
+#elif BETA
+            name += " - BETA";
+#endif
+            name += $" v{version}";
+
+            _logger = Logger.Instance.GetLogger<MainForm2>();
+            LogUpdateTimer.Start();
 
             var screenMaxSize = new Point(SystemInformation.VirtualScreen.Width, SystemInformation.VirtualScreen.Height);
             if (!CommandLineArgs.SafeMode)
@@ -65,16 +72,10 @@ namespace YetAnotherRelogger.Forms
             }
 
             Resize += MainForm2_Resize;
+            
+            Text = name;
 
-#if DEBUG
-            name += "DEBUG";
-#elif BETA
-            name += "BETA";
-#endif
-
-            Text = $@"{name} [{version}]";
-
-            _logger.Information($"{name} v{{version}} started", version);
+            _logger.Information($"{name} started", version);
 #if DEBUG
             _logger.Information("This is a DEBUG build of YetAnotherRelogger. This is meant for private use, do not share!");
             _logger.Information("This build may have bugs. Use at your own risk!");

@@ -1,6 +1,5 @@
 ﻿using Serilog;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -110,9 +109,6 @@ namespace YARPlugin
         public bool IsEnabled { get; set; }
 
         #region Plugin Events
-
-        private bool _appenderAdded;
-        private readonly object _appenderLock = new object();
         public void OnInitialize()
         {
             // Force enable YAR
@@ -121,16 +117,6 @@ namespace YARPlugin
                 enabledPluginsList.Add(Name);
 
             PluginManager.SetEnabledPlugins(enabledPluginsList.ToArray());
-
-            lock (_appenderLock)
-            {
-                if (!_appenderAdded)
-                {
-                    var loggingHierarchy = (Hierarchy)LogManager.GetRepository();
-                    loggingHierarchy.Root.AddAppender(_yarAppender);
-                    _appenderAdded = true;
-                }
-            }
 
             Reset();
 
@@ -231,16 +217,6 @@ namespace YARPlugin
             BotMain.OnStart -= BotMain_OnStart;
             TreeHooks.Instance.OnHooksCleared -= Instance_OnHooksCleared;
 
-            lock (_appenderLock)
-            {
-                if (_appenderAdded)
-                {
-                    var loggingHierarchy = (Hierarchy)LogManager.GetRepository();
-                    _appenderAdded = false;
-                    loggingHierarchy.Root.RemoveAppender(_yarAppender);
-                }
-            }
-
             s_logger.Information("YAR Plugin Disabled!");
 
             // Pulsefix disabled plugin
@@ -325,27 +301,6 @@ namespace YARPlugin
                     _bs.LastRun = DateTime.UtcNow.Ticks;
                 }
 
-                var localQueue = new Queue<LoggingEvent>();
-                while (YARAppender.Messages.Any())
-                {
-                    if (YARAppender.Messages.TryDequeue(out LoggingEvent loggingEvent))
-                        localQueue.Enqueue(loggingEvent);
-                }
-
-
-                if (_logBuffer == null)
-                {
-                    _logBuffer = localQueue.ToArray();
-                }
-                else
-                {
-                    lock (_logBuffer)
-                    {
-                        LoggingEvent[] newbuffer = _logBuffer.Concat(localQueue.ToArray()).ToArray();
-                        _logBuffer = newbuffer;
-                    }
-                }
-
                 // Keep Thread alive while log buffer is not empty
                 while (_logBuffer != null)
                 {
@@ -360,7 +315,6 @@ namespace YARPlugin
                             _logBuffer.CopyTo(buffer, 0); // copy to local
                             _logBuffer = null; // clear buffer
                         }
-
 
                         var count = 0; // Scan counter
                         var breakloop = false;
