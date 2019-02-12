@@ -1,69 +1,44 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Serilog;
+using Serilog.Core;
+using Serilog.Events;
+using Serilog.Formatting;
+using Serilog.Formatting.Display;
+using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
 using YetAnotherRelogger.Helpers.Bot;
-using YetAnotherRelogger.Helpers.Enums;
 
 namespace YetAnotherRelogger.Helpers
 {
     public sealed class Logger
     {
         #region singleton
-
-        private static readonly object s_bufferLock = 0;
-
-        private static readonly Logger s_instance = new Logger();
-
-        static Logger()
-        {
-        }
-
+        public static Logger Instance { get; } = new Logger();
         private Logger()
         {
-            lock (s_bufferLock)
-            {
-                _buffer = new List<LogMessage>();
-                Initialize();
-            }
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .WriteTo.Sink(new WinFormsRtfAppender(Program.Mainform?.LogUpdateTimer, Program.Mainform?.richTextBox1, "{Timestamp:HH:mm:ss.fff} [{PID}] [{Level:u3}] {Message:l}{NewLine}{Exception}"), LogEventLevel.Verbose)
+                .WriteTo.File($@"Logs\YAR-.txt",
+                    rollingInterval: RollingInterval.Hour,
+                    rollOnFileSizeLimit: true,
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{PID}] [{Level:u3}] {Properties:j} {Message:lj}{NewLine}{Exception}")
+                .CreateLogger();
+            _logger = Log.ForContext("PID", Process.GetCurrentProcess().Id).ForContext<Logger>();
         }
-
-        public static Logger Instance => s_instance;
-
         #endregion
 
-        private readonly List<LogMessage> _buffer;
-        private bool _canLog;
-        private string _logfile;
-
-        public string Logfile
+        private readonly ILogger _logger;
+        public ILogger GetLogger<T>()
         {
-            get => _logfile;
-            private set => _logfile = value;
+            return _logger.ForContext<T>();
         }
 
-        public string LogDirectory => Path.GetDirectoryName(Logfile);
-
-        private void Initialize()
-        {
-            var filename = $"{DateTime.Now:yyyy-MM-dd HH.mm}";
-            _logfile = $@"{Path.GetDirectoryName(Application.ExecutablePath)}\Logs\{filename}.txt";
-            Debug.WriteLine(_logfile);
-
-            try
-            {
-                if (!Directory.Exists(Path.GetDirectoryName(_logfile)))
-                    Directory.CreateDirectory(Path.GetDirectoryName(_logfile));
-                _canLog = true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString(), "Creating log file failed!", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                _canLog = false;
-            }
-        }
+        public string LogDirectory => Path.GetFullPath("Logs");
 
         /// <summary>
         ///     Write log message for active bot
@@ -72,13 +47,10 @@ namespace YetAnotherRelogger.Helpers
         /// <param name="args"></param>
         public void Write(string format, params object[] args)
         {
-            var message = new LogMessage();
             if (Relogger.Instance.CurrentBot != null)
-                message.Message = $"<{Relogger.Instance.CurrentBot.Name}> {string.Format(format, args)}";
+                _logger.ForContext("BotName", Relogger.Instance.CurrentBot.Name).Information(format, args);
             else
-                message.Message = $"[{DateTime.Now}] {string.Format(format, args)}";
-            s_instance.AddBuffer(message);
-            AddToRtb(message);
+                _logger.Information(format, args);
         }
 
         /// <summary>
@@ -91,12 +63,10 @@ namespace YetAnotherRelogger.Helpers
         {
             if (bot == null)
             {
-                WriteGlobal(format, args);
+                _logger.Information(format, args);
                 return;
             }
-            var message = new LogMessage { Message = $"<{bot.Name}> {string.Format(format, args)}"};
-            s_instance.AddBuffer(message);
-            AddToRtb(message);
+            _logger.ForContext("BotName", bot.Name).Information(format, args);
         }
 
         /// <summary>
@@ -106,124 +76,107 @@ namespace YetAnotherRelogger.Helpers
         /// <param name="args"></param>
         public void WriteGlobal(string format, params object[] args)
         {
-            var message = new LogMessage { Message = $"{string.Format(format, args)}"};
-            s_instance.AddBuffer(message);
-            AddToRtb(message);
+            _logger.Information(format, args);
         }
 
-        /// <summary>
-        ///     Add custom log message to log buffer
-        /// </summary>
-        /// <param name="message">Logmessage</param>
-        public void AddLogmessage(LogMessage message)
+        #region Nested type: WpfRtfAppender
+
+        public class WinFormsRtfAppender : ILogEventSink
         {
-            s_instance.AddBuffer(message);
-            AddToRtb(message);
-        }
+            private readonly Color _info;
+            private readonly Color _debug;
+            private readonly Color _error;
+            private readonly Color _warn;
+            private readonly Color _verbose;
+            private readonly Color _fatal;
 
-        private void AddToRtb(LogMessage message)
-        {
-            if (Program.Mainform == null || Program.Mainform.richTextBox1 == null)
-                return;
+            private readonly RichTextBox _rtb;
+            private int _logCount;
+            private readonly ConcurrentQueue<LogEvent> _logMessages = new ConcurrentQueue<LogEvent>();
 
-            Debug.Write(message.Message + Environment.NewLine);
+            private readonly ITextFormatter _formatter;
 
-            try
+            public WinFormsRtfAppender(Timer logUpdateTimer, RichTextBox rtb, string outputTemplate = "{Timestamp:HH:mm:ss.fff} [{Level:u3}] {Message:l}{NewLine}{Exception}", IFormatProvider formatProvider = null)
             {
-                if (Program.Mainform.InvokeRequired && !Program.Mainform.IsDisposed)
+                _rtb = rtb;
+
+                _verbose = Color.SlateGray;
+                _debug = Color.DarkGray;
+                _info = Color.White;
+                _warn = Color.Orange;
+                _error = Color.Red;
+                _fatal = Color.DarkRed;
+
+                _formatter = new MessageTemplateTextFormatter(outputTemplate, formatProvider);
+
+                logUpdateTimer.Tick += HandleTimerCallback;
+            }
+
+            private void HandleTimerCallback(object sender, EventArgs e)
+            {
+                Color curColor = _info;
+                var w = new StringWriter();
+                StringBuilder curChunk = w.GetStringBuilder();
+
+                void EmitChunk(StringBuilder sb, Color col)
                 {
-                    Program.Mainform.Invoke(new Action(() =>
-                       {
-                           var rtb = Program.Mainform.richTextBox1;
-                           //var font = new Font("Tahoma", 8, FontStyle.Regular);
-                           //rtb.SelectionFont = font;
-                           //rtb.SelectionColor = message.Color;
-                           var text = $"{LoglevelChar(message.Loglevel)} [{message.TimeStamp}] {message.Message}";
-                           rtb.AppendText(text + Environment.NewLine);
-                       }));
+                    _rtb.SelectionColor = col;
+                    _rtb.AppendText(sb.ToString());
                 }
-            }
-            catch (Exception ex)
-            {
-                Instance.Write("Exception in addToRTB: {0}", ex);
-                // Failed! do nothing
-            }
-        }
 
-        private void AddBuffer(LogMessage logmessage)
-        {
-            lock (s_bufferLock)
-            {
-                _buffer.Add(logmessage);
-                if (_buffer.Count > 3)
-                    ClearBuffer();
-            }
-        }
-
-        public void ClearBuffer()
-        {
-            lock (s_bufferLock)
-            {
-                if (!_canLog)
-                    return;
-                _canLog = false;
-
-                // Write buffer to file
-                using (var writer = new StreamWriter(_logfile, true))
+                if (_logCount >= 2000)
                 {
-                    foreach (var message in _buffer)
+                    _rtb.Clear();
+                    _logCount = 0;
+                }
+
+                while (_logMessages.TryDequeue(out LogEvent loggingEvent))
+                {
+                    Color color = _info;
+                    switch (loggingEvent.Level)
                     {
-                        writer.WriteLine("{0} [{1}] {2}", LoglevelChar(message.Loglevel), message.TimeStamp, message.Message);
+                        case LogEventLevel.Verbose:
+                            color = _verbose;
+                            break;
+                        case LogEventLevel.Debug:
+                            color = _debug;
+                            break;
+                        case LogEventLevel.Fatal:
+                            color = _fatal;
+                            break;
+                        case LogEventLevel.Error:
+                            color = _error;
+                            break;
+                        case LogEventLevel.Warning:
+                            color = _warn;
+                            break;
                     }
+
+                    if (!Equals(color, curColor))
+                    {
+                        EmitChunk(curChunk, curColor);
+                        curChunk.Clear();
+                        curColor = color;
+                    }
+
+                    _formatter.Format(loggingEvent, w);
+                    _logCount++;
                 }
-                _buffer.Clear();
-                _canLog = true;
-            }
-        }
 
-        /// <summary>
-        ///     Get Loglevel char
-        /// </summary>
-        /// <param name="loglevel">Loglevel</param>
-        /// <returns>char</returns>
-        public char LoglevelChar(Loglevel loglevel)
-        {
-            switch (loglevel)
+                if (curChunk.Length != 0)
+                {
+                    EmitChunk(curChunk, curColor);
+                    _logCount++;
+                }
+            }
+
+            /// <summary> Event queue for all listeners interested in onLogging events.</summary>
+            public void Emit(LogEvent logEvent)
             {
-                case Loglevel.Debug:
-                    return 'D';
-                case Loglevel.Verbose:
-                    return 'V';
-                default:
-                    return 'N';
+                _logMessages.Enqueue(logEvent);
             }
         }
-    }
 
-    public class LogMessage : IDisposable
-    {
-        public Color Color;
-        public Loglevel Loglevel;
-        public string Message;
-
-        public LogMessage(Color color, Loglevel loglevel, string message, params object[] args)
-        {
-            TimeStamp = DateTime.Now;
-            Loglevel = Loglevel.Normal;
-        }
-
-        public LogMessage()
-        {
-            Color = Color.Black;
-            TimeStamp = DateTime.Now;
-            Loglevel = Loglevel.Normal;
-        }
-
-        public DateTime TimeStamp { get; private set; }
-
-        public void Dispose()
-        {
-            Message = null;
-        }
+        #endregion
     }
 }

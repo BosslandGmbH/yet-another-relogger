@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading;
 using System.Windows.Forms;
+using Serilog;
 using YetAnotherRelogger.Forms;
 using YetAnotherRelogger.Helpers;
 using YetAnotherRelogger.Helpers.Tools;
@@ -34,7 +35,11 @@ namespace YetAnotherRelogger
                     SingleInstance.ShowFirstInstance();
                     return;
                 }
-                
+
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Mainform = new MainForm2();
+
                 // Run as admin check
                 var identity = WindowsIdentity.GetCurrent();
                 IsRunAsAdmin = (new WindowsPrincipal(identity).IsInRole(WindowsBuiltInRole.Administrator));
@@ -63,11 +68,6 @@ This will reset some features",
                 // Start background threads
                 Relogger.Instance.Start();
                 Communicator.Instance.Start();
-
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-                Mainform = new MainForm2();
-
                 UdpLogListener.Instance.Start();
 
                 if (!CommandLineArgs.SafeMode)
@@ -88,14 +88,14 @@ This will reset some features",
             }
             catch (Exception ex)
             {
-                Logger.Instance.WriteGlobal(ex.ToString());
+                Log.Error(ex, "Error during main.");
             }
             // Clean up
             UdpLogListener.Instance.Stop();
             SingleInstance.Stop();
             Settings.Default.Save();
-            Logger.Instance.WriteGlobal("Closed!");
-            Logger.Instance.ClearBuffer();
+            Log.Information("Closed!");
+            Log.CloseAndFlush();
         }
     }
 

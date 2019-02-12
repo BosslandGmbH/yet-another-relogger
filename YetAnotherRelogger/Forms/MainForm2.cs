@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Serilog;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -10,7 +10,6 @@ using System.Windows.Forms;
 using YetAnotherRelogger.Forms.SettingsTree;
 using YetAnotherRelogger.Forms.Wizard;
 using YetAnotherRelogger.Helpers;
-using YetAnotherRelogger.Helpers.Bot;
 using YetAnotherRelogger.Helpers.Hotkeys;
 using YetAnotherRelogger.Helpers.Tools;
 using YetAnotherRelogger.Properties;
@@ -23,9 +22,10 @@ namespace YetAnotherRelogger.Forms
 {
     public partial class MainForm2 : Form
     {
-        private bool _bClose;
+        private ILogger _logger;
+        private bool _close;
         private Thread _restartBotsThread;
-        private ContextMenu _mMenu;
+        private ContextMenu _menu;
 
         public MainForm2()
         {
@@ -33,9 +33,13 @@ namespace YetAnotherRelogger.Forms
             treeView1.NodeMouseClick += treeView1_NodeMouseClick;
         }
 
-
         private void MainForm2_Load(object sender, EventArgs e)
         {
+            _logger = Logger.Instance.GetLogger<MainForm2>();
+            LogUpdateTimer.Start();
+            Version version = Assembly.GetEntryAssembly().GetName().Version;
+            var name = Assembly.GetEntryAssembly().GetName().Name;
+
             var screenMaxSize = new Point(SystemInformation.VirtualScreen.Width, SystemInformation.VirtualScreen.Height);
             if (!CommandLineArgs.SafeMode)
             {
@@ -62,25 +66,31 @@ namespace YetAnotherRelogger.Forms
 
             Resize += MainForm2_Resize;
 
-            Text = $"R-YAR [{Assembly.GetExecutingAssembly().GetName().Version.ToString()}] BETA";
+#if DEBUG
+            name += "DEBUG";
+#elif BETA
+            name += "BETA";
+#endif
 
-            var assembly = Assembly.GetExecutingAssembly();
-            var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-            var version = fvi.FileVersion;
+            Text = $@"{name} [{version}]";
 
-            Logger.Instance.WriteGlobal("rrrix's Yet Another Relogger fork Version {0}", version);
-
-
+            _logger.Information($"{name} v{{version}} started", version);
+#if DEBUG
+            _logger.Information("This is a DEBUG build of YetAnotherRelogger. This is meant for private use, do not share!");
+            _logger.Information("This build may have bugs. Use at your own risk!");
+#elif BETA
+            s_logger.Information("This is a BETA build of Demonbuddy. This is not meant for general usage. Please report any issues you may have in the beta thread on our forums.");
+            s_logger.Information("This build may have bugs. Use at your own risk!");
+#endif
             // Check if we are run as admin
             if (!Program.IsRunAsAdmin)
-                Logger.Instance.WriteGlobal("WE DON'T HAVE ADMIN RIGHTS!!");
+                _logger.Warning("WE DON'T HAVE ADMIN RIGHTS!!");
 
             // Check if current application path is the same as last saved path
             // this is used for Windows autostart in a sutation where user moved/renamed the relogger
             if (Settings.Default.StartWithWindows && !Settings.Default.Location.Equals(Application.ExecutablePath))
             {
-                Logger.Instance.WriteGlobal(
-                    "Application current path does not match last saved path. Updating registy key.");
+                _logger.Information("Application current path does not match last saved path. Updating registy key.");
                 // Update to current location
                 Settings.Default.Location = Application.ExecutablePath;
                 // Update Regkey
@@ -102,11 +112,11 @@ namespace YetAnotherRelogger.Forms
             ToggleIcon();
             TrayIcon.Icon = Icon;
             TrayIcon.DoubleClick += TrayIcon_DoubleClick;
-            _mMenu = new ContextMenu();
-            _mMenu.MenuItems.Add(0, new MenuItem("Show", Show_Click));
-            _mMenu.MenuItems.Add(1, new MenuItem("Hide", Hide_Click));
-            _mMenu.MenuItems.Add(2, new MenuItem("Exit", Exit_Click));
-            TrayIcon.ContextMenu = _mMenu;
+            _menu = new ContextMenu();
+            _menu.MenuItems.Add(0, new MenuItem("Show", Show_Click));
+            _menu.MenuItems.Add(1, new MenuItem("Hide", Hide_Click));
+            _menu.MenuItems.Add(2, new MenuItem("Exit", Exit_Click));
+            TrayIcon.ContextMenu = _menu;
 
             // Minimize on start
             if (Settings.Default.MinimizeOnStart)
@@ -126,7 +136,7 @@ namespace YetAnotherRelogger.Forms
 
         protected void MainForm2_Closing(object sender, CancelEventArgs e)
         {
-            if (!_bClose && Settings.Default.CloseToTray)
+            if (!_close && Settings.Default.CloseToTray)
             {
                 e.Cancel = true;
                 HideMe();
@@ -177,14 +187,14 @@ namespace YetAnotherRelogger.Forms
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Write("Exception in dataGridView1_CellValueChanged: {0}", ex);
+                    _logger.Error(ex, "Exception in dataGridView1_CellValueChanged");
                 }
             }
         }
 
         private void dataGridView1_MouseUp(object sender, MouseEventArgs e)
         {
-            var hitTestInfo = botGrid.HitTest(e.X, e.Y);
+            DataGridView.HitTestInfo hitTestInfo = botGrid.HitTest(e.X, e.Y);
             if (hitTestInfo.Type == DataGridViewHitTestType.Cell)
             {
                 if (e.Button == MouseButtons.Right)
@@ -258,7 +268,7 @@ namespace YetAnotherRelogger.Forms
             ConnectionCheck.Reset();
             // Start All
             foreach (
-                var row in
+                DataGridViewRow row in
                     botGrid.Rows.Cast<DataGridViewRow>().Where(row => (bool)row.Cells["isEnabled"].Value))
             {
                 BotSettings.Instance.Bots[row.Index].Start(checkBoxForce.Checked);
@@ -292,10 +302,10 @@ namespace YetAnotherRelogger.Forms
         private void btnClose_Click(object sender, EventArgs e)
         {
             if (
-                MessageBox.Show(this, "Are you sure you want to close Yet Another Relogger?",
-                    "Close Yet Another Relogger?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                MessageBox.Show(this, @"Are you sure you want to close Yet Another Relogger?",
+                    @"Close Yet Another Relogger?", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
-                _bClose = true;
+                _close = true;
                 Close();
             }
         }
@@ -312,7 +322,7 @@ namespace YetAnotherRelogger.Forms
         {
             Relogger.Instance.Stop();
             // Stop All
-            foreach (var bot in BotSettings.Instance.Bots)
+            foreach (Helpers.Bot.BotClass bot in BotSettings.Instance.Bots)
             {
                 bot.Stop();
             }
@@ -337,7 +347,7 @@ namespace YetAnotherRelogger.Forms
                 if (runningBots.Any())
                 {
                     Relogger.Instance.Stop();
-                    foreach (var bot in runningBots)
+                    foreach (Helpers.Bot.BotClass bot in runningBots)
                     {
                         var swKill = new Stopwatch();
                         swKill.Start();
@@ -390,7 +400,7 @@ namespace YetAnotherRelogger.Forms
             {
                 // Delete Bot
                 if (
-                    MessageBox.Show("Are you sure you want to delete this bot?", "Delete bot", MessageBoxButtons.YesNo,
+                    MessageBox.Show(@"Are you sure you want to delete this bot?", @"Delete bot", MessageBoxButtons.YesNo,
                         MessageBoxIcon.Question) == DialogResult.Yes)
                 {
                     BotSettings.Instance.Bots.RemoveAt(botGrid.CurrentRow.Index);
@@ -428,12 +438,12 @@ namespace YetAnotherRelogger.Forms
             if (Program.Pause)
             {
                 Program.Pause = false;
-                btnPause.Text = "Pause";
+                btnPause.Text = @"Pause";
             }
             else
             {
                 Program.Pause = true;
-                btnPause.Text = "Unpause";
+                btnPause.Text = @"Unpause";
             }
         }
 
@@ -486,7 +496,7 @@ namespace YetAnotherRelogger.Forms
                 }
                 catch (Exception ex)
                 {
-                    Logger.Instance.Write("Error cloning bot: {0}", ex.ToString());
+                    _logger.Error(ex, "Error cloning bot");
                 }
             }
         }
@@ -512,7 +522,7 @@ namespace YetAnotherRelogger.Forms
             }
             catch (Exception ex)
             {
-                Logger.Instance.Write("Error moving bot up: " + ex);
+                _logger.Error(ex, "Error moving bot up");
             }
             finally
             {
@@ -543,7 +553,7 @@ namespace YetAnotherRelogger.Forms
             }
             catch (Exception ex)
             {
-                Logger.Instance.Write("Error moving bot down: " + ex);
+                _logger.Error(ex, "Error moving bot down");
             }
             finally
             {
@@ -553,31 +563,13 @@ namespace YetAnotherRelogger.Forms
 
         private void btnOpenLog_Click(object sender, EventArgs e)
         {
-            var shiftkey = (ModifierKeys & Keys.Shift) != 0;
-
-            if (shiftkey)
+            try
             {
-                try
-                {
-                    Logger.Instance.ClearBuffer();
-                    Process.Start(Logger.Instance.LogDirectory);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Instance.Write("Unable to open log directory {0}: {1}", Logger.Instance.LogDirectory, ex);
-                }
+                Process.Start(Logger.Instance.LogDirectory);
             }
-            else
+            catch (Exception ex)
             {
-                try
-                {
-                    Logger.Instance.ClearBuffer();
-                    Process.Start(Logger.Instance.Logfile);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Instance.Write("Unable to open log file {0}: {1}", Logger.Instance.Logfile, ex);
-                }
+                _logger.Error(ex, "Unable to open log directory {LogDirectory}", Logger.Instance.LogDirectory);
             }
         }
 
@@ -654,7 +646,7 @@ namespace YetAnotherRelogger.Forms
             if (!tmp.Name.Equals(UcSetting.Name))
             {
                 //var c = tabControl1.TabPages[1].Controls;
-                var c = SettingsPanel.Controls;
+                Control.ControlCollection c = SettingsPanel.Controls;
                 if (c.Contains(UcSetting))
                     c.Remove(UcSetting);
 
@@ -663,11 +655,9 @@ namespace YetAnotherRelogger.Forms
                 c.Add(UcSetting);
             }
         }
-
         #endregion
 
         #region Tray Icon
-
         public void ShowNotification(string title, string msg, ToolTipIcon icon = ToolTipIcon.None)
         {
             if (!Settings.Default.ShowNotification || !TrayIcon.Visible)
@@ -683,7 +673,7 @@ namespace YetAnotherRelogger.Forms
 
         protected void Exit_Click(object sender, EventArgs e)
         {
-            _bClose = true;
+            _close = true;
             Close();
         }
 
@@ -721,7 +711,6 @@ namespace YetAnotherRelogger.Forms
             Visible = false;
             Hide();
         }
-
         #endregion
 
         private void killDemonbuddyToolStripMenuItem_Click(object sender, EventArgs e)

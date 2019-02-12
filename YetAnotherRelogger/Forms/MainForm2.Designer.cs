@@ -108,6 +108,7 @@
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.moveUpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.moveDownMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.LogUpdateTimer = new System.Windows.Forms.Timer(this.components);
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -308,6 +309,7 @@
             this.richTextBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.richTextBox1.BackColor = System.Drawing.Color.Black;
             this.richTextBox1.Cursor = System.Windows.Forms.Cursors.Default;
             this.richTextBox1.Location = new System.Drawing.Point(6, 15);
             this.richTextBox1.Name = "richTextBox1";
@@ -711,6 +713,10 @@
             this.moveDownMenuItem.Text = "Move Down";
             this.moveDownMenuItem.Click += new System.EventHandler(this.moveDownMenuItem_Click);
             // 
+            // LogUpdateTimer
+            // 
+            this.LogUpdateTimer.Enabled = true;
+            // 
             // MainForm2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -809,5 +815,6 @@
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem moveUpMenuItem;
         private System.Windows.Forms.ToolStripMenuItem moveDownMenuItem;
+        public System.Windows.Forms.Timer LogUpdateTimer;
     }
 }

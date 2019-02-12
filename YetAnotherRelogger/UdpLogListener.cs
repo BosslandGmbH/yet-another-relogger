@@ -1,15 +1,18 @@
-﻿using Serilog;
+﻿using System;
+using Serilog;
 using System.Net.Sockets;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Serilog.Events;
+using YetAnotherRelogger.Helpers;
 using YetAnotherRelogger.Properties;
 
 namespace YetAnotherRelogger
 {
     public class UdpLogListener
     {
-        private static readonly ILogger s_logger = Log.ForContext<UdpLogListener>();
+        private static readonly ILogger s_logger = Logger.Instance.GetLogger<UdpLogListener>();
         #region Instance
         private static UdpLogListener _instance;
         public static UdpLogListener Instance => _instance ?? (_instance = new UdpLogListener());
@@ -44,8 +47,14 @@ namespace YetAnotherRelogger
         private async void PacketReceived(UdpReceiveResult packet)
         {
             var msg = Encoding.UTF8.GetString(packet.Buffer);
-            var json = JObject.Parse(msg);
-            s_logger.Verbose("Message received {json}", json);
+            dynamic json = JObject.Parse(msg);
+            var rmsg = json.RenderedMessage.Value;
+            var pid = json.Properties.PID.Value;
+            var context = json.Properties.SourceContext.Value;
+            var level = json.Level.Value;
+            if(!Enum.TryParse(level, out LogEventLevel l))
+                l = LogEventLevel.Verbose;
+            s_logger.ForContext("PID", pid).ForContext("SourceContext", context).Write(l, "{rmsg}", rmsg);
         }
     }
 }
