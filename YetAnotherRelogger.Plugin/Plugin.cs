@@ -26,16 +26,91 @@ namespace YARPlugin
     {
         private static readonly ILogger s_logger = Logger.GetLoggerInstanceForType();
 
-        // Plugin version
-        public string Name { get; } = typeof(YARPlugin).Assembly.GetCustomAttribute<AssemblyTitleAttribute>().Title;
-        public Version Version { get; } = new Version(typeof(YARPlugin).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version);
+        #region IPlugin implementation
         public string Author => "rrrix and sinterlkaas";
+        public Version Version { get; } = new Version(typeof(YARPlugin).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version);
+        public string Name { get; } = typeof(YARPlugin).Assembly.GetCustomAttribute<AssemblyTitleAttribute>().Title;
         public string Description { get; } = typeof(YARPlugin).Assembly.GetCustomAttribute<AssemblyDescriptionAttribute>().Description;
+
         public Window DisplayWindow => null;
-        public bool Equals(IPlugin other)
+
+        /// <summary> Executes the pulse action. This is called every "tick" of the bot. </summary>
+        public void OnPulse()
         {
-            return (other?.Name == Name) && (other?.Version == Version);
+            Pulse();
         }
+
+        /// <summary> Executes the initialize action. This is called at initial bot startup. (When the bot itself is started, not when Start() is called) </summary>
+        public void OnInitialize()
+        {
+            ForceEnableYar();
+        }
+
+        /// <summary> Executes the shutdown action. This is called when the bot is shutting down. (Not when Stop() is called) </summary>
+        public void OnShutdown()
+        {
+            _yarThread.Abort();
+        }
+
+        /// <summary> Executes the enabled action. This is called when the user has enabled this specific plugin via the GUI. </summary>
+        public void OnEnabled()
+        {
+            // YAR Login Support (YARKickstart IBot will call this from the proper thread)
+            if (!Application.Current.CheckAccess()) return;
+
+            IsEnabled = true;
+            s_logger.Information("YAR Plugin Enabled with PID: {PID}");
+
+            // Setup events before we actually do anything.
+            BotMain.OnStart += OnStart;
+            ProfileManager.OnProfileLoaded += OnProfileLoaded;
+            TreeHooks.Instance.OnHooksCleared += OnHooksCleared;
+
+            StartYarWorker();
+
+            s_logger.Information("Requesting Profile (Current={0})", ProfileManager.CurrentProfile != null ? ProfileManager.CurrentProfile.Path : "Null");
+            Send("RequestProfile");
+
+            Send("NewDifficultyLevel", true); // Request Difficulty level
+            Reset();
+
+            Send("Initialized");
+        }
+
+        /// <summary> Executes the disabled action. This is called whent he user has disabled this specific plugin via the GUI. </summary>
+        public void OnDisabled()
+        {
+            // Pulsefix disabled plugin
+            if (_pulseFix)
+            {
+                _pulseFix = false;
+                return; // Stop here to prevent Thread abort
+            }
+
+            try
+            {
+                if (_yarThread.IsAlive)
+                {
+                    // user disabled plugin abort Thread
+                    _yarThread.Abort();
+                }
+            }
+            catch (ThreadAbortException) { }
+            catch (Exception ex)
+            {
+                s_logger.Warning(ex, "Exception while disabling");
+            }
+
+            // Clear events no longer need them as we are about to be disabled.
+            TreeHooks.Instance.OnHooksCleared -= OnHooksCleared;
+            ProfileManager.OnProfileLoaded -= OnProfileLoaded;
+            BotMain.OnStart -= OnStart;
+
+            s_logger.Information("YAR Plugin Disabled!");
+
+            IsEnabled = false;
+        }
+        #endregion
 
         // Compatibility
         private static readonly Regex[] s_reCompatibility =
@@ -68,38 +143,12 @@ namespace YARPlugin
         {
                 new Regex(@"Exception during bot tick.*", RegexOptions.Compiled)
         };
-        private static int _crashExceptionCounter;
-
+        
         private static readonly Regex s_waitingBeforeGame = new Regex(@"Waiting (.+) seconds before next game", RegexOptions.Compiled);
         private static readonly Regex s_pluginsCompiled = new Regex(@"There are \d+ plugins", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
         private static readonly Regex s_yarRegex = new Regex(@"^\[YetAnotherRelogger\].*", RegexOptions.Compiled);
 
-        public class BotStats
-        {
-            public int Pid;
-            public long LastRun;
-            public long LastPulse;
-            public long PluginPulse;
-            public long LastGame;
-            public bool IsPaused;
-            public bool IsRunning;
-            public bool IsInGame;
-            public bool IsLoadingWorld;
-            public long Coinage;
-            public long Experience;
-
-            public BotStats(int pid)
-            {
-                Pid = pid;
-                LastPulse = DateTime.UtcNow.Ticks;
-            }
-
-            public override string ToString()
-            {
-                return
-                    $"Pid={Pid} LastRun={LastRun} LastPulse={LastPulse} PluginPulse={PluginPulse} LastGame={LastGame} IsPaused={IsPaused} IsRunning={IsRunning} IsInGame={IsInGame} IsLoadingWorld={IsLoadingWorld} Coinage={Coinage} Experience={Experience}";
-            }
-        }
+        private static int _crashExceptionCounter;
 
         private Thread _yarThread;
 
@@ -108,147 +157,20 @@ namespace YARPlugin
 
         public bool IsEnabled { get; set; }
 
-        #region Plugin Events
-        public void OnInitialize()
+        public bool Equals(IPlugin other)
         {
-            // Force enable YAR
-            var enabledPluginsList = PluginManager.Plugins.Where(p => p.Enabled).Select(p => p.Plugin.Name).ToList();
-            if (!enabledPluginsList.Contains(Name))
-                enabledPluginsList.Add(Name);
-
-            PluginManager.SetEnabledPlugins(enabledPluginsList.ToArray());
-
-            Reset();
-
-            StartYarWorker();
-
-            //Pulsator.OnPulse += Pulsator_OnPulse;
-            //TreeHooks.Instance.OnHooksCleared += Instance_OnHooksCleared;
-
-            //if (ProfileUtils.IsProfileYarKickstart)
-            //{
-            //    Log("[YAR] Kickstart Profile detected");
-
-            //    if (ZetaDia.Service.Hero.IsValid && ZetaDia.Service.Hero.HeroId > 0)
-            //    {
-            //        Log("[YAR] Logged in and hero is valid");
-
-            //        var realProfile = ProfileUtils.GetProfileAttribute("LoadProfile", "profile");
-            //        if (!string.IsNullOrEmpty(realProfile))
-            //        {
-            //            Log("[YAR] Loading profile: {0}", realProfile);
-            //            ProfileManager.Load(ProfileManager.CurrentProfile.Path);
-            //        }
-            //    }
-            //}
-
-            s_logger.Information("Requesting Profile (Current={0})", ProfileManager.CurrentProfile != null ? ProfileManager.CurrentProfile.Path : "Null");
-
-            Send("RequestProfile");
-
-            Send("NewDifficultyLevel", true);
-
-            ProfileManager.OnProfileLoaded += OnProfileLoaded;
-
-            Send("Initialized");
+            return (other?.Name == Name) && (other?.Version == Version);
         }
 
-        public class ProfileUtils
+        #region BotEvents
+        private void OnStart(IBot bot)
         {
-            public static XElement GetProfileTag(string tagName, XElement element = null)
-            {
-                if (element == null)
-                {
-                    Zeta.Bot.Profile.Profile profile = ProfileManager.CurrentProfile;
-                    if (profile?.Element != null)
-                    {
-                        element = profile.Element;
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                }
-
-                return element.XPathSelectElement("descendant::" + tagName);
-            }
-
-            public static string GetProfileAttribute(string tagName, string attrName, XElement element = null)
-            {
-                XElement profileTag = GetProfileTag(tagName, element);
-                XAttribute behaviorAttr = profileTag?.Attribute(attrName);
-
-                if (behaviorAttr != null && !string.IsNullOrEmpty(behaviorAttr.Value))
-                {
-                    return behaviorAttr.Value;
-                }
-                return string.Empty;
-            }
+            InsertOrRemoveOutOfGameHook();
         }
 
-        private void BotMain_OnStart(IBot bot)
+        private void OnHooksCleared(object sender, EventArgs e)
         {
-            InsertOrRemoveHook();
-        }
-
-        private void Instance_OnHooksCleared(object sender, EventArgs e)
-        {
-            InsertOrRemoveHook();
-        }
-
-        public void OnEnabled()
-        {
-            // YAR Login Support (YARKickstart IBot will call this from the proper thread)
-            if (!Application.Current.CheckAccess()) return;
-
-            IsEnabled = true;
-            s_logger.Information("YAR Plugin Enabled with PID: {Pid}", _bs.Pid);
-            BotMain.OnStart += BotMain_OnStart;
-
-            StartYarWorker();
-            Send("NewDifficultyLevel", true); // Request Difficulty level
-            Reset();
-        }
-
-        public void OnDisabled()
-        {
-            IsEnabled = false;
-            Pulsator.OnPulse -= Pulsator_OnPulse;
-            BotMain.OnStart -= BotMain_OnStart;
-            TreeHooks.Instance.OnHooksCleared -= Instance_OnHooksCleared;
-
-            s_logger.Information("YAR Plugin Disabled!");
-
-            // Pulsefix disabled plugin
-            if (_pulseFix)
-            {
-                _pulseFix = false;
-                return; // Stop here to prevent Thread abort
-            }
-            try
-            {
-                if (_yarThread.IsAlive)
-                {
-                    // user disabled plugin abort Thread
-                    _yarThread.Abort();
-                }
-            }
-            catch (ThreadAbortException) { }
-            catch (Exception ex)
-            {
-                s_logger.Warning(ex, "Exception while disabling");
-            }
-        }
-
-        public void OnPulse()
-        {
-            _bs.IsInGame = ZetaDia.IsInGame;
-            _bs.IsLoadingWorld = ZetaDia.Globals.IsLoadingWorld;
-
-            if (!ZetaDia.IsInGame || ZetaDia.Globals.IsLoadingWorld || ZetaDia.Me == null || !ZetaDia.Me.IsValid)
-                return;
-
-            Pulse();
+            InsertOrRemoveOutOfGameHook();
         }
 
         private void OnProfileLoaded(object sender, object e)
@@ -256,36 +178,122 @@ namespace YARPlugin
             Send("NewDifficultyLevel", true); // Request Difficulty level
         }
 
-        private void StartYarWorker()
+        /// <summary>
+        /// This is called from TreeStart
+        /// </summary>
+        /// <returns></returns>
+        public RunStatus Pulse()
         {
-            if (_yarThread == null || (_yarThread != null && !_yarThread.IsAlive))
+            _bs.LastPulse = DateTime.UtcNow.Ticks;
+            _bs.IsInGame = ZetaDia.IsInGame;
+            _bs.IsLoadingWorld = ZetaDia.Globals.IsLoadingWorld;
+
+            if (!ZetaDia.IsInGame || ZetaDia.Globals.IsLoadingWorld || ZetaDia.Me == null || !ZetaDia.Me.IsValid)
+                return RunStatus.Failure;
+
+            try
             {
-                s_logger.Information("Starting YAR Thread");
-                _yarThread = new Thread(YarWorker) { Name = "YARWorker", IsBackground = true };
-                _yarThread.Start();
+                // YAR Health Check
+                _pulseCheck = true;
+                _bs.LastPulse = DateTime.UtcNow.Ticks;
+
+                _bs.PluginPulse = DateTime.UtcNow.Ticks;
+
+                if (!ZetaDia.Service.IsValid || !ZetaDia.Service.Platform.IsConnected)
+                {
+                    ErrorHandling();
+
+                    // We handled an error, we should 
+                    return RunStatus.Failure;
+                }
+
+                if (!ZetaDia.IsInGame || ZetaDia.Me == null || !ZetaDia.Me.IsValid || ZetaDia.Globals.IsLoadingWorld)
+                {
+                    return RunStatus.Failure;
+                }
+
+                LogWorker();
+
+                // in-game / character data 
+                _bs.IsLoadingWorld = ZetaDia.Globals.IsLoadingWorld;
+                _bs.Coinage = 0;
+                _bs.Experience = 0;
+                try
+                {
+                    if (ZetaDia.Me != null && ZetaDia.Me.IsValid)
+                    {
+                        _bs.Coinage = ZetaDia.Storage.PlayerDataManager.ActivePlayerData.Coinage;
+                        var exp = ZetaDia.Me.Level < 70 ? ZetaDia.Me.CurrentExperience : ZetaDia.Me.ParagonCurrentExperience;
+
+                        _bs.Experience = exp;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    s_logger.Warning(ex, "Exception reading coinage");
+                    _bs.Coinage = -1;
+                    _bs.Experience = -1;
+                }
+
+                if (ZetaDia.IsInGame)
+                {
+                    _bs.LastGame = DateTime.UtcNow.Ticks;
+                    _bs.IsInGame = true;
+                }
+                else
+                {
+                    if (_bs.IsInGame)
+                    {
+                        Send("GameLeft", true);
+                    }
+                    _bs.IsInGame = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                s_logger.Warning(ex, "Pulse failed.");
+            }
+            return RunStatus.Failure;
+        }
+        #endregion
+
+        #region Out of game behavior
+        private static Composite _yarHook;
+        // This makes sure that our hook is in place during out of game ticks.
+        private void InsertOrRemoveOutOfGameHook(bool forceInsert = false)
+        {
+            try
+            {
+                if (IsEnabled || forceInsert)
+                {
+                    if (_yarHook == null)
+                        _yarHook = CreateYarHook();
+
+                    s_logger.Information("Inserting YAR Hook");
+                    TreeHooks.Instance.InsertHook("OutOfgame", 0, _yarHook);
+                }
+                else
+                {
+                    if (_yarHook == null)
+                        return;
+
+                    s_logger.Information("Removing YAR Hook");
+                    TreeHooks.Instance.RemoveHook("OutOfgame", _yarHook);
+                }
+            }
+            catch (Exception ex)
+            {
+                s_logger.Warning(ex, "Failed to manipulate tree hooks.");
             }
         }
 
-        /// <summary>
-        /// Just to make sure our ticks are ALWAYS updated!
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Pulsator_OnPulse(object sender, EventArgs e)
+        internal Composite CreateYarHook()
         {
-            _bs.LastPulse = DateTime.UtcNow.Ticks;
-
-            ErrorHandling();
-
-            if (IsEnabled)
-                StartYarWorker();
+            return new Action(ret => Pulse());
         }
+        #endregion
 
-        public void OnShutdown()
-        {
-            _yarThread.Abort();
-        }
-
+        #region Logging Monitor
         /// <summary>
         /// Reads through the LogMessage queue and sends updates to YAR
         /// </summary>
@@ -392,112 +400,6 @@ namespace YARPlugin
             }
         }
 
-        private static Composite _yarHook;
-        private void InsertOrRemoveHook(bool forceInsert = false)
-        {
-            try
-            {
-                if (IsEnabled || forceInsert)
-                {
-                    if (_yarHook == null)
-                        _yarHook = CreateYarHook();
-
-                    s_logger.Information("Inserting YAR Hook");
-                    TreeHooks.Instance.InsertHook("OutOfgame", 0, _yarHook);
-                }
-                else
-                {
-                    if (_yarHook != null)
-                    {
-                        s_logger.Information("Removing YAR Hook");
-                        TreeHooks.Instance.RemoveHook("OutOfgame", _yarHook);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                s_logger.Warning(ex, "Failed to manipulate tree hooks.");
-            }
-        }
-
-        internal Composite CreateYarHook()
-        {
-            return new Action(ret => Pulse());
-        }
-
-        /// <summary>
-        /// This is called from TreeStart
-        /// </summary>
-        /// <returns></returns>
-        public RunStatus Pulse()
-        {
-            try
-            {
-                // YAR Health Check
-                _pulseCheck = true;
-                _bs.LastPulse = DateTime.UtcNow.Ticks;
-
-                _bs.PluginPulse = DateTime.UtcNow.Ticks;
-
-                if (!ZetaDia.Service.IsValid || !ZetaDia.Service.Platform.IsConnected)
-                {
-                    ErrorHandling();
-
-                    // We handled an error, we should 
-                    return RunStatus.Failure;
-                }
-
-                if (!ZetaDia.IsInGame || ZetaDia.Me == null || !ZetaDia.Me.IsValid || ZetaDia.Globals.IsLoadingWorld)
-                {
-                    return RunStatus.Failure;
-                }
-
-                LogWorker();
-
-                // in-game / character data 
-                _bs.IsLoadingWorld = ZetaDia.Globals.IsLoadingWorld;
-                _bs.Coinage = 0;
-                _bs.Experience = 0;
-                try
-                {
-                    if (ZetaDia.Me != null && ZetaDia.Me.IsValid)
-                    {
-                        _bs.Coinage = ZetaDia.Storage.PlayerDataManager.ActivePlayerData.Coinage;
-                        var exp = ZetaDia.Me.Level < 70 ? ZetaDia.Me.CurrentExperience : ZetaDia.Me.ParagonCurrentExperience;
-
-                        _bs.Experience = exp;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    s_logger.Warning(ex, "Exception reading coinage");
-                    _bs.Coinage = -1;
-                    _bs.Experience = -1;
-                }
-
-                if (ZetaDia.IsInGame)
-                {
-                    _bs.LastGame = DateTime.UtcNow.Ticks;
-                    _bs.IsInGame = true;
-                }
-                else
-                {
-                    if (_bs.IsInGame)
-                    {
-                        Send("GameLeft", true);
-                    }
-                    _bs.IsInGame = false;
-                }
-            }
-            catch (Exception ex)
-            {
-                s_logger.Warning(ex, "Pulse failed.");
-            }
-            return RunStatus.Failure;
-        }
-        #endregion
-
-        #region Logging Monitor
         public bool FindStartDelay(string msg)
         {
             // Waiting #.# seconds before next game...
@@ -512,6 +414,16 @@ namespace YARPlugin
         #endregion
 
         #region yarWorker
+        private void StartYarWorker()
+        {
+            if (_yarThread == null || (_yarThread != null && !_yarThread.IsAlive))
+            {
+                s_logger.Information("Starting YAR Thread");
+                _yarThread = new Thread(YarWorker) { Name = "YARWorker", IsBackground = true };
+                _yarThread.Start();
+            }
+        }
+
         public void YarWorker()
         {
             s_logger.Information("YAR Worker Thread Started");
@@ -570,7 +482,6 @@ namespace YARPlugin
         #endregion
 
         #region Handle Errors and strange situations
-
         private bool _handlederror;
         private void ErrorHandling()
         {
@@ -579,7 +490,7 @@ namespace YARPlugin
                 // Check if Demonbuddy found errordialog
                 if (!_handlederror)
                 {
-                    Send("CheckConnection", pause: true);
+                    Send("CheckConnection", true);
                     _handlederror = true;
                 }
                 else
@@ -593,7 +504,7 @@ namespace YARPlugin
             if (UIElementTester.IsValid(UIElement.ErrorDialogOkButton))
             {
                 // Demonbuddy failed to find error dialog use static hash to find the OK button
-                Send("CheckConnection", pause: true);
+                Send("CheckConnection", true);
                 Zeta.Game.Internals.UIElement.FromHash(UIElement.ErrorDialogOkButton).Click();
                 CheckForLoginScreen();
             }
@@ -602,7 +513,7 @@ namespace YARPlugin
             if (UIElementTester.IsValid(UIElement.LoginScreenUsername))
             {
                 // We are at loginscreen
-                Send("CheckConnection", pause: true);
+                Send("CheckConnection", true);
             }
         }
 
@@ -617,7 +528,7 @@ namespace YARPlugin
                     break;
                 if (UIElementTester.IsValid(UIElement.LoginScreenUsername))
                 { // We are at loginscreen
-                    Send("CheckConnection", pause: true);
+                    Send("CheckConnection", true);
                     break;
                 }
                 Thread.Sleep(500);
@@ -789,6 +700,14 @@ namespace YARPlugin
             }
             _recieved = true;
         }
+        
+        private void LoadProfile(string profile)
+        {
+            s_logger.Information("Loading profile: {profile}", profile);
+
+            if (ProfileManager.CurrentProfile == null || profile != ProfileManager.CurrentProfile.Path)
+                ProfileManager.Load(profile.Trim());
+        }
 
         // from Nesox
         private void SafeCloseProcess()
@@ -813,14 +732,14 @@ namespace YARPlugin
         #region ForceEnable Plugin(s)
         private void ForceEnableYar()
         {
-            // Check if plugin is enabled
-            PluginContainer plugin = PluginManager.Plugins.FirstOrDefault(x => x.Plugin.Name.Equals(Name));
-            if (plugin == null || (plugin.Enabled)) return;
+            // Force enable YAR
+            var enabledPluginsList = PluginManager.Plugins.Where(p => p.Enabled).Select(p => p.Plugin.Name).ToList();
+            if (!enabledPluginsList.Contains(Name))
+                enabledPluginsList.Add(Name);
 
-            s_logger.Information("Force enable plugin");
-            var plugins = PluginManager.GetEnabledPlugins().ToList();
-            plugins.Add(Name);
-            PluginManager.SetEnabledPlugins(plugins.ToArray());
+            s_logger.Information("Force enable YetAnotherRelogger.Plugin");
+            // This call triggers OnEnabled.
+            PluginManager.SetEnabledPlugins(enabledPluginsList.ToArray());
         }
 
         private void ForceEnableAllPlugins()
@@ -960,13 +879,67 @@ namespace YARPlugin
             _bs.LastRun = DateTime.UtcNow.Ticks;
             _bs.LastGame = DateTime.UtcNow.Ticks;
         }
-
-        private void LoadProfile(string profile)
+        
+        #region nested: BotStats
+        public class BotStats
         {
-            s_logger.Information("Loading profile: {profile}", profile);
+            public int Pid;
+            public long LastRun;
+            public long LastPulse;
+            public long PluginPulse;
+            public long LastGame;
+            public bool IsPaused;
+            public bool IsRunning;
+            public bool IsInGame;
+            public bool IsLoadingWorld;
+            public long Coinage;
+            public long Experience;
 
-            if (ProfileManager.CurrentProfile == null || profile != ProfileManager.CurrentProfile.Path)
-                ProfileManager.Load(profile.Trim());
+            public BotStats(int pid)
+            {
+                Pid = pid;
+                LastPulse = DateTime.UtcNow.Ticks;
+            }
+
+            public override string ToString()
+            {
+                return
+                    $"Pid={Pid} LastRun={LastRun} LastPulse={LastPulse} PluginPulse={PluginPulse} LastGame={LastGame} IsPaused={IsPaused} IsRunning={IsRunning} IsInGame={IsInGame} IsLoadingWorld={IsLoadingWorld} Coinage={Coinage} Experience={Experience}";
+            }
+        }
+        #endregion
+    }
+
+    public class ProfileUtils
+    {
+        public static XElement GetProfileTag(string tagName, XElement element = null)
+        {
+            if (element == null)
+            {
+                Zeta.Bot.Profile.Profile profile = ProfileManager.CurrentProfile;
+                if (profile?.Element != null)
+                {
+                    element = profile.Element;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            return element.XPathSelectElement("descendant::" + tagName);
+        }
+
+        public static string GetProfileAttribute(string tagName, string attrName, XElement element = null)
+        {
+            XElement profileTag = GetProfileTag(tagName, element);
+            XAttribute behaviorAttr = profileTag?.Attribute(attrName);
+
+            if (behaviorAttr != null && !string.IsNullOrEmpty(behaviorAttr.Value))
+            {
+                return behaviorAttr.Value;
+            }
+            return string.Empty;
         }
     }
 
@@ -994,18 +967,15 @@ namespace YARPlugin
             {
                 if (!Zeta.Game.Internals.UIElement.IsValidElement(hash))
                     return false;
-                else
-                {
-                    var element = Zeta.Game.Internals.UIElement.FromHash(hash);
 
-                    if ((isEnabled && !element.IsEnabled) || (!isEnabled && element.IsEnabled))
-                        return false;
-                    if ((isVisible && !element.IsVisible) || (!isVisible && element.IsVisible))
-                        return false;
-                    if ((bisValid && !element.IsValid) || (!bisValid && element.IsValid))
-                        return false;
+                var element = Zeta.Game.Internals.UIElement.FromHash(hash);
 
-                }
+                if ((isEnabled && !element.IsEnabled) || (!isEnabled && element.IsEnabled))
+                    return false;
+                if ((isVisible && !element.IsVisible) || (!isVisible && element.IsVisible))
+                    return false;
+                if ((bisValid && !element.IsValid) || (!bisValid && element.IsValid))
+                    return false;
             }
             catch
             {

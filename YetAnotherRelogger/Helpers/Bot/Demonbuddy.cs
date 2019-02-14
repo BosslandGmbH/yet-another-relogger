@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Serilog;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -6,7 +7,6 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Serialization;
-using Serilog;
 using YetAnotherRelogger.Helpers.Attributes;
 using YetAnotherRelogger.Helpers.Enums;
 using YetAnotherRelogger.Helpers.Tools;
@@ -64,7 +64,7 @@ namespace YetAnotherRelogger.Helpers.Bot
         [XmlIgnore]
         [NoCopy]
         public DateTime LoginTime { get; set; }
-        
+
         // Demonbuddy
         public string Location { get; set; }
         public string Key { get; set; }
@@ -101,7 +101,7 @@ namespace YetAnotherRelogger.Helpers.Bot
 
         public bool ForceEnableAllPlugins { get; set; }
 
-        const int MaxInits = 15;
+        private const int MaxInits = 15;
 
         [NoCopy]
         public bool IsInitialized
@@ -157,7 +157,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                 // get log file
                 var logfile = string.Empty;
                 var success = false;
-                var starttime = Proc.StartTime;
+                DateTime starttime = Proc.StartTime;
                 // Loop a few times if log is not found on first attempt and add a minute for each loop
                 for (var i = 0; i <= 3; i++)
                 {
@@ -202,7 +202,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                                     s_logger.Information("Found login time: {LoginTime}", LoginTime);
                                     return true;
                                 }
-                                var m = new Regex(@"^\[(.+) .\] Logging in\.\.\.$", RegexOptions.Compiled).Match(line);
+                                Match m = new Regex(@"^\[(.+) .\] Logging in\.\.\.$", RegexOptions.Compiled).Match(line);
                                 if (m.Success)
                                 {
                                     time = TimeSpan.Parse(m.Groups[1].Value);
@@ -328,7 +328,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                 //else if (!noprofile)
                 //    Logger.Instance.Write(
                 //        "Warning: Launching Demonbuddy without a starting profile (Add a profile to the profilescheduler for this bot)");
-                
+
                 if (NoFlash)
                     arguments += " -noflash";
                 if (AutoUpdate)
@@ -356,9 +356,11 @@ namespace YetAnotherRelogger.Helpers.Bot
                 if (ForceEnableAllPlugins)
                     arguments += " -YarEnableAll";
 
+                // Don't expose arguments in release builds.
+#if DEBUG
                 s_logger.Verbose("DB Arguments: {arguments}", arguments);
-
-                var p = new ProcessStartInfo(Location, arguments) { WorkingDirectory = Path.GetDirectoryName(Location), UseShellExecute = false};
+#endif
+                var p = new ProcessStartInfo(Location, arguments) { WorkingDirectory = Path.GetDirectoryName(Location), UseShellExecute = false };
                 p = UserAccount.ImpersonateStartInfo(p, Parent);
 
                 DateTime timeout;
@@ -371,7 +373,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                         Proc.PriorityClass = General.GetPriorityClass(Priority);
                     else
                         s_logger.Error("Failed to change priority (No admin rights)");
-                    
+
                     // Set affinity
                     if (CpuCount != Environment.ProcessorCount)
                     {
@@ -379,7 +381,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                         CpuCount = Environment.ProcessorCount;
                     }
                     Proc.ProcessorAffinity = (IntPtr)ProcessorAffinity;
-                    
+
                     s_logger.Information("Demonbuddy:{Id}: Waiting for process to become ready", Proc.Id);
 
                     timeout = DateTime.UtcNow;
@@ -506,7 +508,7 @@ namespace YetAnotherRelogger.Helpers.Bot
 
         private bool FindMainWindow()
         {
-            var handle = FindWindow.EqualsWindowCaption("Demonbuddy", Proc.Id);
+            IntPtr handle = FindWindow.EqualsWindowCaption("Demonbuddy", Proc.Id);
             if (handle != IntPtr.Zero)
             {
                 MainWindowHandle = handle;
