@@ -281,7 +281,7 @@ namespace YetAnotherRelogger
             Color.DarkOrange
         };
 
-        private void CreateChartStats(BotClass bot, Chart graph, ChartValueType valueType = ChartValueType.Auto)
+        private void CreateChartStats(Bot bot, Chart graph, ChartValueType valueType = ChartValueType.Auto)
         {
             if (Program.Mainform != null && graph != null)
             {

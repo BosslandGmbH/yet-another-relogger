@@ -21,7 +21,7 @@ namespace YetAnotherRelogger.Helpers
 
         private BotSettings()
         {
-            Bots = new BindingList<BotClass>();
+            Bots = new BindingList<Bot.Bot>();
             _settingsdirectory = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Settings"); 
         }
 
@@ -30,7 +30,7 @@ namespace YetAnotherRelogger.Helpers
         #endregion
 
         private readonly string _settingsdirectory;
-        public BindingList<BotClass> Bots;
+        public BindingList<Bot.Bot> Bots;
 
         public static string SettingsDirectory => s_instance._settingsdirectory;
 
@@ -61,7 +61,7 @@ namespace YetAnotherRelogger.Helpers
 
                 using (var reader = new StreamReader(SettingsFileName))
                 {
-                    Bots = xml.Deserialize(reader) as BindingList<BotClass>;
+                    Bots = xml.Deserialize(reader) as BindingList<Bot.Bot>;
                 }
             }
             catch (Exception ex)
@@ -77,7 +77,7 @@ namespace YetAnotherRelogger.Helpers
         /// <returns></returns>
         public int Clone(int index)
         {
-            var cloned = (BotClass)Bots[index].Clone();
+            var cloned = (Bot.Bot)Bots[index].Clone();
             var nextIndex = index + 1;
             if (index == Bots.Count - 1)
                 Bots.Add(cloned);

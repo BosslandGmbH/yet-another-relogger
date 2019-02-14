@@ -191,7 +191,7 @@
       <DependentUpon>General.cs</DependentUpon>
     </Compile>
     <Compile Include="Helpers\Bot\AntiIdle.cs" />
-    <Compile Include="Helpers\Bot\BotClass.cs" />
+    <Compile Include="Helpers\Bot\Bot.cs" />
     <Compile Include="Forms\Wizard\DemonbuddyOptions.cs">
       <SubType>UserControl</SubType>
     </Compile>

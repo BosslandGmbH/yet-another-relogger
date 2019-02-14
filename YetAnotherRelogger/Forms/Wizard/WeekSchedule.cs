@@ -41,7 +41,7 @@ namespace YetAnotherRelogger.Forms.Wizard
 
         private void ScheduleLoader(object bot)
         {
-            var b = bot as BotClass;
+            var b = bot as Bot;
 
             while (!_isDone)
                 Thread.Sleep(250);
@@ -82,7 +82,7 @@ namespace YetAnotherRelogger.Forms.Wizard
             }
         }
 
-        public void LoadSchedule(BotClass bot)
+        public void LoadSchedule(Bot bot)
         {
             var loadScheduleThread = new Thread(ScheduleLoader) { Name = "ScheduleLoader" };
             loadScheduleThread.Start(bot);

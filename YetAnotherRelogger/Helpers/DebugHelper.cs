@@ -20,12 +20,12 @@ namespace YetAnotherRelogger.Helpers
             s_logger.Information($"[{{caller}}] {message}", new object[] { caller }.Union(args).ToArray());
         }
 
-        public static void Write(BotClass bot, string message, string caller, params object[] args)
+        public static void Write(Bot.Bot bot, string message, string caller, params object[] args)
         {
             s_logger.ForContext("Bot", bot.Name).Information($"[{{caller}}] {message}", new object[] { caller }.Union(args).ToArray());
         }
 
-        public static void Write(BotClass bot, string message, params object[] args)
+        public static void Write(Bot.Bot bot, string message, params object[] args)
         {
             s_logger.ForContext("Bot", bot.Name).Information(message, args);
         }

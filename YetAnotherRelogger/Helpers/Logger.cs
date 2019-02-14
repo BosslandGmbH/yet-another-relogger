@@ -59,7 +59,7 @@ namespace YetAnotherRelogger.Helpers
         /// <param name="bot">BotClass</param>
         /// <param name="format"></param>
         /// <param name="args"></param>
-        public void Write(BotClass bot, string format, params object[] args)
+        public void Write(Bot.Bot bot, string format, params object[] args)
         {
             if (bot == null)
             {

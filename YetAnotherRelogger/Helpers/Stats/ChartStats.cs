@@ -37,7 +37,7 @@ namespace YetAnotherRelogger.Helpers.Stats
             public long StartCoinage { get; private set; }
             public long LastCoinage { get; private set; }
 
-            public void Update(BotClass bot)
+            public void Update(Bot.Bot bot)
             {
                 var coinage = bot.AntiIdle.Stats.Coinage;
                 if (coinage > 0)

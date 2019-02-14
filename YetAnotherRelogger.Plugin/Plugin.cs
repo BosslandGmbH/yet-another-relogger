@@ -1,11 +1,14 @@
 ﻿using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
+using System.Net.Sockets;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
@@ -20,53 +23,63 @@ using Zeta.Game;
 using Zeta.TreeSharp;
 using Action = Zeta.TreeSharp.Action;
 
-namespace YARPlugin
+namespace YetAnotherRelogger.Plugin
 {
-    public class YARPlugin : IPlugin
+    public static class NetworkTools
+    {
+        private static readonly Random s_random = new Random();
+        public static int GetFreeUdpPort(int start, int end)
+        {
+            var activeListeners = new HashSet<int>(System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties()
+                .GetActiveUdpListeners().Select(u => u.Port));
+
+            int port;
+            do
+            {
+                port = s_random.Next(start, end);
+            } while (activeListeners.Contains(port));
+
+            return port;
+        }
+    }
+
+    public enum BotCommand : byte
+    {
+        Null = 0,
+        Ack = 1,
+        Restart = 2,
+        Shutdown = 3,
+        FixPulse = 4,
+        ForceEnableAll = 5,
+        ForceEnableYar = 6,
+        LoadProfile = 7,
+        SwitchDifficultyLevel = 8
+    }
+
+    public enum ControlRequest
+    {
+        Null = 0,
+        GameLeft = 1,
+        NewDifficultyLevel = 2,
+        CheckConnection = 3,
+    }
+
+    public enum ControlInformation
+    {
+        Null = 0,
+        Initialized = 1,
+        RequestProfile = 2,
+    }
+
+    public class Plugin : IPlugin
     {
         private static readonly ILogger s_logger = Logger.GetLoggerInstanceForType();
-
-        // Compatibility
-        private static readonly Regex[] s_reCompatibility =
-            {
-                /* BuddyStats Remote control action */
-                new Regex(@"Stop command from BuddyStats", RegexOptions.Compiled), // stop command
-                /* Emergency Stop: You need to stash an item but no valid space could be found. Stash is full? Stopping the bot to prevent infinite town-run loop. */
-                new Regex(@".+Emergency Stop: .+", RegexOptions.Compiled), // Emergency stop
-                /* Atom 2.0.15+ "Take a break" */
-                new Regex(@".*Atom.*Will Stop the bot for .+ minutes\.$", RegexOptions.Compiled), // Take a break
-                /* RadsAtom "Take a break" */
-                new Regex(@"\[RadsAtom\].+ minutes to next break, the break will last for .+ minutes.", RegexOptions.Compiled), 
-                /* Take A Break by Ghaleon */
-                new Regex(@"\[TakeABreak.*\] It's time to take a break.*", RegexOptions.Compiled),
-            };
-
-        // CrashTender
-        private static readonly Regex[] s_reCrashTender =
-            {
-                /* Invalid Session */
-                new Regex(@"Session is invalid!", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-                /* Session expired */
-                new Regex(@"Session is expired", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-                /* Failed to attach to D3*/
-                new Regex(@"Was not able to attach to any running Diablo III process, are you running the bot already\?", RegexOptions.Compiled),
-                new Regex(@"Traceback (most recent call last):", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-            };
-
-        private static readonly Regex[] s_crashExceptionRegexes =
-        {
-                new Regex(@"Exception during bot tick.*", RegexOptions.Compiled)
-        };
-
-        private static readonly Regex s_waitingBeforeGame = new Regex(@"Waiting (.+) seconds before next game", RegexOptions.Compiled);
-        private static readonly Regex s_pluginsCompiled = new Regex(@"There are \d+ plugins", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-        private static readonly Regex s_yarRegex = new Regex(@"^\[YetAnotherRelogger\].*", RegexOptions.Compiled);
-
+        
         #region IPlugin implementation
         public string Author => "rrrix and sinterlkaas";
-        public Version Version { get; } = new Version(typeof(YARPlugin).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version);
-        public string Name { get; } = typeof(YARPlugin).Assembly.GetCustomAttribute<AssemblyTitleAttribute>().Title;
-        public string Description { get; } = typeof(YARPlugin).Assembly.GetCustomAttribute<AssemblyDescriptionAttribute>().Description;
+        public Version Version { get; } = new Version(typeof(Plugin).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version);
+        public string Name { get; } = typeof(Plugin).Assembly.GetCustomAttribute<AssemblyTitleAttribute>().Title;
+        public string Description { get; } = typeof(Plugin).Assembly.GetCustomAttribute<AssemblyDescriptionAttribute>().Description;
 
         public Window DisplayWindow => null;
 
@@ -85,6 +98,7 @@ namespace YARPlugin
         /// <summary> Executes the shutdown action. This is called when the bot is shutting down. (Not when Stop() is called) </summary>
         public void OnShutdown()
         {
+            StopListening();
             _yarThread.Abort();
         }
 
@@ -95,22 +109,24 @@ namespace YARPlugin
             if (!Application.Current.CheckAccess()) return;
 
             IsEnabled = true;
-            s_logger.Information("YAR Plugin Enabled with PID: {PID}");
+
+            var port = StartListening();
+            s_logger.ForContext("Port", port).Information("YAR Plugin Enabled with PID: {PID} listening to {Port}");
 
             // Setup events before we actually do anything.
             BotMain.OnStart += OnStart;
             ProfileManager.OnProfileLoaded += OnProfileLoaded;
             TreeHooks.Instance.OnHooksCleared += OnHooksCleared;
-
+            
             StartYarWorker();
 
-            s_logger.Information("Requesting Profile (Current={0})", ProfileManager.CurrentProfile != null ? ProfileManager.CurrentProfile.Path : "Null");
-            Send("RequestProfile");
+            s_logger.Information("Requesting Profile (Current={Profile})", ProfileManager.CurrentProfile != null ? ProfileManager.CurrentProfile.Path : "Null");
+            Send(ControlInformation.RequestProfile);
 
-            Send("NewDifficultyLevel", true); // Request Difficulty level
+            Send(ControlRequest.NewDifficultyLevel); // Request Difficulty level
             Reset();
 
-            Send("Initialized");
+            Send(ControlInformation.Initialized);
         }
 
         /// <summary> Executes the disabled action. This is called whent he user has disabled this specific plugin via the GUI. </summary>
@@ -142,30 +158,13 @@ namespace YARPlugin
             ProfileManager.OnProfileLoaded -= OnProfileLoaded;
             BotMain.OnStart -= OnStart;
 
+            StopListening();
+
             s_logger.Information("YAR Plugin Disabled!");
 
             IsEnabled = false;
         }
         #endregion
-
-        private readonly BotStats _bs = new BotStats(Process.GetCurrentProcess().Id);
-        private static int _crashExceptionCounter;
-        private Thread _yarThread;
-        private bool _pulseFix;
-
-        public bool IsEnabled { get; set; }
-
-        private void Reset()
-        {
-            _bs.LastPulse = DateTime.UtcNow.Ticks;
-            _bs.LastRun = DateTime.UtcNow.Ticks;
-            _bs.LastGame = DateTime.UtcNow.Ticks;
-        }
-
-        public bool Equals(IPlugin other)
-        {
-            return (other?.Name == Name) && (other?.Version == Version);
-        }
 
         #region BotEvents
         private void OnStart(IBot bot)
@@ -180,7 +179,7 @@ namespace YARPlugin
 
         private void OnProfileLoaded(object sender, object e)
         {
-            Send("NewDifficultyLevel", true); // Request Difficulty level
+            Send(ControlRequest.NewDifficultyLevel); // Request Difficulty level
         }
 
         /// <summary>
@@ -217,8 +216,6 @@ namespace YARPlugin
                     return RunStatus.Failure;
                 }
 
-                LogWorker();
-
                 // in-game / character data 
                 _bs.IsLoadingWorld = ZetaDia.Globals.IsLoadingWorld;
                 _bs.Coinage = 0;
@@ -249,7 +246,7 @@ namespace YARPlugin
                 {
                     if (_bs.IsInGame)
                     {
-                        Send("GameLeft", true);
+                        Send(ControlRequest.GameLeft);
                     }
                     _bs.IsInGame = false;
                 }
@@ -262,396 +259,48 @@ namespace YARPlugin
         }
         #endregion
 
-        #region Out of game behavior
-        private static Composite _yarHook;
-        // This makes sure that our hook is in place during out of game ticks.
-        private void InsertOrRemoveOutOfGameHook(bool forceInsert = false)
+        #region Command and Control Server
+        private bool _acknowledged;
+        private UdpClient _listener;
+
+        private int StartListening()
         {
-            try
-            {
-                if (IsEnabled || forceInsert)
-                {
-                    if (_yarHook == null)
-                        _yarHook = CreateYarHook();
-
-                    s_logger.Information("Inserting YAR Hook");
-                    TreeHooks.Instance.InsertHook("OutOfgame", 0, _yarHook);
-                }
-                else
-                {
-                    if (_yarHook == null)
-                        return;
-
-                    s_logger.Information("Removing YAR Hook");
-                    TreeHooks.Instance.RemoveHook("OutOfgame", _yarHook);
-                }
-            }
-            catch (Exception ex)
-            {
-                s_logger.Warning(ex, "Failed to manipulate tree hooks.");
-            }
+            var port = NetworkTools.GetFreeUdpPort(56000, 57000);
+            _listener = new UdpClient(port);
+            Listen();
+            return port;
         }
 
-        internal Composite CreateYarHook()
+        private void StopListening()
         {
-            return new Action(ret => Pulse());
+            _listener.Dispose();
+            _listener = null;
         }
-        #endregion
-
-        #region Logging Monitor
-        /// <summary>
-        /// Reads through the LogMessage queue and sends updates to YAR
-        /// </summary>
-        private void LogWorker()
+        
+        private async void Listen()
         {
-            try
-            {
-                _bs.IsRunning = BotMain.IsRunning;
-
-                if (BotMain.IsRunning)
-                {
-                    _bs.IsPaused = false;
-                    _bs.LastRun = DateTime.UtcNow.Ticks;
-                }
-
-                // Keep Thread alive while log buffer is not empty
-                while (_logBuffer != null)
-                {
-                    try
-                    {
-                        DateTime duration = DateTime.UtcNow;
-                        LoggingEvent[] buffer;
-                        // Lock buffer and copy to local variable for scanning
-                        lock (_logBuffer)
-                        {
-                            buffer = new LoggingEvent[_logBuffer.Length + 1]; // set log new local log buffer size
-                            _logBuffer.CopyTo(buffer, 0); // copy to local
-                            _logBuffer = null; // clear buffer
-                        }
-
-                        var count = 0; // Scan counter
-                        var breakloop = false;
-                        // Scan log items
-                        foreach (LoggingEvent lm in buffer.Where(x => x != null))
-                        {
-                            string msg = lm.RenderedMessage;
-                            if (s_yarRegex.IsMatch(msg))
-                                continue;
-
-                            count++; // add to counter
-                            Match m = s_pluginsCompiled.Match(msg);
-                            if (m.Success)
-                            {
-                                s_logger.Information("Plugins Compiled matched");
-                                Send("AllCompiled"); // tell relogger about all plugin compile so the relogger can tell what to do next
-                                continue;
-                            }
-
-                            // Find Start stop button click
-                            if (msg.Equals("Start/Stop Button Clicked!") && !BotMain.IsRunning)
-                            {
-                                Send("UserStop");
-                                _crashExceptionCounter = 0;
-                            }
-
-                            try
-                            {
-                                if (!ZetaDia.IsInGame && FindStartDelay(msg)) continue; // Find new start delay
-                            }
-                            catch (AccessViolationException)
-                            {
-                                if (IsGameRunning())
-                                {
-                                    Send("D3Exit"); // Process has exited
-                                    breakloop = true; // break out of loop
-                                }
-                            }
-                            // Crash Tender check
-                            if (s_reCrashTender.Any(re => re.IsMatch(msg)))
-                            {
-                                s_logger.Information("Crash message detected");
-                                Send("D3Exit"); // Restart D3
-                                breakloop = true; // break out of loop
-                            }
-
-                            if (s_crashExceptionRegexes.Any(re => re.IsMatch(msg)))
-                            {
-                                s_logger.Information("Crash Exception detected");
-                                _crashExceptionCounter++;
-                            }
-                            if (_crashExceptionCounter > 1000)
-                            {
-                                s_logger.Information("Detected 1000 unhandled bot tick exceptions, restarting everything");
-                                Send("D3Exit"); // Restart D3
-                            }
-
-                            // YAR compatibility with other plugins
-                            if (s_reCompatibility.Any(re => re.IsMatch(msg)))
-                                Send("ThirdpartyStop");
-                            if (breakloop) break; // Check if we need to break out of loop
-                        }
-                        //if (count > 1) Log("Scanned {0} log items in {1}ms", count, DateTime.UtcNow.Subtract(duration).TotalMilliseconds);
-                    }
-                    catch (Exception ex)
-                    {
-                        s_logger.Warning(ex, "Exception during LogWorker");
-                    }
-                }
-
-            }
-            catch (Exception ex)
-            {
-                s_logger.Warning(ex, "Exception during LogWorker");
-            }
+            var resp = await _listener.ReceiveAsync();
+            PacketReceived(resp);
+            if (IsEnabled)
+                Listen();
         }
 
-        public bool FindStartDelay(string msg)
+        private async void PacketReceived(UdpReceiveResult packet)
         {
-            // Waiting #.# seconds before next game...
-            Match m = s_waitingBeforeGame.Match(msg);
-            if (m.Success)
-            {
-                Send("StartDelay " + DateTime.UtcNow.AddSeconds(double.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture)).Ticks);
-                return true;
-            }
-            return false;
-        }
-        #endregion
-
-        #region yarWorker
-        private void StartYarWorker()
-        {
-            if (_yarThread == null || (_yarThread != null && !_yarThread.IsAlive))
-            {
-                s_logger.Information("Starting YAR Thread");
-                _yarThread = new Thread(YarWorker) { Name = "YARWorker", IsBackground = true };
-                _yarThread.Start();
-            }
-        }
-
-        public void YarWorker()
-        {
-            s_logger.Information("YAR Worker Thread Started");
-            while (true)
-            {
-                try
-                {
-                    _bs.IsRunning = BotMain.BotThread != null && BotMain.BotThread.IsAlive;
-
-                    var isInGame = false;
-                    try
-                    {
-                        isInGame = ZetaDia.IsInGame;
-                    }
-                    catch (Exception ex)
-                    {
-                        s_logger.Warning(ex, "Exception accessing IsInGame");
-                    }
-                    // Calculate game runs
-                    if (isInGame)
-                    {
-                        _bs.LastGame = DateTime.UtcNow.Ticks;
-                        _bs.IsInGame = true;
-                    }
-                    else
-                    {
-                        if (_bs.IsInGame)
-                        {
-                            Send("GameLeft", true);
-                            Send("NewDifficultyLevel", true); // Request Difficulty level
-                        }
-                        _bs.IsInGame = false;
-                    }
-
-                    // Send stats
-                    Send("XML:" + _bs.ToXmlString(), xml: true);
-
-                    LogWorker();
-
-                    Thread.Sleep(750);
-                }
-                catch (ThreadAbortException ex)
-                {
-                    s_logger.Information(ex, "YAR Thread Aborted");
-                    // End the thread...
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    s_logger.Warning(ex, "Exception during YAR Thread");
-                    // End the thread...
-                    return;
-                }
-            }
-        }
-        #endregion
-
-        #region Handle Errors and strange situations
-        private bool _handlederror;
-        private void ErrorHandling()
-        {
-            if (ErrorDialog.IsVisible)
-            {
-                // Check if Demonbuddy found errordialog
-                if (!_handlederror)
-                {
-                    Send("CheckConnection", true);
-                    _handlederror = true;
-                }
-                else
-                {
-                    _handlederror = false;
-                    ErrorDialog.Click();
-                    CheckForLoginScreen();
-                }
-            }
-
-            if (UIElementTester.IsValid(UIElement.ErrorDialogOkButton))
-            {
-                // Demonbuddy failed to find error dialog use static hash to find the OK button
-                Send("CheckConnection", true);
-                Zeta.Game.Internals.UIElement.FromHash(UIElement.ErrorDialogOkButton).Click();
-                CheckForLoginScreen();
-            }
-
-            _handlederror = false;
-            if (UIElementTester.IsValid(UIElement.LoginScreenUsername))
-            {
-                // We are at loginscreen
-                Send("CheckConnection", true);
-            }
-        }
-
-        // Detect if we are booted to login screen or character selection screen
-        private void CheckForLoginScreen()
-        {
-            DateTime timeout = DateTime.UtcNow;
-            while (DateTime.UtcNow.Subtract(timeout).TotalSeconds <= 15)
-            {
-                BotMain.PauseFor(TimeSpan.FromMilliseconds(600));
-                if (UIElementTester.IsValid(UIElement.StartResumeButton))
-                    break;
-                if (UIElementTester.IsValid(UIElement.LoginScreenUsername))
-                { // We are at loginscreen
-                    Send("CheckConnection", true);
-                    break;
-                }
-                Thread.Sleep(500);
-            }
-        }
-        #endregion
-
-        #region PipeClientSend
-        private void Send(string data, bool pause = false, bool xml = false, int retry = 1, int timeout = 3000)
-        {
-            var success = false;
-            var tries = 0;
-            if (_bs.Pid == 0)
-                _bs.Pid = Process.GetCurrentProcess().Id;
-
-            if (!xml)
-                data = _bs.Pid + ":" + data;
-            else
-                data += "\nEND";
-
-            // Pause bot
-            if (pause)
-            {
-                _recieved = false;
-                Func<bool> waitFor = Recieved;
-                BotMain.PauseWhile(waitFor, 0, TimeSpan.FromMilliseconds((retry * timeout) + 3000));
-            }
-            while (!success && tries < retry)
-            {
-                try
-                {
-                    tries++;
-                    using (var client = new NamedPipeClientStream(".", "YetAnotherRelogger"))
-                    {
-                        client.Connect(timeout);
-                        if (client.IsConnected)
-                        {
-                            var streamWriter = new StreamWriter(client) { AutoFlush = true };
-                            var streamReader = new StreamReader(client);
-
-                            streamWriter.WriteLine(data);
-
-                            DateTime connectionTime = DateTime.UtcNow;
-
-                            if (!client.IsConnected)
-                            {
-                                s_logger.Information("Error: client disconnected before response received");
-                            }
-
-                            while (!success && client.IsConnected)
-                            {
-                                if (DateTime.UtcNow.Subtract(connectionTime).TotalSeconds > 3)
-                                {
-                                    client.Close();
-                                    break;
-                                }
-
-                                var responseText = string.Empty;
-                                if (!streamReader.EndOfStream)
-                                {
-                                    responseText = streamReader.ReadLine();
-                                }
-                                if (string.IsNullOrWhiteSpace(responseText))
-                                {
-                                    Thread.Sleep(10);
-                                    continue;
-                                }
-
-                                HandleResponse(responseText);
-                                success = true;
-
-                            }
-
-                        }
-                        else
-                        {
-                            // Failed to connect
-                        }
-                    }
-                }
-                catch (ThreadAbortException) { }
-                catch (TimeoutException)
-                {
-                    if (IsEnabled)
-                    {
-                        // YAR is not running, disable the plugin
-                        //Log("TimeoutException - Disabling YAR Plugin");
-
-                        var unused = PluginManager.Plugins.Where(p => p.Plugin.Name == Name).All(p => p.Enabled = false);
-                        _yarThread.Abort();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    s_logger.Warning(ex, "Error sending data to YAR.");
-                    OnShutdown();
-                }
-
-            }
-            _recieved = true;
-        }
-        #endregion
-
-        #region HandleResponse
-        private void HandleResponse(string data)
-        {
-            var cmd = data.Split(' ')[0];
-            if (data.Split(' ').Length > 1)
-                data = data.Substring(cmd.Length + 1);
+            var cmd = (BotCommand)packet.Buffer[0];
+            
             switch (cmd)
             {
-                case "Restart":
+                case BotCommand.Ack:
+                    _acknowledged = true;
+                    break;
+                case BotCommand.Restart:
                     s_logger.Information("Restarting bot");
                     try
                     {
                         s_logger.Information("Stopping Bot");
                         BotMain.Stop();
-                        Application.Current.Dispatcher.BeginInvoke((System.Action)(() =>
+                        await Application.Current.Dispatcher.BeginInvoke((System.Action)(() =>
                         {
                             try
                             {
@@ -671,50 +320,52 @@ namespace YARPlugin
                     }
                     Reset();
                     break;
-                case "LoadProfile":
-                    LoadProfile(data);
-                    break;
-                case "DifficultyLevel":
-                    var difficultyLevel = Convert.ToInt32(data.Trim());
-                    if (difficultyLevel >= 0)
-                    {
-                        var difficulty = (GameDifficulty)Enum.Parse(typeof(GameDifficulty), data.Trim(), true);
-                        s_logger.Information("Recieved DifficultyLevel: {difficulty}", difficulty);
-                        CharacterSettings.Instance.GameDifficulty = difficulty;
-                    }
-                    break;
-                case "ForceEnableAll":
-                    ForceEnableAllPlugins();
-                    break;
-                case "ForceEnableYar":
-                    ForceEnableYar();
-                    break;
-                case "FixPulse":
-                    FixPulse();
-                    break;
-                case "Shutdown":
+                case BotCommand.Shutdown:
                     s_logger.Information("Received Shutdown command");
                     SafeCloseProcess();
                     break;
-                case "Roger!":
-                case "Unknown command!":
+                case BotCommand.ForceEnableAll:
+                    ForceEnableAllPlugins();
+                    break;
+                case BotCommand.ForceEnableYar:
+                    ForceEnableYar();
+                    break;
+                case BotCommand.FixPulse:
+                    FixPulse();
+                    break;
+                case BotCommand.LoadProfile:
+                    var data = Encoding.UTF8.GetString(packet.Buffer.Skip(1).ToArray());
+                    LoadProfile(data);
+                    break;
+                case BotCommand.SwitchDifficultyLevel:
+                    var difficultyLevel = (GameDifficulty)BitConverter.ToInt32(packet.Buffer, 1);
+                    if (difficultyLevel >= 0)
+                    {
+                        s_logger.Information("Recieved DifficultyLevel: {difficultyLevel}", difficultyLevel);
+                        CharacterSettings.Instance.GameDifficulty = difficultyLevel;
+                    }
                     break;
                 default:
-                    s_logger.Information("Unknown response! \"{cmd} {data}\"", cmd, data);
+                    s_logger.Warning("Unknown command {cmd}", cmd);
                     break;
             }
-            _recieved = true;
         }
         
-        private void LoadProfile(string profile)
+        private void Send(ControlRequest notification, int timeout = 3000)
         {
-            s_logger.Information("Loading profile: {profile}", profile);
-
-            if (ProfileManager.CurrentProfile == null || profile != ProfileManager.CurrentProfile.Path)
-                ProfileManager.Load(profile.Trim());
+            _acknowledged = false;
+            // Pause bot until the time out is hit.
+            BotMain.PauseWhile(() => _acknowledged, 0, TimeSpan.FromMilliseconds(timeout));
+            s_logger.Information("Control Request: {notification}", notification);
         }
 
-        // from Nesox
+        private void Send(ControlInformation notification)
+        {
+            s_logger.Information("Control Information: {notification}", notification);
+        }
+        #endregion
+
+        #region Command Handlers
         private void SafeCloseProcess()
         {
             s_logger.Warning("Attempting to safely close process");
@@ -732,19 +383,6 @@ namespace YARPlugin
             {
                 s_logger.Warning(ex, "Error during safely close");
             }
-        }
-
-        #region ForceEnable Plugin(s)
-        private void ForceEnableYar()
-        {
-            // Force enable YAR
-            var enabledPluginsList = PluginManager.Plugins.Where(p => p.Enabled).Select(p => p.Plugin.Name).ToList();
-            if (!enabledPluginsList.Contains(Name))
-                enabledPluginsList.Add(Name);
-
-            s_logger.Information("Force enable YetAnotherRelogger.Plugin");
-            // This call triggers OnEnabled.
-            PluginManager.SetEnabledPlugins(enabledPluginsList.ToArray());
         }
 
         private void ForceEnableAllPlugins()
@@ -785,10 +423,20 @@ namespace YARPlugin
 
             });
         }
-        #endregion
+
+        private void ForceEnableYar()
+        {
+            // Force enable YAR
+            var enabledPluginsList = PluginManager.Plugins.Where(p => p.Enabled).Select(p => p.Plugin.Name).ToList();
+            if (!enabledPluginsList.Contains(Name))
+                enabledPluginsList.Add(Name);
+
+            s_logger.Information("Force enable YetAnotherRelogger.Plugin");
+            // This call triggers OnEnabled.
+            PluginManager.SetEnabledPlugins(enabledPluginsList.ToArray());
+        }
 
         #region FixPulse
-
         private bool _pulseCheck;
         private void FixPulse()
         {
@@ -865,16 +513,188 @@ namespace YARPlugin
         }
         #endregion
 
-        private bool _recieved;
-
-        private bool Recieved()
+        private void LoadProfile(string profile)
         {
-            return _recieved;
+            s_logger.Information("Loading profile: {profile}", profile);
+
+            if (ProfileManager.CurrentProfile == null || profile != ProfileManager.CurrentProfile.Path)
+                ProfileManager.Load(profile.Trim());
+        }
+        #endregion
+
+        private readonly BotStats _bs = new BotStats(Process.GetCurrentProcess().Id);
+        private Thread _yarThread;
+        private bool _pulseFix;
+
+        public bool IsEnabled { get; set; }
+
+        private void Reset()
+        {
+            _bs.LastPulse = DateTime.UtcNow.Ticks;
+            _bs.LastRun = DateTime.UtcNow.Ticks;
+            _bs.LastGame = DateTime.UtcNow.Ticks;
         }
 
-        private bool IsGameRunning()
+        public bool Equals(IPlugin other)
         {
-            return ZetaDia.Memory.Process.HasExited && !Process.GetProcesses().Any(p => p.ProcessName.StartsWith("BlizzardError") && DateTime.UtcNow.Subtract(p.StartTime).TotalSeconds <= 30);
+            return (other?.Name == Name) && (other?.Version == Version);
+        }
+
+        #region Out of game behavior
+        private static Composite _yarHook;
+        // This makes sure that our hook is in place during out of game ticks.
+        private void InsertOrRemoveOutOfGameHook(bool forceInsert = false)
+        {
+            try
+            {
+                if (IsEnabled || forceInsert)
+                {
+                    if (_yarHook == null)
+                        _yarHook = CreateYarHook();
+
+                    s_logger.Information("Inserting YAR Hook");
+                    TreeHooks.Instance.InsertHook("OutOfgame", 0, _yarHook);
+                }
+                else
+                {
+                    if (_yarHook == null)
+                        return;
+
+                    s_logger.Information("Removing YAR Hook");
+                    TreeHooks.Instance.RemoveHook("OutOfgame", _yarHook);
+                }
+            }
+            catch (Exception ex)
+            {
+                s_logger.Warning(ex, "Failed to manipulate tree hooks.");
+            }
+        }
+
+        internal Composite CreateYarHook()
+        {
+            return new Action(ret => Pulse());
+        }
+        #endregion
+
+        #region yarWorker
+        private void StartYarWorker()
+        {
+            if (_yarThread == null || (_yarThread != null && !_yarThread.IsAlive))
+            {
+                s_logger.Information("Starting YAR Thread");
+                _yarThread = new Thread(YarWorker) { Name = "YARWorker", IsBackground = true };
+                _yarThread.Start();
+            }
+        }
+
+        public void YarWorker()
+        {
+            s_logger.Information("YAR Worker Thread Started");
+            while (true)
+            {
+                try
+                {
+                    _bs.IsRunning = BotMain.BotThread != null && BotMain.BotThread.IsAlive;
+
+                    var isInGame = false;
+                    try
+                    {
+                        isInGame = ZetaDia.IsInGame;
+                    }
+                    catch (Exception ex)
+                    {
+                        s_logger.Warning(ex, "Exception accessing IsInGame");
+                    }
+                    // Calculate game runs
+                    if (isInGame)
+                    {
+                        _bs.LastGame = DateTime.UtcNow.Ticks;
+                        _bs.IsInGame = true;
+                    }
+                    else
+                    {
+                        if (_bs.IsInGame)
+                        {
+                            Send(ControlRequest.GameLeft);
+                            Send(ControlRequest.NewDifficultyLevel);
+                        }
+                        _bs.IsInGame = false;
+                    }
+
+                    // Send stats
+                    s_logger.ForContext("BotStats", _bs).Verbose("Statistics report");
+                    
+                    Thread.Sleep(750);
+                }
+                catch (ThreadAbortException ex)
+                {
+                    s_logger.Information(ex, "YAR Thread Aborted");
+                    // End the thread...
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    s_logger.Warning(ex, "Exception during YAR Thread");
+                    // End the thread...
+                    return;
+                }
+            }
+        }
+        #endregion
+
+        #region Handle Errors and strange situations
+        private bool _handlederror;
+        private void ErrorHandling()
+        {
+            if (ErrorDialog.IsVisible)
+            {
+                // Check if Demonbuddy found errordialog
+                if (!_handlederror)
+                {
+                    Send(ControlRequest.CheckConnection);
+                    _handlederror = true;
+                }
+                else
+                {
+                    _handlederror = false;
+                    ErrorDialog.Click();
+                    CheckForLoginScreen();
+                }
+            }
+
+            if (UIElementTester.IsValid(UIElement.ErrorDialogOkButton))
+            {
+                // Demonbuddy failed to find error dialog use static hash to find the OK button
+                Send(ControlRequest.CheckConnection);
+                Zeta.Game.Internals.UIElement.FromHash(UIElement.ErrorDialogOkButton).Click();
+                CheckForLoginScreen();
+            }
+
+            _handlederror = false;
+            if (UIElementTester.IsValid(UIElement.LoginScreenUsername))
+            {
+                // We are at loginscreen
+                Send(ControlRequest.CheckConnection);
+            }
+        }
+
+        // Detect if we are booted to login screen or character selection screen
+        private void CheckForLoginScreen()
+        {
+            DateTime timeout = DateTime.UtcNow;
+            while (DateTime.UtcNow.Subtract(timeout).TotalSeconds <= 15)
+            {
+                BotMain.PauseFor(TimeSpan.FromMilliseconds(600));
+                if (UIElementTester.IsValid(UIElement.StartResumeButton))
+                    break;
+                if (UIElementTester.IsValid(UIElement.LoginScreenUsername))
+                {
+                    // We are at loginscreen
+                    Send(ControlRequest.CheckConnection);
+                    break;
+                }
+                Thread.Sleep(500);
+            }
         }
         #endregion
 

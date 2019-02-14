@@ -8,7 +8,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
-    <OutputPath>$(SolutionDir)\build\$(Platform)\$(Configuration)\Plugins\</OutputPath>
+    <OutputPath>$(SolutionDir)\build\$(Platform)\$(Configuration)\Bots\</OutputPath>
     <DocumentationFile>$(OutputPath)\$(AssemblyName).dll.xml</DocumentationFile>
     <CodeAnalysisLogFile>$(OutputPath)\$(AssemblyName).dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
     <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
@@ -138,7 +138,7 @@
   <ItemGroup>
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="YARBot.cs" />
+    <Compile Include="Kickstart.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSHARP.Targets" />
   <ProjectExtensions>

@@ -28,7 +28,7 @@ namespace YetAnotherRelogger.Helpers
 
         // Dont link this list
 
-        public static void Create(BotClass bot)
+        public static void Create(Bot.Bot bot)
         {
             var imp = new Impersonator();
             try

@@ -2,11 +2,14 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Serialization;
+using Newtonsoft.Json.Linq;
 using YetAnotherRelogger.Helpers.Attributes;
 using YetAnotherRelogger.Helpers.Enums;
 using YetAnotherRelogger.Helpers.Tools;
@@ -14,9 +17,37 @@ using YetAnotherRelogger.Properties;
 
 namespace YetAnotherRelogger.Helpers.Bot
 {
-    public class DemonbuddyClass
+    public enum BotCommand : byte
     {
-        private static readonly ILogger s_logger = Logger.Instance.GetLogger<DemonbuddyClass>();
+        Null = 0,
+        Ack = 1,
+        Restart = 2,
+        Shutdown = 3,
+        FixPulse = 4,
+        ForceEnableAll = 5,
+        ForceEnableYar = 6,
+        LoadProfile = 7,
+        SwitchDifficultyLevel = 8
+    }
+
+    public enum ControlRequest
+    {
+        Null = 0,
+        GameLeft = 1,
+        NewDifficultyLevel = 2,
+        CheckConnection = 3,
+    }
+
+    public enum ControlInformation
+    {
+        Null = 0,
+        Initialized = 1,
+        RequestProfile = 2,
+    }
+
+    public class Demonbuddy
+    {
+        private ILogger _logger = Logger.Instance.GetLogger<Demonbuddy>();
 
         [XmlIgnore]
         public Rectangle AutoPos;
@@ -30,7 +61,7 @@ namespace YetAnotherRelogger.Helpers.Bot
         [XmlIgnore]
         private Process _proc;
 
-        public DemonbuddyClass()
+        public Demonbuddy()
         {
             CpuCount = Environment.ProcessorCount;
             ProcessorAffinity = AllProcessors;
@@ -38,7 +69,7 @@ namespace YetAnotherRelogger.Helpers.Bot
 
         [XmlIgnore]
         [NoCopy]
-        public BotClass Parent { get; set; }
+        public Bot Parent { get; set; }
 
         [XmlIgnore]
         [NoCopy]
@@ -123,12 +154,12 @@ namespace YetAnotherRelogger.Helpers.Bot
                     if (Parent.AntiIdle.FailedInitCount >= (Parent.AntiIdle.InitAttempts > 0 ? 1 : MaxInits))
                     {
                         Parent.AntiIdle.InitAttempts++;
-                        s_logger.Warning("Demonbuddy:{Id}: Failed to initialize more than {MaxInits} times", Parent.Demonbuddy.Proc.Id, MaxInits);
+                        _logger.Warning("Demonbuddy: Failed to initialize more than {MaxInits} times", MaxInits);
                         Parent.Standby();
                     }
                     else
                     {
-                        s_logger.Warning("Demonbuddy:{Id}: Failed to initialize {FailedInitCount}/{MaxInits}", Parent.Demonbuddy.Proc.Id, Parent.AntiIdle.FailedInitCount, MaxInits);
+                        _logger.Warning("Demonbuddy: Failed to initialize {FailedInitCount}/{MaxInits}", Parent.AntiIdle.FailedInitCount, MaxInits);
                         Parent.Demonbuddy.Stop(true);
                     }
                     return false;
@@ -151,7 +182,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                 if (logdir.Length == 0 || !Directory.Exists(logdir))
                 {
                     // Failed to get log dir so exit here
-                    s_logger.Warning("Demonbuddy:{Id}: Failed to find logdir", Proc.Id);
+                    _logger.Warning("Demonbuddy: Failed to find logdir");
                     return false;
                 }
                 // get log file
@@ -172,7 +203,7 @@ namespace YetAnotherRelogger.Helpers.Bot
 
                 if (success)
                 {
-                    s_logger.Information("Demonbuddy:{Id}: Found matching log: {logfile}", Proc.Id, logfile);
+                    _logger.Information("Demonbuddy: Found matching log: {logfile}", logfile);
 
                     // Read Log file
                     // [11:03:21.173 N] Logging in...
@@ -199,7 +230,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                                 if (logging && line.Contains("Attached to Diablo III with pid"))
                                 {
                                     LoginTime = DateTime.Parse($"{starttime.ToUniversalTime():yyyy-MM-dd} {time}");
-                                    s_logger.Information("Found login time: {LoginTime}", LoginTime);
+                                    _logger.Information("Demonbuddy: Found login time {LoginTime}", LoginTime);
                                     return true;
                                 }
                                 Match m = new Regex(@"^\[(.+) .\] Logging in\.\.\.$", RegexOptions.Compiled).Match(line);
@@ -211,17 +242,17 @@ namespace YetAnotherRelogger.Helpers.Bot
 
                                 Thread.Sleep(5); // Be nice for CPU
                             }
-                            s_logger.Warning("Demonbuddy:{Id}: Failed to find login time", Proc.Id);
+                            _logger.Warning("Demonbuddy: Failed to find login time");
                             return false;
                         }
                     }
                     catch (Exception ex)
                     {
-                        s_logger.Error(ex, "Demonbuddy:{Id}: Error accured while reading log", Proc.Id);
+                        _logger.Error(ex, "Demonbuddy: Error accured while reading log");
                     }
                 }
                 // Else print error + return false
-                s_logger.Warning("Demonbuddy:{Id}: Failed to find matching log", Proc.Id);
+                _logger.Warning("Demonbuddy: Failed to find matching log");
                 return false;
             }
         }
@@ -236,24 +267,24 @@ namespace YetAnotherRelogger.Helpers.Bot
 
             if (DateTime.UtcNow.Subtract(Proc.StartTime).TotalMilliseconds < (90 * 1000))
                 return;
-
+            
             if (Settings.Default.AllowKillDemonbuddy && _lastResponse.AddSeconds(120) < DateTime.UtcNow)
             {
-                s_logger.Information("Demonbuddy:{Id}: Is unresponsive for more than 120 seconds", Proc.Id);
-                s_logger.Warning("Demonbuddy:{Id}: Killing process", Proc.Id);
+                _logger.Information("Demonbuddy: Is unresponsive for more than 120 seconds");
+                _logger.Warning("Demonbuddy: Killing process");
                 try
                 {
                     Proc.Kill();
                 }
                 catch (Exception ex)
                 {
-                    s_logger.Error(ex, "Failed to kill process");
+                    _logger.Error(ex, "Demonbuddy: Failed to kill process");
                 }
             }
             else if (Settings.Default.AllowKillDemonbuddy && _lastResponse.AddSeconds(90) < DateTime.UtcNow)
             {
-                s_logger.Information("Demonbuddy:{Id}: Is unresponsive for more than 90 seconds", Proc.Id);
-                s_logger.Warning("Demonbuddy:{Id}: Closing process", Proc.Id);
+                _logger.Information("Demonbuddy: Is unresponsive for more than 90 seconds");
+                _logger.Warning("Demonbuddy: Closing process");
                 try
                 {
                     if (Proc != null && !Proc.HasExited)
@@ -261,7 +292,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                 }
                 catch (Exception ex)
                 {
-                    s_logger.Error(ex, "Failed to close process");
+                    _logger.Error(ex, "Demonbuddy: Failed to close process");
                 }
             }
         }
@@ -270,10 +301,10 @@ namespace YetAnotherRelogger.Helpers.Bot
         {
             if (!Parent.IsStarted || !Parent.Diablo.IsRunning || (_crashTenderRestart && !crashtenderstart))
                 return;
-
+            
             if (!File.Exists(Location))
             {
-                s_logger.Error("File not found: {Location}", Location);
+                _logger.Error("File not found: {Location}", Location);
                 return;
             }
 
@@ -358,21 +389,23 @@ namespace YetAnotherRelogger.Helpers.Bot
 
                 // Don't expose arguments in release builds.
 #if DEBUG
-                s_logger.Verbose("DB Arguments: {arguments}", arguments);
+                _logger.Verbose("DB Arguments: {arguments}", arguments);
 #endif
                 var p = new ProcessStartInfo(Location, arguments) { WorkingDirectory = Path.GetDirectoryName(Location), UseShellExecute = false };
                 p = UserAccount.ImpersonateStartInfo(p, Parent);
-
+                
                 DateTime timeout;
                 try // Try to start Demonbuddy
                 {
                     Parent.Status = "Starting Demonbuddy"; // Update Status
                     Proc = Process.Start(p);
+                    UdpLogListener.Instance.RegisterListener(Proc.Id, LogCallback);
+                    _logger = _logger.ForContext("PID", Proc.Id);
 
                     if (Program.IsRunAsAdmin)
                         Proc.PriorityClass = General.GetPriorityClass(Priority);
                     else
-                        s_logger.Error("Failed to change priority (No admin rights)");
+                        _logger.Error("Demonbuddy: Failed to change priority (No admin rights)");
 
                     // Set affinity
                     if (CpuCount != Environment.ProcessorCount)
@@ -382,7 +415,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                     }
                     Proc.ProcessorAffinity = (IntPtr)ProcessorAffinity;
 
-                    s_logger.Information("Demonbuddy:{Id}: Waiting for process to become ready", Proc.Id);
+                    _logger.Information("Demonbuddy: Waiting for process to become ready");
 
                     timeout = DateTime.UtcNow;
                     while (true)
@@ -393,7 +426,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                         }
                         if (General.DateSubtract(timeout) > 60)
                         {
-                            s_logger.Warning("Demonbuddy:{Id}: Failed to start!", Proc.Id);
+                            _logger.Warning("Demonbuddy: Failed to start!");
                             Parent.Restart();
                             return;
                         }
@@ -405,7 +438,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                             if (Proc != null && Proc.HasExited && Proc.ExitCode == 12)
                             {
                                 Proc.WaitForExit();
-                                s_logger.Fatal("Closing YAR due to Tripwire event. Please check the forums for more information.");
+                                _logger.Fatal("Closing YAR due to Tripwire event. Please check the forums for more information.");
                                 Application.Exit();
                             }
 
@@ -414,7 +447,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                         }
                         catch (Exception ex)
                         {
-                            s_logger.Error(ex, "Error while waiting for idle input");
+                            _logger.Error(ex, "Error while waiting for idle input");
                         }
                     }
 
@@ -423,7 +456,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                 }
                 catch (Exception ex)
                 {
-                    s_logger.Error(ex, "Error during startup");
+                    _logger.Error(ex, "Error during startup");
                     Parent.Stop();
                 }
 
@@ -457,11 +490,11 @@ namespace YetAnotherRelogger.Helpers.Bot
                 // Window postion & resizing
                 if (ManualPosSize)
                     AutoPosition.ManualPositionWindow(MainWindowHandle, X, Y, W, H, Parent);
-                s_logger.Information("Demonbuddy:{Id}: Process is ready", Proc.Id);
+                _logger.Information("Demonbuddy: Process is ready");
 
                 // Wait for demonbuddy to be Initialized (this means we are logged in)
                 // If we don't wait here the Region changeing for diablo fails!
-                s_logger.Information("Demonbuddy:{Id}: Waiting for demonbuddy to log into Diablo", Proc.Id);
+                _logger.Information("Demonbuddy: Waiting for demonbuddy to log into Diablo");
                 while (!IsInitialized && !_isStopped)
                     Thread.Sleep(1000);
                 // We made to many attempts break here
@@ -500,7 +533,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                 */
 
                 // We are ready to go
-                s_logger.Information("Demonbuddy:{Id}: Initialized! We are ready to go", Proc.Id);
+                _logger.Information("Demonbuddy: Initialized! We are ready to go");
                 Parent.AntiIdle.FailedInitCount = 0; // only reset counter
                 break;
             } // while (Parent.IsStarted && Parent.Diablo.IsRunning)
@@ -512,14 +545,14 @@ namespace YetAnotherRelogger.Helpers.Bot
             if (handle != IntPtr.Zero)
             {
                 MainWindowHandle = handle;
-                s_logger.Verbose("Found Demonbuddy: MainWindow ({handle})", handle);
+                _logger.Verbose("Found Demonbuddy: MainWindow ({handle})", handle);
                 return true;
             }
             handle = FindWindow.EqualsWindowCaption("Demonbuddy - BETA", Proc.Id);
             if (handle != IntPtr.Zero)
             {
                 MainWindowHandle = handle;
-                s_logger.Verbose("Found Demonbuddy - BETA: MainWindow ({handle})", handle);
+                _logger.Verbose("Found Demonbuddy - BETA: MainWindow ({handle})", handle);
                 return true;
             }
             return false;
@@ -535,50 +568,152 @@ namespace YetAnotherRelogger.Helpers.Bot
             // Force close
             if (force)
             {
-                s_logger.Warning("Demonbuddy:{Id}: Process is not responding, killing!", Proc.Id);
+                _logger.Warning("Demonbuddy: Process is not responding, killing!");
                 Proc.Kill();
                 return;
             }
 
-            if (Proc != null && !Proc.HasExited)
-            {
-                s_logger.Information("Demonbuddy:{Id}: Closing window", Proc.Id);
-                Proc.CloseMainWindow();
-            }
+            _logger.Information("Demonbuddy: Closing window");
+            Proc.CloseMainWindow();
+
             if (Parent.Diablo.Proc == null || Parent.Diablo.Proc.HasExited)
             {
-                s_logger.Verbose("Demonbuddy:{Id}: Waiting to close", Proc.Id);
-                Proc.CloseMainWindow();
+                _logger.Verbose("Demonbuddy: Waiting to close");
                 Parent.AntiIdle.State = IdleState.Terminate;
                 Proc.WaitForExit(60000);
-                if (Proc == null || Proc.HasExited)
-                {
-                    s_logger.Information("Demonbuddy:{Id}: Closed.", Proc.Id);
-                    return;
-                }
             }
 
             if (Proc.HasExited)
-                s_logger.Information("Demonbuddy:{Id}: Closed.", Proc.Id);
+                _logger.Information("Demonbuddy: Closed.");
             else if (!Proc.Responding)
             {
-                s_logger.Error("Demonbuddy:{Id}: Failed to close! kill process", Proc.Id);
+                _logger.Error("Demonbuddy: Failed to close! kill process", Proc.Id);
                 Proc.Kill();
             }
+            UdpLogListener.Instance.UnregisterListener(Proc.Id);
         }
 
         public void CrashTender(string profilepath = null)
         {
             _crashTenderRestart = true;
-            s_logger.Information("CrashTender: Stopping Demonbuddy:{Id}", Proc.Id);
+            _logger.Information("CrashTender: Stopping Demonbuddy:{Id}", Proc.Id);
             Stop(true); // Force DB to stop
-            s_logger.Information("CrashTender: Starting Demonbuddy without a starting profile");
+            _logger.Information("CrashTender: Starting Demonbuddy without a starting profile");
 
             if (profilepath != null)
                 Start(profilepath: profilepath, crashtenderstart: true);
             else
                 Start(true, crashtenderstart: true);
             _crashTenderRestart = false;
+        }
+
+        private static readonly Regex s_waitingBeforeGame = new Regex(@"Waiting (.+) seconds before next game", RegexOptions.Compiled);
+        private static readonly Regex s_pluginsCompiled = new Regex(@"There are \d+ plugins", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        private static readonly Regex s_yarRegex = new Regex(@"^\[YetAnotherRelogger\].*", RegexOptions.Compiled);
+        private static readonly Regex[] s_reCompatibility =
+        {
+            /* BuddyStats Remote control action */
+            new Regex(@"Stop command from BuddyStats", RegexOptions.Compiled), // stop command
+            /* Emergency Stop: You need to stash an item but no valid space could be found. Stash is full? Stopping the bot to prevent infinite town-run loop. */
+            new Regex(@".+Emergency Stop: .+", RegexOptions.Compiled), // Emergency stop
+            /* Atom 2.0.15+ "Take a break" */
+            new Regex(@".*Atom.*Will Stop the bot for .+ minutes\.$", RegexOptions.Compiled), // Take a break
+            /* RadsAtom "Take a break" */
+            new Regex(@"\[RadsAtom\].+ minutes to next break, the break will last for .+ minutes.", RegexOptions.Compiled), 
+            /* Take A Break by Ghaleon */
+            new Regex(@"\[TakeABreak.*\] It's time to take a break.*", RegexOptions.Compiled),
+        };
+        private static readonly Regex[] s_reCrashTender =
+        {
+            /* Invalid Session */
+            new Regex(@"Session is invalid!", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+            /* Session expired */
+            new Regex(@"Session is expired", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+            /* Failed to attach to D3*/
+            new Regex(@"Was not able to attach to any running Diablo III process, are you running the bot already\?", RegexOptions.Compiled),
+            new Regex(@"Traceback (most recent call last):", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+        };
+        private static readonly Regex[] s_crashExceptionRegexes =
+        {
+            new Regex(@"Exception during bot tick.*", RegexOptions.Compiled)
+        };
+
+        private int _crashExceptionCounter;
+        
+        private void LogCallback(string msg, JObject properties)
+        {
+            if (msg.Contains("Control Information: "))
+            {
+                ControlInformation notification = properties["notification"].Value<ControlInformation>();
+                _logger.Information("Control Information from game: {notification}", notification);
+            }
+
+            if (msg.Contains("Control Request: "))
+            {
+                ControlRequest notification = properties["notification"].Value<ControlRequest>();
+                _logger.Information("Control Request from game: {notification}", notification);
+            }
+
+            try
+            {
+                if (s_yarRegex.IsMatch(msg))
+                    return;
+
+                Match m = s_pluginsCompiled.Match(msg);
+                if (m.Success)
+                {
+                    _logger.Information("Plugins Compiled matched");
+                    //Send("AllCompiled"); // tell relogger about all plugin compile so the relogger can tell what to do next
+                    return;
+                }
+
+                // Find Start stop button click
+                if (msg.Equals("Start/Stop Button Clicked!"))
+                {
+                    //Send("UserStop");
+                    _crashExceptionCounter = 0;
+                    return;
+                }
+
+                Match delayCheck = s_waitingBeforeGame.Match(msg);
+                if (delayCheck.Success)
+                {
+                    //Send("StartDelay " + DateTime.UtcNow.AddSeconds(double.Parse(delayCheck.Groups[1].Value, CultureInfo.InvariantCulture)).Ticks);
+                    return;
+                }
+
+                // Crash Tender check
+                if (s_reCrashTender.Any(re => re.IsMatch(msg)))
+                {
+                    _logger.Information("Crash message detected");
+                    //Send("D3Exit"); // Restart D3
+                    return;
+                }
+
+                if (s_crashExceptionRegexes.Any(re => re.IsMatch(msg)))
+                {
+                    _logger.Information("Crash Exception detected");
+                    _crashExceptionCounter++;
+                }
+
+                if (_crashExceptionCounter > 1000)
+                {
+                    _logger.Information("Detected 1000 unhandled bot tick exceptions, restarting everything");
+                    //Send("D3Exit"); // Restart D3
+                    return;
+                }
+
+                // YAR compatibility with other plugins
+                if (s_reCompatibility.Any(re => re.IsMatch(msg)))
+                {
+                    //Send("ThirdpartyStop");
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Warning(ex, "Exception during LogCallback");
+            }
         }
     }
 }

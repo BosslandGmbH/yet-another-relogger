@@ -9,7 +9,7 @@ namespace YetAnotherRelogger.Forms.Wizard
 {
     public partial class WizardMain : Form
     {
-        private readonly BotClass _bot;
+        private readonly Bot _bot;
         public SetAffinity AffinityDemonbuddy;
         public SetAffinity AffinityDiablo;
         public int FinishCount;
@@ -207,14 +207,12 @@ namespace YetAnotherRelogger.Forms.Wizard
             // NEXT / finish
             if (_stepCount == FinishCount)
             {
-                int result;
-                var b = new BotClass();
-                var db = new DemonbuddyClass();
-                var d = new DiabloClass();
+                var b = new Bot();
+                var db = new Demonbuddy();
+                var d = new Diablo();
                 var ps = new ProfileScheduleClass();
                 var w = new Helpers.Bot.WeekSchedule();
-
-
+                
                 b.Name = _ucDemonbuddy.textBox1.Text;
                 b.Description = _ucDemonbuddy.textBox2.Text;
 
@@ -243,7 +241,7 @@ namespace YetAnotherRelogger.Forms.Wizard
 
 
                 db.ManualPosSize = _ucDemonbuddy.checkBox4.Checked;
-                int.TryParse(_ucDemonbuddy.textBox6.Text, out result);
+                int.TryParse(_ucDemonbuddy.textBox6.Text, out var result);
                 db.X = result;
                 int.TryParse(_ucDemonbuddy.textBox5.Text, out result);
                 db.Y = result;

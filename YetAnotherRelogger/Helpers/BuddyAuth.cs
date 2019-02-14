@@ -24,7 +24,7 @@ namespace YetAnotherRelogger.Helpers
 
         private readonly HashSet<BuddyAuthWebClient> _buddyAuthWebClients = new HashSet<BuddyAuthWebClient>();
 
-        public bool KillSession(BotClass bot)
+        public bool KillSession(Bot.Bot bot)
         {
             var username = bot.Demonbuddy.BuddyAuthUsername;
             var password = bot.Demonbuddy.BuddyAuthPassword;
@@ -113,7 +113,7 @@ namespace YetAnotherRelogger.Helpers
             return sessions;
         }
 
-        public void KillSession(BotClass bot)
+        public void KillSession(Bot.Bot bot)
         {
             lock (_webClientLock)
             {

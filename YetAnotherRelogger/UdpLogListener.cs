@@ -2,6 +2,7 @@
 using Serilog;
 using Serilog.Events;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
@@ -43,6 +44,7 @@ namespace YetAnotherRelogger
         }
         #endregion
 
+        private readonly ConcurrentDictionary<int, Action<string, JObject>> _listeners = new ConcurrentDictionary<int, Action<string, JObject>>();
         private readonly UdpClient _listener;
         private volatile bool _running;
 
@@ -58,6 +60,16 @@ namespace YetAnotherRelogger
             _running = false;
         }
 
+        public void RegisterListener(int pid, Action<string, JObject> listener)
+        {
+            _listeners.AddOrUpdate(pid, listener, (i, action) => listener);
+        }
+
+        public void UnregisterListener(int pid)
+        {
+            _listeners.TryRemove(pid, out var _);
+        }
+
         private async void Listen()
         {
             var resp = await _listener.ReceiveAsync();
@@ -71,12 +83,29 @@ namespace YetAnotherRelogger
             var msg = Encoding.UTF8.GetString(packet.Buffer);
             dynamic json = JObject.Parse(msg);
             var rmsg = json.RenderedMessage.Value;
-            var pid = json.Properties.PID.Value;
-            var context = json.Properties.SourceContext.Value;
+
             var level = json.Level.Value;
-            if(!Enum.TryParse(level, out LogEventLevel l))
+            if (!Enum.TryParse(level, out LogEventLevel l))
                 l = LogEventLevel.Verbose;
-            s_logger.ForContext("PID", pid).ForContext("SourceContext", context).Write(l, "{rmsg}", rmsg);
+
+            var properties = (JObject)json.Properties;
+            var pid = properties["PID"].Value<int>();
+            var threadId = properties["ThreadId"].Value<int>();
+            var context = properties["SourceContext"].Value<string>();
+            
+            // Pass to registered processes.
+            if (_listeners.TryGetValue(pid, out var callback))
+            {
+                callback(rmsg, properties);
+            }
+
+            // Pass message to local logger.
+            var logger = s_logger.ForContext("PID", pid).ForContext("ThreadId", threadId).ForContext("SourceContext", context);
+            var ex = json.Exception?.Value;
+            if(ex == null)
+                logger.Write(l, "{rmsg}", rmsg);
+            else
+                logger.Write(l, ex, "{rmsg}", rmsg);
         }
     }
 }

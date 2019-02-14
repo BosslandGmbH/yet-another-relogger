@@ -130,7 +130,7 @@ namespace YetAnotherRelogger.Helpers.Tools
             return (isAdmin && ExistsAsAdmin(name)) || (Exists(name));
         }
 
-        public static ProcessStartInfo ImpersonateStartInfo(ProcessStartInfo startinfo, BotClass bot)
+        public static ProcessStartInfo ImpersonateStartInfo(ProcessStartInfo startinfo, Bot.Bot bot)
         {
             if (bot.UseWindowsUser)
             {

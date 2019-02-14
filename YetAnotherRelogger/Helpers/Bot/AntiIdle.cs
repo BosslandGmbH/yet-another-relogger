@@ -29,7 +29,7 @@ namespace YetAnotherRelogger.Helpers.Bot
         public DateTime LastExperienceIncrease;
         public DateTime LastExperienceReset; // So we give it a minute to get in shape
         public DateTime LastStats;
-        [NoCopy] public BotClass Parent;
+        [NoCopy] public Bot Parent;
         public DateTime StartDelay;
         public IdleState State;
         [NoCopy]

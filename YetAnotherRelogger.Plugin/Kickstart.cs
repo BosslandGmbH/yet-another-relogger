@@ -12,14 +12,10 @@ using Zeta.Game;
 using Zeta.TreeSharp;
 using Action = Zeta.TreeSharp.Action;
 
-namespace YARKickstart
+namespace YetAnotherRelogger.Plugin
 {
-    public class YARKickstart : IBot
+    public class Kickstart : IBot
     {
-        public string Name => "YARKickstart";
-
-        public static bool IsKickstarted;
-
         private static readonly ILogger s_logger = Zeta.Common.Logger.GetLoggerInstanceForType();
 
         private const string YarKickstartProfile = @"
@@ -31,7 +27,21 @@ namespace YARKickstart
               <Order></Order>
             </Profile>";
 
-        public YARKickstart()
+        #region IBot implementation
+        public string Name => "YetAnotherRelogger Kickstart Bot";
+
+        public void Start() { }
+        public void Stop() { }
+        public Composite Logic => new Action(ret => RunStatus.Failure);
+        public void Pulse() { }
+        public void Initialize() { }
+
+        public void Dispose() { }
+        #endregion
+
+        public static bool IsKickstarted;
+        
+        public Kickstart()
         {
             if (IsKickstarted)
                 return;
@@ -54,7 +64,12 @@ namespace YARKickstart
                 ProfileManager.CurrentProfile = Profile.Load(xmlFile.Root);
 
                 // Make OrderBot not throw its toys when it tries to load a profile that needs plugins that haven't compiled yet.
-                var path = Path.Combine(GlobalSettings.Instance.BotsPath, "YARBot", "kickstart.xml");
+                
+                var path = Path.Combine(GlobalSettings.Instance.BotsPath, "YetAnotherRelogger.Plugin", "kickstart.xml");
+                var dir = Path.GetDirectoryName(path);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
+
                 xmlFile.Save(path);
                 GlobalSettings.Instance.LastProfile = path;
             }
@@ -106,12 +121,5 @@ namespace YARKickstart
             profile = null;
             return false;
         }
-
-        public void Dispose() { }
-        public void Start() { }
-        public void Stop() { }
-        public void Pulse() { }
-        public void Initialize() { }
-        public Composite Logic => new Action(ret => RunStatus.Failure);
     }
 }

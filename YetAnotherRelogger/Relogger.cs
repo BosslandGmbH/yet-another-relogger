@@ -22,7 +22,7 @@ namespace YetAnotherRelogger
         }
         #endregion
 
-        public BotClass CurrentBot;
+        public Bot CurrentBot;
         private bool _autoStartDone;
         private bool _isStopped;
         private Thread _threadRelogger;
@@ -233,7 +233,7 @@ namespace YetAnotherRelogger
             } // while
         } // private void reloggerWorker()
 
-        private bool StartBoth(BotClass bot)
+        private bool StartBoth(Bot bot)
         {
             bot.Diablo.Start();
             if (!bot.Diablo.IsRunning)

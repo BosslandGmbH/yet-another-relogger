@@ -14,7 +14,7 @@ namespace YetAnotherRelogger.Helpers
 {
     public static class AutoPosition
     {
-        public static void ManualPositionWindow(IntPtr handle, int x, int y, int w, int h, BotClass bot = null)
+        public static void ManualPositionWindow(IntPtr handle, int x, int y, int w, int h, Bot.Bot bot = null)
         {
             // Set window position and size
             try

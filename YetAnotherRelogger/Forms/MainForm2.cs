@@ -323,7 +323,7 @@ namespace YetAnotherRelogger.Forms
         {
             Relogger.Instance.Stop();
             // Stop All
-            foreach (Helpers.Bot.BotClass bot in BotSettings.Instance.Bots)
+            foreach (Helpers.Bot.Bot bot in BotSettings.Instance.Bots)
             {
                 bot.Stop();
             }
@@ -348,7 +348,7 @@ namespace YetAnotherRelogger.Forms
                 if (runningBots.Any())
                 {
                     Relogger.Instance.Stop();
-                    foreach (Helpers.Bot.BotClass bot in runningBots)
+                    foreach (Helpers.Bot.Bot bot in runningBots)
                     {
                         var swKill = new Stopwatch();
                         swKill.Start();
