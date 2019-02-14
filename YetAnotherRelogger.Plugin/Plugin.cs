@@ -26,6 +26,42 @@ namespace YARPlugin
     {
         private static readonly ILogger s_logger = Logger.GetLoggerInstanceForType();
 
+        // Compatibility
+        private static readonly Regex[] s_reCompatibility =
+            {
+                /* BuddyStats Remote control action */
+                new Regex(@"Stop command from BuddyStats", RegexOptions.Compiled), // stop command
+                /* Emergency Stop: You need to stash an item but no valid space could be found. Stash is full? Stopping the bot to prevent infinite town-run loop. */
+                new Regex(@".+Emergency Stop: .+", RegexOptions.Compiled), // Emergency stop
+                /* Atom 2.0.15+ "Take a break" */
+                new Regex(@".*Atom.*Will Stop the bot for .+ minutes\.$", RegexOptions.Compiled), // Take a break
+                /* RadsAtom "Take a break" */
+                new Regex(@"\[RadsAtom\].+ minutes to next break, the break will last for .+ minutes.", RegexOptions.Compiled), 
+                /* Take A Break by Ghaleon */
+                new Regex(@"\[TakeABreak.*\] It's time to take a break.*", RegexOptions.Compiled),
+            };
+
+        // CrashTender
+        private static readonly Regex[] s_reCrashTender =
+            {
+                /* Invalid Session */
+                new Regex(@"Session is invalid!", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+                /* Session expired */
+                new Regex(@"Session is expired", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+                /* Failed to attach to D3*/
+                new Regex(@"Was not able to attach to any running Diablo III process, are you running the bot already\?", RegexOptions.Compiled),
+                new Regex(@"Traceback (most recent call last):", RegexOptions.IgnoreCase | RegexOptions.Compiled),
+            };
+
+        private static readonly Regex[] s_crashExceptionRegexes =
+        {
+                new Regex(@"Exception during bot tick.*", RegexOptions.Compiled)
+        };
+
+        private static readonly Regex s_waitingBeforeGame = new Regex(@"Waiting (.+) seconds before next game", RegexOptions.Compiled);
+        private static readonly Regex s_pluginsCompiled = new Regex(@"There are \d+ plugins", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        private static readonly Regex s_yarRegex = new Regex(@"^\[YetAnotherRelogger\].*", RegexOptions.Compiled);
+
         #region IPlugin implementation
         public string Author => "rrrix and sinterlkaas";
         public Version Version { get; } = new Version(typeof(YARPlugin).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version);
@@ -112,50 +148,19 @@ namespace YARPlugin
         }
         #endregion
 
-        // Compatibility
-        private static readonly Regex[] s_reCompatibility =
-            {
-                /* BuddyStats Remote control action */
-                new Regex(@"Stop command from BuddyStats", RegexOptions.Compiled), // stop command
-                /* Emergency Stop: You need to stash an item but no valid space could be found. Stash is full? Stopping the bot to prevent infinite town-run loop. */
-                new Regex(@".+Emergency Stop: .+", RegexOptions.Compiled), // Emergency stop
-                /* Atom 2.0.15+ "Take a break" */
-                new Regex(@".*Atom.*Will Stop the bot for .+ minutes\.$", RegexOptions.Compiled), // Take a break
-                /* RadsAtom "Take a break" */
-                new Regex(@"\[RadsAtom\].+ minutes to next break, the break will last for .+ minutes.", RegexOptions.Compiled), 
-                /* Take A Break by Ghaleon */
-                new Regex(@"\[TakeABreak.*\] It's time to take a break.*", RegexOptions.Compiled),
-            };
-
-        // CrashTender
-        private static readonly Regex[] s_reCrashTender =
-            {
-                /* Invalid Session */
-                new Regex(@"Session is invalid!", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-                /* Session expired */
-                new Regex(@"Session is expired", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-                /* Failed to attach to D3*/
-                new Regex(@"Was not able to attach to any running Diablo III process, are you running the bot already\?", RegexOptions.Compiled),
-                new Regex(@"Traceback (most recent call last):", RegexOptions.IgnoreCase | RegexOptions.Compiled),
-            };
-
-        private static readonly Regex[] s_crashExceptionRegexes =
-        {
-                new Regex(@"Exception during bot tick.*", RegexOptions.Compiled)
-        };
-        
-        private static readonly Regex s_waitingBeforeGame = new Regex(@"Waiting (.+) seconds before next game", RegexOptions.Compiled);
-        private static readonly Regex s_pluginsCompiled = new Regex(@"There are \d+ plugins", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-        private static readonly Regex s_yarRegex = new Regex(@"^\[YetAnotherRelogger\].*", RegexOptions.Compiled);
-
-        private static int _crashExceptionCounter;
-
-        private Thread _yarThread;
-
         private readonly BotStats _bs = new BotStats(Process.GetCurrentProcess().Id);
+        private static int _crashExceptionCounter;
+        private Thread _yarThread;
         private bool _pulseFix;
 
         public bool IsEnabled { get; set; }
+
+        private void Reset()
+        {
+            _bs.LastPulse = DateTime.UtcNow.Ticks;
+            _bs.LastRun = DateTime.UtcNow.Ticks;
+            _bs.LastGame = DateTime.UtcNow.Ticks;
+        }
 
         public bool Equals(IPlugin other)
         {
@@ -873,13 +878,6 @@ namespace YARPlugin
         }
         #endregion
 
-        private void Reset()
-        {
-            _bs.LastPulse = DateTime.UtcNow.Ticks;
-            _bs.LastRun = DateTime.UtcNow.Ticks;
-            _bs.LastGame = DateTime.UtcNow.Ticks;
-        }
-        
         #region nested: BotStats
         public class BotStats
         {
