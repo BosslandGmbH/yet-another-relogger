@@ -1,15 +1,14 @@
-﻿using Serilog;
+﻿using Newtonsoft.Json.Linq;
+using Serilog;
 using System;
 using System.Diagnostics;
 using System.Drawing;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
 using System.Xml.Serialization;
-using Newtonsoft.Json.Linq;
 using YetAnotherRelogger.Helpers.Attributes;
 using YetAnotherRelogger.Helpers.Enums;
 using YetAnotherRelogger.Helpers.Tools;
@@ -167,6 +166,10 @@ namespace YetAnotherRelogger.Helpers.Bot
                 return Parent.AntiIdle.IsInitialized;
             }
         }
+
+        [XmlIgnore]
+        [NoCopy]
+        public int ControlPort { get; set; }
 
         [NoCopy]
         private bool GetLastLoginTime
@@ -644,14 +647,23 @@ namespace YetAnotherRelogger.Helpers.Bot
         {
             if (msg.Contains("Control Information: "))
             {
-                ControlInformation notification = properties["notification"].Value<ControlInformation>();
+                var notification = properties["notification"].Value<ControlInformation>();
                 _logger.Information("Control Information from game: {notification}", notification);
+                return;
             }
 
             if (msg.Contains("Control Request: "))
             {
-                ControlRequest notification = properties["notification"].Value<ControlRequest>();
+                var notification = properties["notification"].Value<ControlRequest>();
                 _logger.Information("Control Request from game: {notification}", notification);
+                return;
+            }
+
+            if (msg.Contains("YAR Plugin Enabled with PID: "))
+            {
+                ControlPort = properties["Port"].Value<int>();
+                _logger.Information("Using {Port} as Command and Control receiver", ControlPort);
+                return;
             }
 
             try
