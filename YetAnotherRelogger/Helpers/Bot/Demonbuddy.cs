@@ -294,7 +294,7 @@ namespace YetAnotherRelogger.Helpers.Bot
                 //arguments += $" -routine=TrinityRoutine";
                 //arguments += $" -routine=\"{CombatRoutine}\"";
 
-                arguments += $" -logformat=Json -logport={Settings.Default.LogListenerPort}";
+                arguments += $" -logformat=Json -logport={UdpLogListener.Instance.ListeningPort}";
 
                 arguments += $" -bnetaccount=\"{Parent.Diablo.Username}\"";
                 arguments += $" -bnetpassword=\"{Parent.Diablo.Password}\"";

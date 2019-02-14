@@ -1,15 +1,34 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
 using Serilog;
+using Serilog.Events;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Serilog.Events;
 using YetAnotherRelogger.Helpers;
 using YetAnotherRelogger.Properties;
 
 namespace YetAnotherRelogger
 {
+    public static class NetworkTools
+    {
+        private static readonly Random s_random = new Random();
+        public static int GetFreeUdpPort(int start, int end)
+        {
+            var activeListeners = new HashSet<int>(System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties()
+                .GetActiveUdpListeners().Select(u => u.Port));
+
+            int port;
+            do
+            {
+                port = s_random.Next(start, end);
+            } while (activeListeners.Contains(port));
+
+            return port;
+        }
+    }
+
     public class UdpLogListener
     {
         private static readonly ILogger s_logger = Logger.Instance.GetLogger<UdpLogListener>();
@@ -18,13 +37,16 @@ namespace YetAnotherRelogger
         public static UdpLogListener Instance => _instance ?? (_instance = new UdpLogListener());
         private UdpLogListener()
         {
-            _listener = new UdpClient(Settings.Default.LogListenerPort);
+            ListeningPort = NetworkTools.GetFreeUdpPort(55000, 56000);
+            _listener = new UdpClient(ListeningPort);
             _running = false;
         }
         #endregion
 
         private readonly UdpClient _listener;
         private volatile bool _running;
+
+        public int ListeningPort { get; }
         
         public void Start()
         {
