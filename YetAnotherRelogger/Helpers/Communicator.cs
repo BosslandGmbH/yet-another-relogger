@@ -235,37 +235,12 @@ namespace YetAnotherRelogger.Helpers
 
                     switch (cmd)
                     {
-                        case "UserStop":
-                            b.Status = $"User Stop: {DateTime.UtcNow:d-m H:M:s}";
-                            b.AntiIdle.State = IdleState.UserStop;
-                            Logger.Instance.Write(b, "Demonbuddy stopped by user");
-                            Send("Roger!");
-                            break;
-                        case "StartDelay":
-                            var delay = new DateTime(long.Parse(msg));
-                            b.AntiIdle.StartDelay = delay.AddSeconds(60);
-                            b.AntiIdle.State = IdleState.StartDelay;
-                            Send("Roger!");
-                            break;
                         // Giles Compatibility
-                        case "ThirdpartyStop":
-                            b.Status = $"Thirdparty Stop: {DateTime.UtcNow:d-m H:M:s}";
-                            b.AntiIdle.State = IdleState.UserStop;
-                            Logger.Instance.Write(b, "Demonbuddy stopped by Thirdparty");
-                            Send("Roger!");
-                            break;
                         case "TrinityPause":
                             b.AntiIdle.State = IdleState.UserPause;
                             Logger.Instance.Write(b, "Trinity Pause Detected");
                             Send("Roger!");
                             break;
-                        case "AllCompiled":
-                            {
-                                Logger.Instance.Write(b, "Check Force Enable Plugins? {0}", b.Demonbuddy.ForceEnableAllPlugins);
-                                Send(b.Demonbuddy.ForceEnableAllPlugins ? "ForceEnableAll" : "ForceEnableYar");
-                                //Send(b.ProfileSchedule.GetProfile);
-                                break;
-                            }
                         case "CrashTender":
                             if (Settings.Default.UseKickstart && File.Exists(msg))
                                 b.Demonbuddy.CrashTender(msg);
@@ -273,11 +248,7 @@ namespace YetAnotherRelogger.Helpers
                                 b.Demonbuddy.CrashTender();
                             Send("Roger!");
                             break;
-                        case "D3Exit":
-                            Send("Shutdown");
-                            b.Diablo.IsLoggedIn = false;
-                            b.Diablo.Proc.CloseMainWindow();
-                            break;
+
                         // Unknown command reply
                         default:
                             Send("Unknown command!");

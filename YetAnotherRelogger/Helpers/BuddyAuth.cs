@@ -117,61 +117,65 @@ namespace YetAnotherRelogger.Helpers
         {
             lock (_webClientLock)
             {
-                var logintime = bot.Demonbuddy.LoginTime;
-                _webClient.Headers["Referer"] = SessionsUrl;
-                var data = new NameValueCollection();
-                var match = GetSessions()
-                    .Where(
-                        i =>
-                            logintime.Subtract(i.Time).TotalSeconds < 16 &&
-                            logintime.Subtract(i.Time).TotalSeconds > -16)
-                    .OrderBy(i => logintime.Subtract(i.Time).TotalSeconds).FirstOrDefault();
-
-                if (match.Id == 0)
+                if (bot.Demonbuddy.LoginTime.HasValue)
                 {
-                    Logger.Instance.Write(bot, "BuddyAuth: No session found.");
-                    return;
-                }
+                    var logintime = bot.Demonbuddy.LoginTime.Value;
+                    _webClient.Headers["Referer"] = SessionsUrl;
+                    var data = new NameValueCollection();
+                    var match = GetSessions()
+                        .Where(
+                            i =>
+                                logintime.Subtract(i.Time).TotalSeconds < 16 &&
+                                logintime.Subtract(i.Time).TotalSeconds > -16)
+                        .OrderBy(i => logintime.Subtract(i.Time).TotalSeconds).FirstOrDefault();
 
-                data.Set("selectedSessions[" + match.Number + "].Id", Convert.ToString(match.Id));
-                data.Set("selectedSessions[" + match.Number + "].IsChecked", "true");
-
-                try
-                {
-                    var retry = 3;
-                    do
+                    if (match.Id == 0)
                     {
-                        try
+                        Logger.Instance.Write(bot, "BuddyAuth: No session found.");
+                        return;
+                    }
+
+                    data.Set("selectedSessions[" + match.Number + "].Id", Convert.ToString(match.Id));
+                    data.Set("selectedSessions[" + match.Number + "].IsChecked", "true");
+
+                    try
+                    {
+                        var retry = 3;
+                        do
                         {
-                            _webClient.UploadValues(SessionsUrl, data);
-                            Logger.Instance.Write(bot, "BuddyAuth: Session with id: {0} killed! (Time difference: {1})",
-                                match.Id, logintime.Subtract(match.Time).TotalSeconds);
-                            return;
-                        }
-                        catch (WebException wex)
-                        {
-                            var code = ((HttpWebResponse) wex.Response).StatusCode;
-                            if (code != HttpStatusCode.InternalServerError &&
-                                code != HttpStatusCode.BadGateway &&
-                                code != HttpStatusCode.ServiceUnavailable &&
-                                code != HttpStatusCode.GatewayTimeout &&
-                                code != HttpStatusCode.RequestTimeout)
+                            try
                             {
-                                Logger.Instance.Write(bot, "Failed: {0}", wex.Message);
+                                _webClient.UploadValues(SessionsUrl, data);
+                                Logger.Instance.Write(bot,
+                                    "BuddyAuth: Session with id: {0} killed! (Time difference: {1})",
+                                    match.Id, logintime.Subtract(match.Time).TotalSeconds);
                                 return;
                             }
+                            catch (WebException wex)
+                            {
+                                var code = ((HttpWebResponse)wex.Response).StatusCode;
+                                if (code != HttpStatusCode.InternalServerError &&
+                                    code != HttpStatusCode.BadGateway &&
+                                    code != HttpStatusCode.ServiceUnavailable &&
+                                    code != HttpStatusCode.GatewayTimeout &&
+                                    code != HttpStatusCode.RequestTimeout)
+                                {
+                                    Logger.Instance.Write(bot, "Failed: {0}", wex.Message);
+                                    return;
+                                }
 
-                            Logger.Instance.Write(bot, "Failed: {0} (next retry in 5 seconds) [{1}]", wex.Message,
-                                3 - retry + 1);
-                            Thread.Sleep(5000);
-                        }
-                    } while (retry-- > 0);
-                }
-                catch (Exception ex)
-                {
-                    DebugHelper.Write(bot, "BuddyAuth session killer failed!");
-                    DebugHelper.Exception(ex);
-                    return;
+                                Logger.Instance.Write(bot, "Failed: {0} (next retry in 5 seconds) [{1}]", wex.Message,
+                                    3 - retry + 1);
+                                Thread.Sleep(5000);
+                            }
+                        } while (retry-- > 0);
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugHelper.Write(bot, "BuddyAuth session killer failed!");
+                        DebugHelper.Exception(ex);
+                        return;
+                    }
                 }
                 Logger.Instance.Write(bot, "BuddyAuth: No session found.");
             }

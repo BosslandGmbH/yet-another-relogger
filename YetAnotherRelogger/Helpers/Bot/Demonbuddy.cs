@@ -126,7 +126,7 @@ namespace YetAnotherRelogger.Helpers.Bot
 
         [XmlIgnore]
         [NoCopy]
-        public DateTime LoginTime { get; set; }
+        public DateTime? LoginTime { get; set; }
 
         // Demonbuddy
         public string Location { get; set; }
@@ -203,96 +203,7 @@ namespace YetAnotherRelogger.Helpers.Bot
         [XmlIgnore]
         [NoCopy]
         public int ControlPort { get; set; }
-
-        [NoCopy]
-        private bool GetLastLoginTime
-        {
-            get
-            {
-                // No info to get from any process
-                if (Proc == null)
-                    return false;
-
-                // get log dir
-                var logdir = Path.Combine(Path.GetDirectoryName(Location), "Logs");
-                if (logdir.Length == 0 || !Directory.Exists(logdir))
-                {
-                    // Failed to get log dir so exit here
-                    _logger.Warning("Demonbuddy: Failed to find logdir");
-                    return false;
-                }
-                // get log file
-                var logfile = string.Empty;
-                var success = false;
-                DateTime starttime = Proc.StartTime;
-                // Loop a few times if log is not found on first attempt and add a minute for each loop
-                for (var i = 0; i <= 3; i++)
-                {
-                    // Test if logfile exists for current process starttime + 1 minute
-                    logfile = $"{logdir}\\{Proc.Id} {starttime.AddMinutes(i):yyyy-MM-dd HH.mm}.txt";
-                    if (File.Exists(logfile))
-                    {
-                        success = true;
-                        break;
-                    }
-                }
-
-                if (success)
-                {
-                    _logger.Information("Demonbuddy: Found matching log: {logfile}", logfile);
-
-                    // Read Log file
-                    // [11:03:21.173 N] Logging in...
-                    try
-                    {
-                        var lineNumber = -1;
-                        using (var fs = new FileStream(logfile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                        {
-                            var reader = new StreamReader(fs);
-                            var time = new TimeSpan();
-                            var logging = false;
-                            while (!reader.EndOfStream)
-                            {
-                                // only read 1000 lines from log file, so we don't spend all day looking through the log.
-                                lineNumber++;
-
-                                if (lineNumber > 1000)
-                                    break;
-
-                                var line = reader.ReadLine();
-                                if (line == null)
-                                    continue;
-
-                                if (logging && line.Contains("Attached to Diablo III with pid"))
-                                {
-                                    LoginTime = DateTime.Parse($"{starttime.ToUniversalTime():yyyy-MM-dd} {time}");
-                                    _logger.Information("Demonbuddy: Found login time {LoginTime}", LoginTime);
-                                    return true;
-                                }
-                                Match m = new Regex(@"^\[(.+) .\] Logging in\.\.\.$", RegexOptions.Compiled).Match(line);
-                                if (m.Success)
-                                {
-                                    time = TimeSpan.Parse(m.Groups[1].Value);
-                                    logging = true;
-                                }
-
-                                Thread.Sleep(5); // Be nice for CPU
-                            }
-                            _logger.Warning("Demonbuddy: Failed to find login time");
-                            return false;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Error(ex, "Demonbuddy: Error accured while reading log");
-                    }
-                }
-                // Else print error + return false
-                _logger.Warning("Demonbuddy: Failed to find matching log");
-                return false;
-            }
-        }
-
+        
         public void CrashCheck()
         {
             if (Proc.HasExited)
@@ -347,7 +258,7 @@ namespace YetAnotherRelogger.Helpers.Bot
             while (Parent.IsStarted && Parent.Diablo.IsRunning)
             {
                 // Get Last login time and kill old session
-                if (GetLastLoginTime)
+                if (LoginTime.HasValue)
                     BuddyAuth.Instance.KillSession(Parent);
 
                 _isStopped = false;
@@ -577,7 +488,7 @@ namespace YetAnotherRelogger.Helpers.Bot
 
         private bool FindMainWindow()
         {
-            IntPtr handle = FindWindow.EqualsWindowCaption("Demonbuddy", Proc.Id);
+            var handle = FindWindow.EqualsWindowCaption("Demonbuddy", Proc.Id);
             if (handle != IntPtr.Zero)
             {
                 MainWindowHandle = handle;
@@ -753,34 +664,45 @@ namespace YetAnotherRelogger.Helpers.Bot
                 if (s_yarRegex.IsMatch(msg))
                     return;
 
-                Match m = s_pluginsCompiled.Match(msg);
+                var m = s_pluginsCompiled.Match(msg);
                 if (m.Success)
                 {
                     _logger.Information("Plugins Compiled matched");
-                    //Send("AllCompiled"); // tell relogger about all plugin compile so the relogger can tell what to do next
+                    _logger.Information("Check Force Enable Plugins? {0}", ForceEnableAllPlugins);
+                    await Send(ForceEnableAllPlugins ? BotCommand.ForceEnableAll : BotCommand.ForceEnableYar);
                     return;
                 }
 
                 // Find Start stop button click
                 if (msg.Equals("Start/Stop Button Clicked!"))
                 {
-                    //Send("UserStop");
+                    Parent.Status = $"User Stop: {DateTime.UtcNow:d-m H:M:s}";
+                    Parent.AntiIdle.State = IdleState.UserStop;
+                    _logger.Information("Demonbuddy stopped by user");
                     _crashExceptionCounter = 0;
                     return;
                 }
 
-                Match delayCheck = s_waitingBeforeGame.Match(msg);
+                var delayCheck = s_waitingBeforeGame.Match(msg);
                 if (delayCheck.Success)
                 {
-                    //Send("StartDelay " + DateTime.UtcNow.AddSeconds(double.Parse(delayCheck.Groups[1].Value, CultureInfo.InvariantCulture)).Ticks);
+                    var delay = new DateTime(long.Parse(msg));
+                    Parent.AntiIdle.StartDelay = delay.AddSeconds(60);
+                    Parent.AntiIdle.State = IdleState.StartDelay;
                     return;
+                }
+
+                if (msg.Contains("Logging in...") || msg.Contains("Attached to Diablo III with pid"))
+                {
+                    LoginTime = DateTime.UtcNow;
+                    _logger.Information("Demonbuddy: Found login time {LoginTime}", LoginTime);
                 }
 
                 // Crash Tender check
                 if (s_reCrashTender.Any(re => re.IsMatch(msg)))
                 {
                     _logger.Information("Crash message detected");
-                    //Send("D3Exit"); // Restart D3
+                    await D3Exit();
                     return;
                 }
 
@@ -793,14 +715,17 @@ namespace YetAnotherRelogger.Helpers.Bot
                 if (_crashExceptionCounter > 1000)
                 {
                     _logger.Information("Detected 1000 unhandled bot tick exceptions, restarting everything");
-                    //Send("D3Exit"); // Restart D3
+                    await D3Exit();
+                    _crashExceptionCounter = 0;
                     return;
                 }
 
                 // YAR compatibility with other plugins
                 if (s_reCompatibility.Any(re => re.IsMatch(msg)))
                 {
-                    //Send("ThirdpartyStop");
+                    Parent.Status = $"Thirdparty Stop: {DateTime.UtcNow:d-m H:M:s}";
+                    Parent.AntiIdle.State = IdleState.UserStop;
+                    _logger.Information("Demonbuddy stopped by Thirdparty");
                     return;
                 }
             }
@@ -808,6 +733,13 @@ namespace YetAnotherRelogger.Helpers.Bot
             {
                 _logger.Warning(ex, "Exception during LogCallback");
             }
+        }
+
+        private async Task D3Exit()
+        {
+            await Send(BotCommand.Shutdown);
+            Parent.Diablo.IsLoggedIn = false;
+            Parent.Diablo.Proc.CloseMainWindow();
         }
     }
 }
