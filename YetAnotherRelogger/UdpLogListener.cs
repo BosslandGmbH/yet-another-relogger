@@ -102,7 +102,7 @@ namespace YetAnotherRelogger
             // Pass message to local logger.
             var logger = s_logger.ForContext("PID", pid).ForContext("ThreadId", threadId).ForContext("SourceContext", context);
             var ex = json.Exception?.Value;
-            if(ex == null)
+            if (ex == null)
                 logger.Write(l, "{rmsg}", rmsg);
             else
                 logger.Write(l, ex, "{rmsg}", rmsg);

@@ -62,13 +62,8 @@ namespace YetAnotherRelogger.Plugin
         GameLeft = 1,
         NewDifficultyLevel = 2,
         CheckConnection = 3,
-    }
-
-    public enum ControlInformation
-    {
-        Null = 0,
-        Initialized = 1,
-        RequestProfile = 2,
+        RequestProfile = 4,
+        Initialized = 5,
     }
 
     public class Plugin : IPlugin
@@ -121,12 +116,12 @@ namespace YetAnotherRelogger.Plugin
             StartYarWorker();
 
             s_logger.Information("Requesting Profile (Current={Profile})", ProfileManager.CurrentProfile != null ? ProfileManager.CurrentProfile.Path : "Null");
-            Send(ControlInformation.RequestProfile);
+            Send(ControlRequest.RequestProfile);
 
             Send(ControlRequest.NewDifficultyLevel); // Request Difficulty level
             Reset();
 
-            Send(ControlInformation.Initialized);
+            Send(ControlRequest.Initialized);
         }
 
         /// <summary> Executes the disabled action. This is called whent he user has disabled this specific plugin via the GUI. </summary>
@@ -292,6 +287,7 @@ namespace YetAnotherRelogger.Plugin
             switch (cmd)
             {
                 case BotCommand.Ack:
+                    s_logger.Information("Acknowledged");
                     _acknowledged = true;
                     break;
                 case BotCommand.Restart:
@@ -334,8 +330,9 @@ namespace YetAnotherRelogger.Plugin
                     FixPulse();
                     break;
                 case BotCommand.LoadProfile:
-                    var data = Encoding.UTF8.GetString(packet.Buffer.Skip(1).ToArray());
-                    LoadProfile(data);
+                    var profile = Encoding.UTF8.GetString(packet.Buffer.Skip(1).ToArray());
+                    s_logger.Information("Received {profile}", profile);
+                    LoadProfile(profile);
                     break;
                 case BotCommand.SwitchDifficultyLevel:
                     var difficultyLevel = (GameDifficulty)BitConverter.ToInt32(packet.Buffer, 1);
@@ -357,11 +354,8 @@ namespace YetAnotherRelogger.Plugin
             // Pause bot until the time out is hit.
             BotMain.PauseWhile(() => _acknowledged, 0, TimeSpan.FromMilliseconds(timeout));
             s_logger.Information("Control Request: {notification}", notification);
-        }
-
-        private void Send(ControlInformation notification)
-        {
-            s_logger.Information("Control Information: {notification}", notification);
+            while (BotMain.IsPaused)
+                Thread.Yield();
         }
         #endregion
 

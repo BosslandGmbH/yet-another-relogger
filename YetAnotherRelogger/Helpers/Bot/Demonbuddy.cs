@@ -5,8 +5,12 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Serialization;
 using YetAnotherRelogger.Helpers.Attributes;
@@ -35,17 +39,46 @@ namespace YetAnotherRelogger.Helpers.Bot
         GameLeft = 1,
         NewDifficultyLevel = 2,
         CheckConnection = 3,
-    }
-
-    public enum ControlInformation
-    {
-        Null = 0,
-        Initialized = 1,
-        RequestProfile = 2,
+        RequestProfile = 4,
+        Initialized = 5,
     }
 
     public class Demonbuddy
     {
+        private static readonly UdpClient _controlClient = new UdpClient();
+
+        private async Task Send(BotCommand command, int payload)
+        {
+            if (ControlPort > 0 && ControlPort <= ushort.MaxValue)
+            {
+
+                var pl = BitConverter.GetBytes(payload);
+                var data = new[] { (byte)command };
+                data = data.Concat(pl).ToArray();
+                await _controlClient.SendAsync(data, data.Length, new IPEndPoint(IPAddress.Loopback, ControlPort));
+            }
+        }
+
+        private async Task Send(BotCommand command, string payload)
+        {
+            if (ControlPort > 0 && ControlPort <= ushort.MaxValue)
+            {
+                var pl = Encoding.UTF8.GetBytes(payload);
+                var data = new[] { (byte)command };
+                data = data.Concat(pl).ToArray();
+                await _controlClient.SendAsync(data, data.Length, new IPEndPoint(IPAddress.Loopback, ControlPort));
+            }
+        }
+
+        private async Task Send(BotCommand command)
+        {
+            if (ControlPort > 0 && ControlPort <= ushort.MaxValue)
+            {
+                var data = new[] { (byte)command };
+                await _controlClient.SendAsync(data, data.Length, new IPEndPoint(IPAddress.Loopback, ControlPort));
+            }
+        }
+
         private ILogger _logger = Logger.Instance.GetLogger<Demonbuddy>();
 
         [XmlIgnore]
@@ -270,7 +303,7 @@ namespace YetAnotherRelogger.Helpers.Bot
 
             if (DateTime.UtcNow.Subtract(Proc.StartTime).TotalMilliseconds < (90 * 1000))
                 return;
-            
+
             if (Settings.Default.AllowKillDemonbuddy && _lastResponse.AddSeconds(120) < DateTime.UtcNow)
             {
                 _logger.Information("Demonbuddy: Is unresponsive for more than 120 seconds");
@@ -304,7 +337,7 @@ namespace YetAnotherRelogger.Helpers.Bot
         {
             if (!Parent.IsStarted || !Parent.Diablo.IsRunning || (_crashTenderRestart && !crashtenderstart))
                 return;
-            
+
             if (!File.Exists(Location))
             {
                 _logger.Error("File not found: {Location}", Location);
@@ -396,7 +429,7 @@ namespace YetAnotherRelogger.Helpers.Bot
 #endif
                 var p = new ProcessStartInfo(Location, arguments) { WorkingDirectory = Path.GetDirectoryName(Location), UseShellExecute = false };
                 p = UserAccount.ImpersonateStartInfo(p, Parent);
-                
+
                 DateTime timeout;
                 try // Try to start Demonbuddy
                 {
@@ -642,27 +675,76 @@ namespace YetAnotherRelogger.Helpers.Bot
         };
 
         private int _crashExceptionCounter;
-        
-        private void LogCallback(string msg, JObject properties)
+
+        private async void LogCallback(string msg, JObject properties)
         {
-            if (msg.Contains("Control Information: "))
-            {
-                var notification = properties["notification"].Value<ControlInformation>();
-                _logger.Information("Control Information from game: {notification}", notification);
-                return;
-            }
+            var nowTicks = DateTime.UtcNow.Ticks;
 
             if (msg.Contains("Control Request: "))
             {
-                var notification = properties["notification"].Value<ControlRequest>();
-                _logger.Information("Control Request from game: {notification}", notification);
+                if (Enum.TryParse(properties["notification"].Value<string>(),
+                    out ControlRequest notification))
+                {
+                    switch (notification)
+                    {
+                        case ControlRequest.GameLeft:
+                            Parent.ProfileSchedule.Count++;
+                            if (Parent.ProfileSchedule.Current.Runs > 0)
+                            {
+                                _logger.Information("Demonbuddy: Runs completed ({Count}/{MaxRuns})", Parent.ProfileSchedule.Count,
+                                    Parent.ProfileSchedule.MaxRuns);
+                            }
+                            else
+                                _logger.Information("Demonbuddy: Runs completed {Count}", Parent.ProfileSchedule.Count);
+
+                            if (Parent.ProfileSchedule.IsDone)
+                            {
+                                var newprofile = Parent.ProfileSchedule.GetProfile;
+                                _logger.Information("Demonbuddy: Next profile: {newprofile}", newprofile);
+                                await Send(BotCommand.LoadProfile, newprofile);
+                            }
+                            break;
+                        case ControlRequest.NewDifficultyLevel:
+                            _logger.Information("Demonbuddy: Sending DifficultyLevel: {DifficultyLevel}", Parent.ProfileSchedule.Current.DifficultyLevel);
+                            await Send(BotCommand.SwitchDifficultyLevel, (int)Parent.ProfileSchedule.Current.DifficultyLevel);
+                            break;
+                        case ControlRequest.CheckConnection:
+                            ConnectionCheck.CheckValidConnection(true);
+                            break;
+                        case ControlRequest.Initialized:
+                            _logger.Information("Demonbuddy: Initialized");
+                            Parent.AntiIdle.Stats = new BotStats
+                            {
+                                LastGame = nowTicks,
+                                LastPulse = nowTicks,
+                                PluginPulse = nowTicks,
+                                LastRun = nowTicks
+                            };
+                            Parent.Diablo.IsLoggedIn = true;
+                            Parent.AntiIdle.LastStats = DateTime.UtcNow;
+                            Parent.AntiIdle.State = IdleState.CheckIdle;
+                            Parent.AntiIdle.IsInitialized = true;
+                            Parent.AntiIdle.InitAttempts = 0;
+                            break;
+                        case ControlRequest.RequestProfile:
+                            _logger.Information("Demonbuddy: Request Profile");
+                            var profile = Parent.ProfileSchedule.GetProfile;
+                            _logger.Information("Demonbuddy: Sending Current Profile to Load {profile}", profile);
+                            await Send(BotCommand.LoadProfile, profile);
+                            break;
+                        default:
+                            _logger.Warning("Demonbuddy: {notification}", notification);
+                            break;
+                    }
+                    await Send(BotCommand.Ack);
+                }
                 return;
             }
 
             if (msg.Contains("YAR Plugin Enabled with PID: "))
             {
                 ControlPort = properties["Port"].Value<int>();
-                _logger.Information("Using {Port} as Command and Control receiver", ControlPort);
+                _logger.Information("Demonbuddy: Using {Port} as Command and Control receiver", ControlPort);
                 return;
             }
 

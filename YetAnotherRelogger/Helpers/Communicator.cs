@@ -235,43 +235,6 @@ namespace YetAnotherRelogger.Helpers
 
                     switch (cmd)
                     {
-                        case "Initialized":
-                            b.AntiIdle.Stats = new BotStats
-                            {
-                                LastGame = nowTicks,
-                                LastPulse = nowTicks,
-                                PluginPulse = nowTicks,
-                                LastRun = nowTicks
-                            };
-                            b.Diablo.IsLoggedIn = true;
-                            b.AntiIdle.LastStats = DateTime.UtcNow;
-                            b.AntiIdle.State = IdleState.CheckIdle;
-                            b.AntiIdle.IsInitialized = true;
-                            b.AntiIdle.InitAttempts = 0;
-                            Send("Roger!");
-                            break;
-                        case "GameLeft":
-                            b.ProfileSchedule.Count++;
-                            if (b.ProfileSchedule.Current.Runs > 0)
-                                Logger.Instance.Write(b, "Runs completed ({0}/{1})", b.ProfileSchedule.Count,
-                                    b.ProfileSchedule.MaxRuns);
-                            else
-                                Logger.Instance.Write(b, "Runs completed {0}", b.ProfileSchedule.Count);
-
-                            if (b.ProfileSchedule.IsDone)
-                            {
-                                var newprofile = b.ProfileSchedule.GetProfile;
-                                Logger.Instance.Write(b, "Next profile: {0}", newprofile);
-                                Send("LoadProfile " + newprofile);
-                            }
-                            else
-                                Send("Roger!");
-                            break;
-                        case "NewDifficultyLevel":
-                            Logger.Instance.Write(b, "Sending DifficultyLevel: {0}",
-                                b.ProfileSchedule.Current.DifficultyLevel);
-                            Send("DifficultyLevel " + (int)b.ProfileSchedule.Current.DifficultyLevel);
-                            break;
                         case "UserStop":
                             b.Status = $"User Stop: {DateTime.UtcNow:d-m H:M:s}";
                             b.AntiIdle.State = IdleState.UserStop;
@@ -303,22 +266,11 @@ namespace YetAnotherRelogger.Helpers
                                 //Send(b.ProfileSchedule.GetProfile);
                                 break;
                             }
-                        case "RequestProfile":
-                        {
-                            var profile = b.ProfileSchedule.GetProfile;
-                                Logger.Instance.Write(b, "Sending Current Profile to Load {0}", profile);
-                                Send("LoadProfile " + profile);
-                                break;
-                            }
                         case "CrashTender":
                             if (Settings.Default.UseKickstart && File.Exists(msg))
                                 b.Demonbuddy.CrashTender(msg);
                             else
                                 b.Demonbuddy.CrashTender();
-                            Send("Roger!");
-                            break;
-                        case "CheckConnection":
-                            ConnectionCheck.CheckValidConnection(true);
                             Send("Roger!");
                             break;
                         case "D3Exit":
