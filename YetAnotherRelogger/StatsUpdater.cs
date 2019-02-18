@@ -213,7 +213,14 @@ namespace YetAnotherRelogger
                             graph.Series[serie].Points.Add(0);
                         }
 
-                        graph.Series[serie].Points.Add(value);
+                        if (value > 0)
+                        {
+                            graph.Series[serie].Points.Add(value);
+                        }
+                        else
+                        {
+                            graph.Series[serie].Points.Add(0);
+                        }
 
                         while (graph.Series[serie].Points.Count > limit)
                         {
