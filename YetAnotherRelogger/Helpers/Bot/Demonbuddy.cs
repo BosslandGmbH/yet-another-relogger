@@ -203,7 +203,7 @@ namespace YetAnotherRelogger.Helpers.Bot
         [XmlIgnore]
         [NoCopy]
         public int ControlPort { get; set; }
-        
+
         public void CrashCheck()
         {
             if (Proc.HasExited)
@@ -657,6 +657,22 @@ namespace YetAnotherRelogger.Helpers.Bot
                 ControlPort = properties["Port"].Value<int>();
                 _logger.Information("Demonbuddy: Using {Port} as Command and Control receiver", ControlPort);
                 return;
+            }
+
+            if (msg.Contains("Statistics report"))
+            {
+                var bs = properties["BotStats"].Value<JObject>().ToObject<BotStats>();
+                Parent.AntiIdle.UpdateCoinage(bs.Coinage);
+                Parent.AntiIdle.Stats = bs;
+                Parent.AntiIdle.LastStats = DateTime.UtcNow;
+                var x = Parent.AntiIdle.Reply();
+                if (x != BotCommand.Null)
+                {
+                    if (x == BotCommand.LoadProfile)
+                        await Send(x, Parent.ProfileSchedule.GetProfile);
+                    else
+                        await Send(x);
+                }
             }
 
             try

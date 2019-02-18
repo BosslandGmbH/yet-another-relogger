@@ -10,7 +10,6 @@ using System.Drawing;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
-using YetAnotherRelogger.Helpers.Bot;
 
 namespace YetAnotherRelogger.Helpers
 {
@@ -114,9 +113,9 @@ namespace YetAnotherRelogger.Helpers
 
             private void HandleTimerCallback(object sender, EventArgs e)
             {
-                Color curColor = _info;
+                var curColor = _info;
                 var w = new StringWriter();
-                StringBuilder curChunk = w.GetStringBuilder();
+                var curChunk = w.GetStringBuilder();
 
                 void EmitChunk(StringBuilder sb, Color col)
                 {
@@ -130,9 +129,9 @@ namespace YetAnotherRelogger.Helpers
                     _logCount = 0;
                 }
 
-                while (_logMessages.TryDequeue(out LogEvent loggingEvent))
+                while (_logMessages.TryDequeue(out var loggingEvent))
                 {
-                    Color color = _info;
+                    var color = _info;
                     switch (loggingEvent.Level)
                     {
                         case LogEventLevel.Verbose:

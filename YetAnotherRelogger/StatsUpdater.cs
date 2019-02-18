@@ -48,7 +48,6 @@ namespace YetAnotherRelogger
 
             PrepareMainGraphCpu();
             PrepareMainGraphMemory();
-            PrepareMainGraphConnections();
             PrepareMainGraphGold();
             while (true)
             {
@@ -165,16 +164,6 @@ namespace YetAnotherRelogger
                     UpdateMainformGraph(graph, "Total System", mem,
                         legend: $"Total System: {mem,2:000.0}%",
                         limit: (int)Settings.Default.StatsMemoryHistory);
-
-                    // add to Connection graph
-                    UpdateMainformGraph(Program.Mainform.CommConnections, "Connections", Communicator.StatConnections,
-                        legend: $"Connections {Communicator.StatConnections}", autoscale: true,
-                        limit: (int)Settings.Default.StatsConnectionsHistory);
-                    UpdateMainformGraph(Program.Mainform.CommConnections, "Failed", Communicator.StatFailed,
-                        legend: $"Failed {Communicator.StatFailed}", autoscale: true,
-                        limit: (int)Settings.Default.StatsConnectionsHistory);
-                    Communicator.StatConnections = 0;
-                    Communicator.StatFailed = 0;
 
                     // add to Gold Graph
                     UpdateMainformGraph(Program.Mainform.GoldStats, "Gph", Math.Round(goldPerHour),
@@ -387,62 +376,7 @@ namespace YetAnotherRelogger
         }
 
         #endregion
-
-        #region Communicator connections
-
-        private void PrepareMainGraphConnections()
-        {
-            if (Program.Mainform == null || Program.Mainform.CommConnections == null)
-                return;
-            try
-            {
-                Program.Mainform.Invoke(new Action(() =>
-                {
-                    try
-                    {
-                        // Clear mainform stats
-                        var graph = Program.Mainform.CommConnections;
-                        graph.Series.Clear();
-                        graph.Palette = ChartColorPalette.Pastel;
-                        graph.Titles.Clear();
-                        graph.Titles.Add("Communicator Open Connections");
-                        // Add Series
-                        graph.Series.Add("Connections");
-                        graph.Series["Connections"].ChartType = SeriesChartType.FastLine;
-                        graph.Series["Connections"].Points.Add(0);
-                        graph.Series["Connections"].YAxisType = AxisType.Primary;
-                        graph.Series["Connections"].YValueType = ChartValueType.Int32;
-                        graph.Series["Connections"].IsXValueIndexed = false;
-                        graph.Series["Connections"].Color = Color.DarkSlateBlue;
-
-                        graph.Series.Add("Failed");
-                        graph.Series["Failed"].ChartType = SeriesChartType.FastLine;
-                        graph.Series["Failed"].Points.Add(0);
-                        graph.Series["Failed"].YAxisType = AxisType.Secondary;
-                        graph.Series["Failed"].YValueType = ChartValueType.Int32;
-                        graph.Series["Failed"].IsXValueIndexed = false;
-                        graph.Series["Failed"].Color = Color.Red;
-
-                        graph.ResetAutoValues();
-                        graph.ChartAreas[0].AxisY.Maximum = 255; //Max Y 
-                        graph.ChartAreas[0].AxisY.Minimum = 0;
-                        graph.ChartAreas[0].AxisX.Enabled = AxisEnabled.False;
-                        graph.ChartAreas[0].AxisY.IntervalAutoMode = IntervalAutoMode.VariableCount;
-                    }
-                    catch (Exception ex)
-                    {
-                        DebugHelper.Exception(ex);
-                    }
-                }));
-            }
-            catch (Exception ex)
-            {
-                DebugHelper.Exception(ex);
-            }
-        }
-
-        #endregion
-
+        
         #region CPU Graph
 
         private void PrepareMainGraphCpu()

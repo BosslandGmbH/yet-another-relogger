@@ -52,9 +52,6 @@
             System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea3 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
             System.Windows.Forms.DataVisualization.Charting.Legend legend3 = new System.Windows.Forms.DataVisualization.Charting.Legend();
             System.Windows.Forms.DataVisualization.Charting.Series series3 = new System.Windows.Forms.DataVisualization.Charting.Series();
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea4 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend4 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series4 = new System.Windows.Forms.DataVisualization.Charting.Series();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm2));
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
@@ -86,8 +83,6 @@
             this.CashPerHour = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.GoldStats = new System.Windows.Forms.DataVisualization.Charting.Chart();
-            this.tabPage6 = new System.Windows.Forms.TabPage();
-            this.CommConnections = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.btnClose = new System.Windows.Forms.Button();
             this.TrayIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.labelStats = new System.Windows.Forms.Label();
@@ -126,8 +121,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.CpuUsage)).BeginInit();
             this.tabPage7.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.GoldStats)).BeginInit();
-            this.tabPage6.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.CommConnections)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -388,7 +381,6 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl2.Controls.Add(this.tabPage5);
             this.tabControl2.Controls.Add(this.tabPage7);
-            this.tabControl2.Controls.Add(this.tabPage6);
             this.tabControl2.Location = new System.Drawing.Point(12, 6);
             this.tabControl2.Name = "tabControl2";
             this.tabControl2.SelectedIndex = 0;
@@ -531,33 +523,6 @@
             this.GoldStats.Size = new System.Drawing.Size(643, 105);
             this.GoldStats.TabIndex = 5;
             this.GoldStats.Text = "GoldStats";
-            // 
-            // tabPage6
-            // 
-            this.tabPage6.Controls.Add(this.CommConnections);
-            this.tabPage6.Location = new System.Drawing.Point(4, 22);
-            this.tabPage6.Name = "tabPage6";
-            this.tabPage6.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage6.Size = new System.Drawing.Size(659, 369);
-            this.tabPage6.TabIndex = 1;
-            this.tabPage6.Text = "Relogger";
-            this.tabPage6.UseVisualStyleBackColor = true;
-            // 
-            // CommConnections
-            // 
-            chartArea4.Name = "ChartArea1";
-            this.CommConnections.ChartAreas.Add(chartArea4);
-            legend4.Name = "Legend1";
-            this.CommConnections.Legends.Add(legend4);
-            this.CommConnections.Location = new System.Drawing.Point(6, 6);
-            this.CommConnections.Name = "CommConnections";
-            series4.ChartArea = "ChartArea1";
-            series4.Legend = "Legend1";
-            series4.Name = "Series1";
-            this.CommConnections.Series.Add(series4);
-            this.CommConnections.Size = new System.Drawing.Size(643, 105);
-            this.CommConnections.TabIndex = 4;
-            this.CommConnections.Text = "chart1";
             // 
             // btnClose
             // 
@@ -753,8 +718,6 @@
             this.tabPage7.ResumeLayout(false);
             this.tabPage7.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.GoldStats)).EndInit();
-            this.tabPage6.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.CommConnections)).EndInit();
             this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -776,8 +739,6 @@
         private System.Windows.Forms.TabPage tabPage5;
         public System.Windows.Forms.DataVisualization.Charting.Chart MemoryUsage;
         public System.Windows.Forms.DataVisualization.Charting.Chart CpuUsage;
-        private System.Windows.Forms.TabPage tabPage6;
-        public System.Windows.Forms.DataVisualization.Charting.Chart CommConnections;
         private System.Windows.Forms.TabPage tabPage7;
         public System.Windows.Forms.DataVisualization.Charting.Chart GoldStats;
         public System.Windows.Forms.Label CashPerHour;

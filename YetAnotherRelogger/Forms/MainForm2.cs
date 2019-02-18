@@ -35,7 +35,7 @@ namespace YetAnotherRelogger.Forms
 
         private void MainForm2_Load(object sender, EventArgs e)
         {
-            Version version = Assembly.GetEntryAssembly().GetName().Version;
+            var version = Assembly.GetEntryAssembly().GetName().Version;
             var name = Assembly.GetEntryAssembly().GetName().Name;
 #if DEBUG
             name += " - DEBUG";
@@ -195,7 +195,7 @@ namespace YetAnotherRelogger.Forms
 
         private void dataGridView1_MouseUp(object sender, MouseEventArgs e)
         {
-            DataGridView.HitTestInfo hitTestInfo = botGrid.HitTest(e.X, e.Y);
+            var hitTestInfo = botGrid.HitTest(e.X, e.Y);
             if (hitTestInfo.Type == DataGridViewHitTestType.Cell)
             {
                 if (e.Button == MouseButtons.Right)
@@ -269,7 +269,7 @@ namespace YetAnotherRelogger.Forms
             ConnectionCheck.Reset();
             // Start All
             foreach (
-                DataGridViewRow row in
+                var row in
                     botGrid.Rows.Cast<DataGridViewRow>().Where(row => (bool)row.Cells["isEnabled"].Value))
             {
                 BotSettings.Instance.Bots[row.Index].Start(checkBoxForce.Checked);
@@ -323,7 +323,7 @@ namespace YetAnotherRelogger.Forms
         {
             Relogger.Instance.Stop();
             // Stop All
-            foreach (Helpers.Bot.Bot bot in BotSettings.Instance.Bots)
+            foreach (var bot in BotSettings.Instance.Bots)
             {
                 bot.Stop();
             }
@@ -348,7 +348,7 @@ namespace YetAnotherRelogger.Forms
                 if (runningBots.Any())
                 {
                     Relogger.Instance.Stop();
-                    foreach (Helpers.Bot.Bot bot in runningBots)
+                    foreach (var bot in runningBots)
                     {
                         var swKill = new Stopwatch();
                         swKill.Start();
@@ -647,7 +647,7 @@ namespace YetAnotherRelogger.Forms
             if (!tmp.Name.Equals(UcSetting.Name))
             {
                 //var c = tabControl1.TabPages[1].Controls;
-                Control.ControlCollection c = SettingsPanel.Controls;
+                var c = SettingsPanel.Controls;
                 if (c.Contains(UcSetting))
                     c.Remove(UcSetting);
 

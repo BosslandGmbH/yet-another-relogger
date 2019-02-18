@@ -2,14 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
-using System.IO.Pipes;
 using System.Linq;
 using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows;
 using System.Xml.Linq;
@@ -123,7 +120,7 @@ namespace YetAnotherRelogger.Plugin
 
             Send(ControlRequest.Initialized);
         }
-
+        
         /// <summary> Executes the disabled action. This is called whent he user has disabled this specific plugin via the GUI. </summary>
         public void OnDisabled()
         {
@@ -616,7 +613,7 @@ namespace YetAnotherRelogger.Plugin
                     }
 
                     // Send stats
-                    s_logger.ForContext("BotStats", _bs).Verbose("Statistics report");
+                    s_logger.ForContext("BotStats", _bs, true).Verbose("Statistics report");
                     
                     Thread.Sleep(750);
                 }
@@ -695,28 +692,22 @@ namespace YetAnotherRelogger.Plugin
         #region nested: BotStats
         public class BotStats
         {
-            public int Pid;
-            public long LastRun;
-            public long LastPulse;
-            public long PluginPulse;
-            public long LastGame;
-            public bool IsPaused;
-            public bool IsRunning;
-            public bool IsInGame;
-            public bool IsLoadingWorld;
-            public long Coinage;
-            public long Experience;
+            public int Pid { get; set; }
+            public long LastRun { get; set; }
+            public long LastPulse { get; set; }
+            public long PluginPulse { get; set; }
+            public long LastGame { get; set; }
+            public bool IsPaused { get; set; }
+            public bool IsRunning { get; set; }
+            public bool IsInGame { get; set; }
+            public bool IsLoadingWorld { get; set; }
+            public long Coinage { get; set; }
+            public long Experience { get; set; }
 
             public BotStats(int pid)
             {
                 Pid = pid;
                 LastPulse = DateTime.UtcNow.Ticks;
-            }
-
-            public override string ToString()
-            {
-                return
-                    $"Pid={Pid} LastRun={LastRun} LastPulse={LastPulse} PluginPulse={PluginPulse} LastGame={LastGame} IsPaused={IsPaused} IsRunning={IsRunning} IsInGame={IsInGame} IsLoadingWorld={IsLoadingWorld} Coinage={Coinage} Experience={Experience}";
             }
         }
         #endregion

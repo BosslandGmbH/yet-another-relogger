@@ -67,7 +67,6 @@ This will reset some features",
 
                 // Start background threads
                 Relogger.Instance.Start();
-                Communicator.Instance.Start();
                 UdpLogListener.Instance.Start();
 
                 if (!CommandLineArgs.SafeMode)
