@@ -80,8 +80,8 @@ namespace YetAnotherRelogger.Forms
             _logger.Information("This is a DEBUG build of YetAnotherRelogger. This is meant for private use, do not share!");
             _logger.Information("This build may have bugs. Use at your own risk!");
 #elif BETA
-            s_logger.Information("This is a BETA build of Demonbuddy. This is not meant for general usage. Please report any issues you may have in the beta thread on our forums.");
-            s_logger.Information("This build may have bugs. Use at your own risk!");
+            _logger.Information("This is a BETA build of Demonbuddy. This is not meant for general usage. Please report any issues you may have in the beta thread on our forums.");
+            _logger.Information("This build may have bugs. Use at your own risk!");
 #endif
             // Check if we are run as admin
             if (!Program.IsRunAsAdmin)
