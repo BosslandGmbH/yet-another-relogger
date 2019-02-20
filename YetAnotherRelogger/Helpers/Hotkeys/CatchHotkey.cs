@@ -25,8 +25,7 @@ namespace YetAnotherRelogger.Helpers.Hotkeys
 
         private void CatchHotkey_KeyDown(object sender, KeyEventArgs e)
         {
-            label3.Text = string.Format("{0}+{1}",
-                GlobalHotkeys.KeysToModifierKeys(e.Modifiers).ToString().Replace(", ", "+"), e.KeyCode);
+            label3.Text = $@"{GlobalHotkeys.KeysToModifierKeys(e.Modifiers).ToString().Replace(", ", "+")}+{e.KeyCode}";
             _hotkey.Modifier = GlobalHotkeys.KeysToModifierKeys(e.Modifiers);
             _hotkey.Key = e.KeyCode;
             e.SuppressKeyPress = true;
@@ -54,7 +53,7 @@ namespace YetAnotherRelogger.Helpers.Hotkeys
 
         private void CatchHotkey_Closed(object sender, EventArgs e)
         {
-            _parent.textBox2.Text = string.Format("{0}+{1}", _hotkey.Modifier.ToString().Replace(", ", "+"), _hotkey.Key);
+            _parent.textBox2.Text = $@"{_hotkey.Modifier.ToString().Replace(", ", "+")}+{_hotkey.Key}";
         }
     }
 }

@@ -10,7 +10,7 @@ namespace YetAnotherRelogger.Helpers
 {
     public static class DiabloClone
     {
-        private static readonly HashSet<NoLink> _noLinks = new HashSet<NoLink>
+        private static readonly HashSet<NoLink> s_noLinks = new HashSet<NoLink>
         {
             new NoLink {Source = @"Data_D3\PC\MPQs\Cache\*", Directory = true},
             new NoLink {Source = @"InspectorReporter\ReportedBugs\*", Directory = true},
@@ -28,7 +28,7 @@ namespace YetAnotherRelogger.Helpers
 
         // Dont link this list
 
-        public static void Create(BotClass bot)
+        public static void Create(Bot.Bot bot)
         {
             var imp = new Impersonator();
             try
@@ -37,8 +37,8 @@ namespace YetAnotherRelogger.Helpers
                     imp.Impersonate(bot.WindowsUserName, "localhost", bot.WindowsUserPassword);
 
                 bot.Status = "Create Diablo Clone";
-                string basepath = Path.GetDirectoryName(bot.Diablo.Location);
-                string clonepath = Path.Combine(bot.DiabloCloneLocation, "Diablo III");
+                var basepath = Path.GetDirectoryName(bot.Diablo.Location);
+                var clonepath = Path.Combine(bot.DiabloCloneLocation, "Diablo III");
 
                 // if diablo base path does not exist stop here!
                 if (basepath != null && !Directory.Exists(basepath))
@@ -48,12 +48,11 @@ namespace YetAnotherRelogger.Helpers
                 }
 
                 // Check if given language is installed on basepath
-                string testpath = Path.Combine(basepath, @"Data_D3\PC\MPQs", General.GetLocale(bot.Diablo.Language));
+                var testpath = Path.Combine(basepath, @"Data_D3\PC\MPQs", General.GetLocale(bot.Diablo.Language));
                 if (!Directory.Exists(testpath))
                 {
                     bot.Stop();
-                    throw new Exception(string.Format("ERROR: {0} language is not installed (path: {1})",
-                        bot.Diablo.Language, testpath));
+                    throw new Exception($"ERROR: {bot.Diablo.Language} language is not installed (path: {testpath})");
                 }
 
 
@@ -69,13 +68,13 @@ namespace YetAnotherRelogger.Helpers
                 var cloneFileCache = new FileListCache(clonepath);
 
                 // Check if all links are made for our clone
-                foreach (FileListCache.MyFile p in baseFileCache.FileList)
+                foreach (var p in baseFileCache.FileList)
                 {
                     try
                     {
-                        if (p.directory && !Directory.Exists(Path.Combine(clonepath.ToLower(), p.Path.ToLower())))
+                        if (p.Directory && !Directory.Exists(Path.Combine(clonepath.ToLower(), p.Path.ToLower())))
                         {
-                            if (!_noLinks.Any(n => General.WildcardMatch(n.Source, p.Path)))
+                            if (!s_noLinks.Any(n => General.WildcardMatch(n.Source, p.Path)))
                             {
                                 Logger.Instance.Write(bot, "NewLink: {0} -> {1}", Path.Combine(clonepath, p.Path),
                                     Path.Combine(basepath, p.Path));
@@ -85,9 +84,9 @@ namespace YetAnotherRelogger.Helpers
                             }
                             continue;
                         }
-                        if (!p.directory && !File.Exists(Path.Combine(clonepath.ToLower(), p.Path.ToLower())))
+                        if (!p.Directory && !File.Exists(Path.Combine(clonepath.ToLower(), p.Path.ToLower())))
                         {
-                            if (!_noLinks.Any(n => General.WildcardMatch(n.Source, p.Path)))
+                            if (!s_noLinks.Any(n => General.WildcardMatch(n.Source, p.Path)))
                             {
                                 Logger.Instance.Write(bot, "NewLink: {0} -> {1}", Path.Combine(clonepath, p.Path),
                                     Path.Combine(basepath, p.Path));

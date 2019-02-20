@@ -6,19 +6,14 @@ namespace YetAnotherRelogger.Helpers.Tools
 {
     public class CookieAwareWebClient : WebClient
     {
-        private readonly CookieContainer _cookies = new CookieContainer();
-
-        public CookieContainer Cookies
-        {
-            get { return _cookies; }
-        }
+        public CookieContainer Cookies { get; } = new CookieContainer();
 
         protected override WebRequest GetWebRequest(Uri address)
         {
-            WebRequest webRequest = base.GetWebRequest(address);
+            var webRequest = base.GetWebRequest(address);
             if (webRequest != null && webRequest.GetType() == typeof (HttpWebRequest))
             {
-                ((HttpWebRequest) webRequest).CookieContainer = _cookies;
+                ((HttpWebRequest) webRequest).CookieContainer = Cookies;
             }
             return webRequest;
         }

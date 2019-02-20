@@ -5,11 +5,11 @@ namespace YetAnotherRelogger.Forms.Wizard
 {
     public partial class DemonbuddyOptions : UserControl
     {
-        private readonly WizardMain WM;
+        private readonly WizardMain _wm;
 
         public DemonbuddyOptions(WizardMain parent)
         {
-            WM = parent;
+            _wm = parent;
             InitializeComponent();
             this.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
         }
@@ -25,7 +25,7 @@ namespace YetAnotherRelogger.Forms.Wizard
         private void DemonbuddyOptions_VisibleChanged(object sender, EventArgs e)
         {
             if (Visible)
-                WM.NextStep("Demonbuddy Settings");
+                _wm.NextStep("Demonbuddy Settings");
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -60,15 +60,15 @@ namespace YetAnotherRelogger.Forms.Wizard
 
         private void button4_Click_1(object sender, EventArgs e)
         {
-            WM.AffinityDemonbuddy.ShowDialog(this);
+            _wm.AffinityDemonbuddy.ShowDialog(this);
         }
 
         public bool ValidateInput()
         {
-            return (WM.ValidateTextbox(textBox1) &
+            return (_wm.ValidateTextbox(textBox1) &
                     //WM.ValidateTextbox(textBox2) &
-                    WM.ValidateTextbox(textBox3) &
-                    WM.ValidateTextbox(textBox4)
+                    _wm.ValidateTextbox(textBox3) &
+                    _wm.ValidateTextbox(textBox4)
                 );
         }
     }

@@ -191,5 +191,8 @@
     <Setting Name="AntiIdleStatsDuration" Type="System.Decimal" Scope="User">
       <Value Profile="(Default)">300</Value>
     </Setting>
+    <Setting Name="LogListenerPort" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">7072</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

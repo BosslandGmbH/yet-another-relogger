@@ -10,8 +10,8 @@ namespace YetAnotherRelogger.Helpers
 
         public static void Get()
         {
-            string[] args = Environment.GetCommandLineArgs();
-            foreach (string arg in args)
+            var args = Environment.GetCommandLineArgs();
+            foreach (var arg in args)
             {
                 switch (arg)
                 {
@@ -23,10 +23,6 @@ namespace YetAnotherRelogger.Helpers
                         break;
                     case "-safemode":
                         SafeMode = true;
-                        break;
-                    default:
-                        // Unknown argument passed
-                        // Do nothing
                         break;
                 }
             }

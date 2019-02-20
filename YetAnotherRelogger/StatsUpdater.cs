@@ -15,22 +15,11 @@ namespace YetAnotherRelogger
     public sealed class StatsUpdater
     {
         #region singleton
-
-        private static readonly StatsUpdater instance = new StatsUpdater();
-
-        static StatsUpdater()
-        {
-        }
-
+        private static StatsUpdater _instance = new StatsUpdater();
+        public static StatsUpdater Instance => _instance ?? (_instance = new StatsUpdater());
         private StatsUpdater()
         {
         }
-
-        public static StatsUpdater Instance
-        {
-            get { return instance; }
-        }
-
         #endregion
 
         private Thread _statsUpdater;
@@ -45,23 +34,21 @@ namespace YetAnotherRelogger
 
         public void Stop()
         {
-            if (_statsUpdater != null)
-                _statsUpdater.Abort();
+            _statsUpdater?.Abort();
         }
 
         public void StatsUpdaterWorker()
         {
             // Wait here till mainform is up
-            while (Program.Mainform == null)
+            while (Program.Mainform == null || !Program.Mainform.IsHandleCreated)
                 Thread.Sleep(100);
 
             var usages = new CpuRamUsage();
-            long totalRam = PerformanceInfo.GetTotalMemory();
+            var totalRam = PerformanceInfo.GetTotalMemory();
 
-            prepareMainGraphCpu();
-            prepareMainGraphMemory();
-            prepareMainGraphConnections();
-            prepareMainGraphGold();
+            PrepareMainGraphCpu();
+            PrepareMainGraphMemory();
+            PrepareMainGraphGold();
             while (true)
             {
                 // Update Cpu/Ram Usage
@@ -69,17 +56,15 @@ namespace YetAnotherRelogger
 
                 double diabloCpuUsage = 0;
                 long diabloRamUsage = 0;
-                int diabloCount = 0;
                 double demonbuddyCpuUsage = 0;
                 long demonbuddyRamUsage = 0;
-                int demonbuddyCount = 0;
                 double goldPerHour = 0;
                 double totalGold = 0;
                 lock (BotSettings.Instance)
                 {
-                    foreach (BotClass bot in BotSettings.Instance.Bots.ToList())
+                    foreach (var bot in BotSettings.Instance.Bots.ToList())
                     {
-                        ChartStats chartStats = bot.ChartStats;
+                        var chartStats = bot.ChartStats;
                         // Update bot uptime
                         bot.RunningTime = bot.IsRunning
                             ? DateTime.UtcNow.Subtract(bot.StartTime).ToString(@"hh\hmm\mss\s")
@@ -97,12 +82,11 @@ namespace YetAnotherRelogger
                                 // Calculate total Cpu/Ram usage for Diablo
                                 try
                                 {
-                                    CpuRamUsage.Usage usage = usages.GetUsageById(bot.Diablo.Proc.Id);
+                                    var usage = usages.GetUsageById(bot.Diablo.Proc.Id);
                                     diabloCpuUsage += usage.Cpu;
                                     diabloRamUsage += usage.Memory;
-                                    diabloCount++;
                                 }
-                                catch
+                                catch(Exception)
                                 {
                                 }
                             }
@@ -112,12 +96,11 @@ namespace YetAnotherRelogger
                                 // Calculate total Cpu/Ram usage for Demonbuddy
                                 try
                                 {
-                                    CpuRamUsage.Usage usage = usages.GetUsageById(bot.Demonbuddy.Proc.Id);
+                                    var usage = usages.GetUsageById(bot.Demonbuddy.Proc.Id);
                                     demonbuddyCpuUsage += usage.Cpu;
                                     demonbuddyRamUsage += usage.Memory;
-                                    demonbuddyCount++;
                                 }
-                                catch
+                                catch (Exception)
                                 {
                                 }
                             }
@@ -132,10 +115,10 @@ namespace YetAnotherRelogger
                             goldPerHour += chartStats.GoldStats.GoldPerHour;
                             totalGold += chartStats.GoldStats.LastCoinage;
 
-                            Series serie = Program.Mainform.GoldStats.Series.FirstOrDefault(x => x.Name == bot.Name);
+                            var serie = Program.Mainform.GoldStats.Series.FirstOrDefault(x => x.Name == bot.Name);
                             if (serie != null)
                             {
-                                updateMainformGraph(Program.Mainform.GoldStats, serie.Name,
+                                UpdateMainformGraph(Program.Mainform.GoldStats, serie.Name,
                                     Math.Round(chartStats.GoldStats.GoldPerHour), (int)Settings.Default.StatsGphHistory,
                                     autoscale: true);
                             }
@@ -147,61 +130,50 @@ namespace YetAnotherRelogger
                 try
                 {
                     // add to Cpu graph
-                    Chart graph = Program.Mainform.CpuUsage;
-                    double allusage = diabloCpuUsage + demonbuddyCpuUsage;
-                    updateMainformGraph(graph, "All Usage", allusage,
-                        legend: string.Format("All usage: {0,11}%", allusage.ToString("000.0")),
+                    var graph = Program.Mainform.CpuUsage;
+                    var allusage = diabloCpuUsage + demonbuddyCpuUsage;
+                    UpdateMainformGraph(graph, "All Usage", allusage,
+                        legend: $"All usage: {allusage,11:000.0}%",
                         limit: (int)Settings.Default.StatsCPUHistory);
-                    updateMainformGraph(graph, "Diablo", diabloCpuUsage,
-                        legend: string.Format("Diablo: {0,16}%", diabloCpuUsage.ToString("000.0")),
+                    UpdateMainformGraph(graph, "Diablo", diabloCpuUsage,
+                        legend: $"Diablo: {diabloCpuUsage,16:000.0}%",
                         limit: (int)Settings.Default.StatsCPUHistory);
-                    updateMainformGraph(graph, "Demonbuddy", demonbuddyCpuUsage,
-                        legend: string.Format("Demonbuddy: {0,4}%", demonbuddyCpuUsage.ToString("000.0")),
+                    UpdateMainformGraph(graph, "Demonbuddy", demonbuddyCpuUsage,
+                        legend: $"Demonbuddy: {demonbuddyCpuUsage,4:000.0}%",
                         limit: (int)Settings.Default.StatsCPUHistory);
-                    updateMainformGraph(graph, "Total System", Math.Round(usages.TotalCpuUsage, 2),
-                        legend: string.Format("Total System: {0,2}%", usages.TotalCpuUsage.ToString("000.0")),
+                    UpdateMainformGraph(graph, "Total System", Math.Round(usages.TotalCpuUsage, 2),
+                        legend: $"Total System: {usages.TotalCpuUsage,2:000.0}%",
                         limit: (int)Settings.Default.StatsCPUHistory);
 
                     // add to Memory graph
                     graph = Program.Mainform.MemoryUsage;
                     allusage = (double)(diabloRamUsage + demonbuddyRamUsage) / totalRam * 100;
-                    double diablousage = (double)diabloRamUsage / totalRam * 100;
-                    double demonbuddyusage = (double)demonbuddyRamUsage / totalRam * 100;
-                    updateMainformGraph(graph, "All Usage", allusage,
+                    var diablousage = (double)diabloRamUsage / totalRam * 100;
+                    var demonbuddyusage = (double)demonbuddyRamUsage / totalRam * 100;
+                    UpdateMainformGraph(graph, "All Usage", allusage,
                         legend:
-                            string.Format("All usage: {0,11}%",
-                                ((double)(diabloRamUsage + demonbuddyRamUsage) / totalRam * 100).ToString("000.0")),
+                        $"All usage: {((double)(diabloRamUsage + demonbuddyRamUsage) / totalRam * 100),11:000.0}%",
                         limit: (int)Settings.Default.StatsMemoryHistory);
-                    updateMainformGraph(graph, "Diablo", diablousage,
-                        legend: string.Format("Diablo: {0,16}%", diablousage.ToString("000.0")),
+                    UpdateMainformGraph(graph, "Diablo", diablousage,
+                        legend: $"Diablo: {diablousage,16:000.0}%",
                         limit: (int)Settings.Default.StatsMemoryHistory);
-                    updateMainformGraph(graph, "Demonbuddy", demonbuddyusage,
-                        legend: string.Format("Demonbuddy: {0,4}%", demonbuddyusage.ToString("000.0")),
+                    UpdateMainformGraph(graph, "Demonbuddy", demonbuddyusage,
+                        legend: $"Demonbuddy: {demonbuddyusage,4:000.0}%",
                         limit: (int)Settings.Default.StatsMemoryHistory);
-                    double mem = (double)PerformanceInfo.GetPhysicalUsedMemory() / totalRam * 100;
-                    updateMainformGraph(graph, "Total System", mem,
-                        legend: string.Format("Total System: {0,2}%", mem.ToString("000.0")),
+                    var mem = (double)PerformanceInfo.GetPhysicalUsedMemory() / totalRam * 100;
+                    UpdateMainformGraph(graph, "Total System", mem,
+                        legend: $"Total System: {mem,2:000.0}%",
                         limit: (int)Settings.Default.StatsMemoryHistory);
-
-                    // add to Connection graph
-                    updateMainformGraph(Program.Mainform.CommConnections, "Connections", Communicator.StatConnections,
-                        legend: string.Format("Connections {0}", Communicator.StatConnections), autoscale: true,
-                        limit: (int)Settings.Default.StatsConnectionsHistory);
-                    updateMainformGraph(Program.Mainform.CommConnections, "Failed", Communicator.StatFailed,
-                        legend: string.Format("Failed {0}", Communicator.StatFailed), autoscale: true,
-                        limit: (int)Settings.Default.StatsConnectionsHistory);
-                    Communicator.StatConnections = 0;
-                    Communicator.StatFailed = 0;
 
                     // add to Gold Graph
-                    updateMainformGraph(Program.Mainform.GoldStats, "Gph", Math.Round(goldPerHour),
-                        legend: string.Format("Gph {0}", Math.Round(goldPerHour)), autoscale: true,
+                    UpdateMainformGraph(Program.Mainform.GoldStats, "Gph", Math.Round(goldPerHour),
+                        legend: $"Gph {Math.Round(goldPerHour)}", autoscale: true,
                         limit: (int)Settings.Default.StatsGphHistory);
-                    updateMainformLabel(Program.Mainform.CashPerHour,
-                        string.Format("{0:C2}", (goldPerHour / 1000000 * (double)Settings.Default.StatsGoldPrice)));
-                    updateMainformLabel(Program.Mainform.CurrentCash,
-                        string.Format("{0:C2}", (totalGold / 1000000 * (double)Settings.Default.StatsGoldPrice)));
-                    updateMainformLabel(Program.Mainform.TotalGold, string.Format("{0:N0}", totalGold));
+                    UpdateMainformLabel(Program.Mainform.CashPerHour,
+                        $"{(goldPerHour / 1000000 * (double)Settings.Default.StatsGoldPrice):C2}");
+                    UpdateMainformLabel(Program.Mainform.CurrentCash,
+                        $"{(totalGold / 1000000 * (double)Settings.Default.StatsGoldPrice):C2}");
+                    UpdateMainformLabel(Program.Mainform.TotalGold, $"{totalGold:N0}");
                 }
                 catch (Exception ex)
                 {
@@ -211,7 +183,7 @@ namespace YetAnotherRelogger
             }
         }
 
-        private void updateMainformGraph(Chart graph, string serie, double value, int limit = 120, string legend = null,
+        private static void UpdateMainformGraph(Chart graph, string serie, double value, int limit = 120, string legend = null,
             bool autoscale = false)
         {
             if (Program.Mainform == null || graph == null)
@@ -230,7 +202,14 @@ namespace YetAnotherRelogger
                             graph.Series[serie].Points.Add(0);
                         }
 
-                        graph.Series[serie].Points.Add(value);
+                        if (value > 0)
+                        {
+                            graph.Series[serie].Points.Add(value);
+                        }
+                        else
+                        {
+                            graph.Series[serie].Points.Add(0);
+                        }
 
                         while (graph.Series[serie].Points.Count > limit)
                         {
@@ -238,8 +217,8 @@ namespace YetAnotherRelogger
                         }
                         if (autoscale)
                         {
-                            graph.ChartAreas[0].AxisY.Minimum = Double.NaN;
-                            graph.ChartAreas[0].AxisY.Maximum = Double.NaN;
+                            graph.ChartAreas[0].AxisY.Minimum = double.NaN;
+                            graph.ChartAreas[0].AxisY.Maximum = double.NaN;
                             graph.ChartAreas[0].RecalculateAxesScale();
                         }
                     }
@@ -255,7 +234,7 @@ namespace YetAnotherRelogger
             }
         }
 
-        private void updateMainformLabel(Label label, string value)
+        private void UpdateMainformLabel(Label label, string value)
         {
             if (Program.Mainform == null || label == null)
                 return;
@@ -281,7 +260,7 @@ namespace YetAnotherRelogger
 
         #region Chart Stats Per Bot Creation
 
-        private static readonly Color[] ChartColors =
+        private static readonly Color[] s_chartColors =
         {
             Color.LightSteelBlue,
             Color.Teal,
@@ -298,7 +277,7 @@ namespace YetAnotherRelogger
             Color.DarkOrange
         };
 
-        private void CreateChartStats(BotClass bot, Chart graph, ChartValueType valueType = ChartValueType.Auto)
+        private void CreateChartStats(Bot bot, Chart graph, ChartValueType valueType = ChartValueType.Auto)
         {
             if (Program.Mainform != null && graph != null)
             {
@@ -310,7 +289,7 @@ namespace YetAnotherRelogger
                         {
                             if (bot.IsRunning)
                             {
-                                Series serie = graph.Series.FirstOrDefault(x => x.Name == bot.Name);
+                                var serie = graph.Series.FirstOrDefault(x => x.Name == bot.Name);
                                 if (serie == null)
                                 {
                                     // Add Series
@@ -323,8 +302,8 @@ namespace YetAnotherRelogger
 
                                     graph.Series[bot.Name].Color = Color.Black;
                                     foreach (
-                                        Color color in
-                                            ChartColors.Where(color => graph.Series.All(x => x.Color != color))
+                                        var color in
+                                            s_chartColors.Where(color => graph.Series.All(x => x.Color != color))
                                         )
                                         graph.Series[bot.Name].Color = color;
                                     graph.Series[bot.Name].Name = bot.Name;
@@ -332,7 +311,7 @@ namespace YetAnotherRelogger
                             }
                             else
                             {
-                                Series serie = graph.Series.FirstOrDefault(x => x.Name == bot.Name);
+                                var serie = graph.Series.FirstOrDefault(x => x.Name == bot.Name);
                                 if (serie != null)
                                     graph.Series.Remove(serie);
                             }
@@ -354,7 +333,7 @@ namespace YetAnotherRelogger
 
         #region Gold Stats
 
-        private void prepareMainGraphGold()
+        private void PrepareMainGraphGold()
         {
             if (Program.Mainform == null || Program.Mainform.GoldStats == null)
                 return;
@@ -365,7 +344,7 @@ namespace YetAnotherRelogger
                     try
                     {
                         // Clear mainform stats
-                        Chart graph = Program.Mainform.GoldStats;
+                        var graph = Program.Mainform.GoldStats;
                         graph.Series.Clear();
                         graph.Palette = ChartColorPalette.Pastel;
                         graph.Titles.Clear();
@@ -397,65 +376,10 @@ namespace YetAnotherRelogger
         }
 
         #endregion
-
-        #region Communicator connections
-
-        private void prepareMainGraphConnections()
-        {
-            if (Program.Mainform == null || Program.Mainform.CommConnections == null)
-                return;
-            try
-            {
-                Program.Mainform.Invoke(new Action(() =>
-                {
-                    try
-                    {
-                        // Clear mainform stats
-                        Chart graph = Program.Mainform.CommConnections;
-                        graph.Series.Clear();
-                        graph.Palette = ChartColorPalette.Pastel;
-                        graph.Titles.Clear();
-                        graph.Titles.Add("Communicator Open Connections");
-                        // Add Series
-                        graph.Series.Add("Connections");
-                        graph.Series["Connections"].ChartType = SeriesChartType.FastLine;
-                        graph.Series["Connections"].Points.Add(0);
-                        graph.Series["Connections"].YAxisType = AxisType.Primary;
-                        graph.Series["Connections"].YValueType = ChartValueType.Int32;
-                        graph.Series["Connections"].IsXValueIndexed = false;
-                        graph.Series["Connections"].Color = Color.DarkSlateBlue;
-
-                        graph.Series.Add("Failed");
-                        graph.Series["Failed"].ChartType = SeriesChartType.FastLine;
-                        graph.Series["Failed"].Points.Add(0);
-                        graph.Series["Failed"].YAxisType = AxisType.Secondary;
-                        graph.Series["Failed"].YValueType = ChartValueType.Int32;
-                        graph.Series["Failed"].IsXValueIndexed = false;
-                        graph.Series["Failed"].Color = Color.Red;
-
-                        graph.ResetAutoValues();
-                        graph.ChartAreas[0].AxisY.Maximum = 255; //Max Y 
-                        graph.ChartAreas[0].AxisY.Minimum = 0;
-                        graph.ChartAreas[0].AxisX.Enabled = AxisEnabled.False;
-                        graph.ChartAreas[0].AxisY.IntervalAutoMode = IntervalAutoMode.VariableCount;
-                    }
-                    catch (Exception ex)
-                    {
-                        DebugHelper.Exception(ex);
-                    }
-                }));
-            }
-            catch (Exception ex)
-            {
-                DebugHelper.Exception(ex);
-            }
-        }
-
-        #endregion
-
+        
         #region CPU Graph
 
-        private void prepareMainGraphCpu()
+        private void PrepareMainGraphCpu()
         {
             if (Program.Mainform == null || Program.Mainform.CpuUsage == null)
                 return;
@@ -466,7 +390,7 @@ namespace YetAnotherRelogger
                     try
                     {
                         // Clear mainform stats
-                        Chart graph = Program.Mainform.CpuUsage;
+                        var graph = Program.Mainform.CpuUsage;
                         graph.Series.Clear();
                         graph.Palette = ChartColorPalette.Pastel;
                         graph.Titles.Clear();
@@ -527,7 +451,7 @@ namespace YetAnotherRelogger
 
         #region Memory Graph
 
-        private void prepareMainGraphMemory()
+        private void PrepareMainGraphMemory()
         {
             if (Program.Mainform == null || Program.Mainform.MemoryUsage == null)
                 return;
@@ -538,7 +462,7 @@ namespace YetAnotherRelogger
                     try
                     {
                         // Clear mainform stats
-                        Chart graph = Program.Mainform.MemoryUsage;
+                        var graph = Program.Mainform.MemoryUsage;
                         graph.Series.Clear();
                         graph.Palette = ChartColorPalette.Pastel;
                         graph.Titles.Clear();

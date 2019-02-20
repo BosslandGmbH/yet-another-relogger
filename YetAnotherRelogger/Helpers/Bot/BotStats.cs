@@ -4,17 +4,17 @@ namespace YetAnotherRelogger.Helpers.Bot
 {
     public class BotStats
     {
-        public long Coinage;
-        public long Experience;
-        public bool IsInGame;
-        public bool IsLoadingWorld;
-        public bool IsPaused;
-        public bool IsRunning;
-        public long LastGame;
-        public long LastPulse;
-        public long LastRun;
-        public int Pid;
-        public long PluginPulse;
+        public int Pid { get; set; }
+        public long LastRun { get; set; }
+        public long LastPulse { get; set; }
+        public long PluginPulse { get; set; }
+        public long LastGame { get; set; }
+        public bool IsPaused { get; set; }
+        public bool IsRunning { get; set; }
+        public bool IsInGame { get; set; }
+        public bool IsLoadingWorld { get; set; }
+        public long Coinage { get; set; }
+        public long Experience { get; set; }
 
         public void Reset()
         {

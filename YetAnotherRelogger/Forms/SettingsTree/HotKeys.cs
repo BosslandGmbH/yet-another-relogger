@@ -32,7 +32,7 @@ namespace YetAnotherRelogger.Forms.SettingsTree
             // Edit hotkey
             if (dataGridView1.CurrentRow == null || dataGridView1.CurrentRow.Index < 0)
                 return;
-            Hotkey hk =
+            var hk =
                 Settings.Default.HotKeys.FirstOrDefault(
                     x => x.HookId == (int) dataGridView1.Rows[dataGridView1.CurrentRow.Index].Cells["HookId"].Value);
             if (hk == null)
@@ -46,7 +46,7 @@ namespace YetAnotherRelogger.Forms.SettingsTree
             // Delete hotkey
             if (dataGridView1.CurrentRow == null || dataGridView1.CurrentRow.Index < 0)
                 return;
-            Hotkey hk =
+            var hk =
                 Settings.Default.HotKeys.FirstOrDefault(
                     x => x.HookId == (int) dataGridView1.Rows[dataGridView1.CurrentRow.Index].Cells["HookId"].Value);
             if (hk == null)

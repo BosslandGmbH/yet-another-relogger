@@ -36,7 +36,7 @@ namespace YetAnotherRelogger.Helpers.Tools
 
         public static void AgentKiller()
         {
-            foreach (Process p in Process.GetProcessesByName("Agent"))
+            foreach (var p in Process.GetProcessesByName("Agent"))
             {
                 try
                 {
@@ -131,17 +131,17 @@ namespace YetAnotherRelogger.Helpers.Tools
         }
 
 
-        public static bool WildcardMatch(String pattern, String input)
+        public static bool WildcardMatch(string pattern, string input)
         {
 // http://www.codeproject.com/Tips/57304/Use-wildcard-characters-and-to-compare-strings
-            if (String.CompareOrdinal(pattern, input) == 0)
+            if (string.CompareOrdinal(pattern, input) == 0)
             {
                 return true;
             }
 
-            if (String.IsNullOrEmpty(input))
+            if (string.IsNullOrEmpty(input))
             {
-                return String.IsNullOrEmpty(pattern.Trim(new Char[1] {'*'}));
+                return string.IsNullOrEmpty(pattern.Trim(new char[1] {'*'}));
             }
 
             if (pattern.Length == 0)

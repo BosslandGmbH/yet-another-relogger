@@ -7,14 +7,13 @@ using YetAnotherRelogger.Helpers.Bot;
 
 namespace YetAnotherRelogger.Helpers
 {
-
     #region BotSettings
 
     public sealed class BotSettings
     {
         #region singleton
 
-        private static readonly BotSettings instance = new BotSettings();
+        private static readonly BotSettings s_instance = new BotSettings();
 
         static BotSettings()
         {
@@ -22,29 +21,20 @@ namespace YetAnotherRelogger.Helpers
 
         private BotSettings()
         {
-            Bots = new BindingList<BotClass>();
-            settingsdirectory = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Settings"); 
+            Bots = new BindingList<Bot.Bot>();
+            _settingsdirectory = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "Settings"); 
         }
 
-        public static BotSettings Instance
-        {
-            get { return instance; }
-        }
+        public static BotSettings Instance => s_instance;
 
         #endregion
 
-        private readonly string settingsdirectory;
-        public BindingList<BotClass> Bots;
+        private readonly string _settingsdirectory;
+        public BindingList<Bot.Bot> Bots;
 
-        public static string SettingsDirectory
-        {
-            get { return instance.settingsdirectory; }
-        }
+        public static string SettingsDirectory => s_instance._settingsdirectory;
 
-        public string SettingsFileName
-        {
-            get { return Path.Combine(SettingsDirectory, "Bots.xml"); }
-        }
+        public string SettingsFileName => Path.Combine(SettingsDirectory, "Bots.xml");
 
         public void Save()
         {
@@ -71,12 +61,12 @@ namespace YetAnotherRelogger.Helpers
 
                 using (var reader = new StreamReader(SettingsFileName))
                 {
-                    Bots = xml.Deserialize(reader) as BindingList<BotClass>;
+                    Bots = xml.Deserialize(reader) as BindingList<Bot.Bot>;
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error Loading BotSettings");
+                MessageBox.Show(ex.Message, @"Error Loading BotSettings");
             }
         }
 
@@ -87,8 +77,8 @@ namespace YetAnotherRelogger.Helpers
         /// <returns></returns>
         public int Clone(int index)
         {
-            var cloned = (BotClass)Bots[index].Clone();
-            int nextIndex = index + 1;
+            var cloned = (Bot.Bot)Bots[index].Clone();
+            var nextIndex = index + 1;
             if (index == Bots.Count - 1)
                 Bots.Add(cloned);
             else
@@ -102,7 +92,7 @@ namespace YetAnotherRelogger.Helpers
                 return index;
             var bot = Bots[index];
             Bots.Remove(bot);
-            int newIdx = index + 1;
+            var newIdx = index + 1;
             if (newIdx == Bots.Count - 1)
                 Bots.Add(bot);
             else
@@ -114,7 +104,7 @@ namespace YetAnotherRelogger.Helpers
         {
             if (index == 0)
                 return index;
-            int newIdx = index - 1;
+            var newIdx = index - 1;
             var bot = Bots[index];
             Bots.Remove(bot);
             Bots.Insert(newIdx, bot);

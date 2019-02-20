@@ -10,7 +10,7 @@ namespace YetAnotherRelogger.Helpers.Tools
         public static extern bool GetPerformanceInfo([Out] out PerformanceInformation performanceInformation,
             [In] int size);
 
-        public static Int64 GetPhysicalAvailableMemory()
+        public static long GetPhysicalAvailableMemory()
         {
             try
             {
@@ -27,7 +27,7 @@ namespace YetAnotherRelogger.Helpers.Tools
             return -1;
         }
 
-        public static Int64 GetPhysicalUsedMemory()
+        public static long GetPhysicalUsedMemory()
         {
             try
             {
@@ -44,7 +44,7 @@ namespace YetAnotherRelogger.Helpers.Tools
             return -1;
         }
 
-        public static Int64 GetTotalMemory()
+        public static long GetTotalMemory()
         {
             try
             {

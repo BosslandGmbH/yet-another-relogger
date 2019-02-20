@@ -19,7 +19,7 @@ namespace YetAnotherRelogger.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -101,69 +101,12 @@ namespace YetAnotherRelogger.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to using System;
-        ///using System.Collections.Concurrent;
-        ///using System.Collections.Generic;
-        ///using System.Diagnostics;
-        ///using System.Globalization;
-        ///using System.IO;
-        ///using System.IO.Pipes;
-        ///using System.Linq;
-        ///using System.Reflection;
-        ///using System.Text.RegularExpressions;
-        ///using System.Threading;
-        ///using System.Windows;
-        ///using System.IO;
-        ///using System.Xml.Linq;
-        ///using System.Xml.XPath;
-        ///using System.Windows.Documents;
-        ///using System.Xml.Serialization;
-        ///using log4net;
-        ///using log4net.Appender;
-        ///using log4net.Core; [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string Plugin {
-            get {
-                return ResourceManager.GetString("Plugin", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap YAR_LOGO_small {
             get {
                 object obj = ResourceManager.GetObject("YAR_LOGO_small", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to using System;
-        ///using System.Collections.Generic;
-        ///using System.Windows;
-        ///using System.Reflection;
-        ///using System.Diagnostics;
-        ///using System.IO;
-        ///using System.Linq;
-        ///using System.Linq.Expressions;
-        ///using System.Net.Mime;
-        ///using System.Threading;
-        ///using System.Threading.Tasks;
-        ///using System.Xml.Linq;
-        ///using Zeta.Bot;
-        ///using Zeta.Bot.Logic;
-        ///using Zeta.Bot.Profile;
-        ///using Zeta.Bot.Settings;
-        ///using Zeta.Common;
-        ///using Zeta.Common.Plugins;
-        ///using Zeta.Game;
-        ///using Zeta.TreeSharp;
-        ///using Action = Zeta.TreeSharp.Ac [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string YARBot {
-            get {
-                return ResourceManager.GetString("YARBot", resourceCulture);
             }
         }
     }

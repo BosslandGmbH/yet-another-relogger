@@ -41,14 +41,14 @@ namespace YetAnotherRelogger.Helpers.Hotkeys
 
         public int Order
         {
-            get { return _order; }
-            set { SetField(ref _order, value, "Order"); }
+            get => _order;
+            set => SetField(ref _order, value, "Order");
         }
 
         public string Name
         {
-            get { return _name; }
-            set { SetField(ref _name, value, "Name"); }
+            get => _name;
+            set => SetField(ref _name, value, "Name");
         }
 
         public string Description { get; set; }
@@ -57,9 +57,8 @@ namespace YetAnotherRelogger.Helpers.Hotkeys
 
         protected virtual void OnPropertyChanged(string propertyName)
         {
-            PropertyChangedEventHandler handler = PropertyChanged;
-            if (handler != null)
-                handler(this, new PropertyChangedEventArgs(propertyName));
+            var handler = PropertyChanged;
+            handler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         protected bool SetField<T>(ref T field, T value, string propertyName)

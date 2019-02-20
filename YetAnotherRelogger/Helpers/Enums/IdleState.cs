@@ -1,4 +1,4 @@
-namespace YetAnotherRelogger.Helpers.Bot
+namespace YetAnotherRelogger.Helpers.Enums
 {
     public enum IdleState
     {

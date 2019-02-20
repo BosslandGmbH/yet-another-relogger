@@ -26,7 +26,7 @@ namespace YetAnotherRelogger.Helpers.Tools
                 if (string.IsNullOrEmpty(_admingroup))
                 {
                     var builtinAdminSid = new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null);
-                    string grp = builtinAdminSid.Translate(typeof (NTAccount)).ToString();
+                    var grp = builtinAdminSid.Translate(typeof (NTAccount)).ToString();
                     _admingroup = Regex.Match(grp, @".+\\(.+)", RegexOptions.Compiled).Groups[1].Value;
                 }
                 return _admingroup;
@@ -43,7 +43,7 @@ namespace YetAnotherRelogger.Helpers.Tools
                 if (string.IsNullOrEmpty(_usergroup))
                 {
                     var builtinAdminSid = new SecurityIdentifier(WellKnownSidType.BuiltinUsersSid, null);
-                    string grp = builtinAdminSid.Translate(typeof (NTAccount)).ToString();
+                    var grp = builtinAdminSid.Translate(typeof (NTAccount)).ToString();
                     _usergroup = Regex.Match(grp, @".+\\(.+)", RegexOptions.Compiled).Groups[1].Value;
                 }
                 return _usergroup;
@@ -61,10 +61,10 @@ namespace YetAnotherRelogger.Helpers.Tools
             using (var machine = new DirectoryEntry("WinNT://localhost"))
             {
                 //get local admin group
-                using (DirectoryEntry group = machine.Children.Find(AdminGroup, "Group"))
+                using (var group = machine.Children.Find(AdminGroup, "Group"))
                 {
                     //get all members of local admin group
-                    object members = group.Invoke("Members", null);
+                    var members = group.Invoke("Members", null);
                     if (
                         (from object member in (IEnumerable) members select new DirectoryEntry(member).Name).Any(
                             accountName => accountName.ToLower().Equals(username.ToLower())))
@@ -103,8 +103,8 @@ namespace YetAnotherRelogger.Helpers.Tools
             try
             {
                 var dirEntry = new DirectoryEntry("WinNT://localhost");
-                DirectoryEntries entries = dirEntry.Children;
-                DirectoryEntry newUser = entries.Add(name, "user");
+                var entries = dirEntry.Children;
+                var newUser = entries.Add(name, "user");
                 newUser.Properties["FullName"].Add(fullName);
                 newUser.Invoke("SetPassword", password);
                 newUser.CommitChanges();
@@ -130,7 +130,7 @@ namespace YetAnotherRelogger.Helpers.Tools
             return (isAdmin && ExistsAsAdmin(name)) || (Exists(name));
         }
 
-        public static ProcessStartInfo ImpersonateStartInfo(ProcessStartInfo startinfo, BotClass bot)
+        public static ProcessStartInfo ImpersonateStartInfo(ProcessStartInfo startinfo, Bot.Bot bot)
         {
             if (bot.UseWindowsUser)
             {
@@ -150,7 +150,7 @@ namespace YetAnotherRelogger.Helpers.Tools
 
                 startinfo.UserName = bot.WindowsUserName;
                 var encPassword = new SecureString();
-                foreach (char c in bot.WindowsUserPassword)
+                foreach (var c in bot.WindowsUserPassword)
                     encPassword.AppendChar(c);
                 startinfo.Password = encPassword;
                 startinfo.UseShellExecute = false;

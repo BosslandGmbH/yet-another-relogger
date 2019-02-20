@@ -23,8 +23,7 @@ namespace YetAnotherRelogger.Helpers.Tools
 
         private static bool EnumProcClass(IntPtr hWnd, ref SearchData data)
         {
-            uint procId;
-            GetWindowThreadProcessId(hWnd, out procId);
+            GetWindowThreadProcessId(hWnd, out var procId);
             if (data.ParentId != (int) procId)
                 return true;
 
@@ -40,8 +39,7 @@ namespace YetAnotherRelogger.Helpers.Tools
 
         private static bool EnumProcContainsClass(IntPtr hWnd, ref SearchData data)
         {
-            uint procId;
-            GetWindowThreadProcessId(hWnd, out procId);
+            GetWindowThreadProcessId(hWnd, out var procId);
             if (data.ParentId != (int) procId)
                 return true;
 
@@ -57,8 +55,7 @@ namespace YetAnotherRelogger.Helpers.Tools
 
         private static bool EnumProcCaption(IntPtr hWnd, ref SearchData data)
         {
-            uint procId;
-            GetWindowThreadProcessId(hWnd, out procId);
+            GetWindowThreadProcessId(hWnd, out var procId);
             if (data.ParentId != (int) procId)
                 return true;
 
@@ -74,8 +71,7 @@ namespace YetAnotherRelogger.Helpers.Tools
 
         private static bool EnumProcContainsCaption(IntPtr hWnd, ref SearchData data)
         {
-            uint procId;
-            GetWindowThreadProcessId(hWnd, out procId);
+            GetWindowThreadProcessId(hWnd, out var procId);
             if (data.ParentId != (int) procId)
                 return true;
 
@@ -91,8 +87,7 @@ namespace YetAnotherRelogger.Helpers.Tools
 
         private static bool EnumProcCaptionEquals(IntPtr hWnd, ref SearchData data)
         {
-            uint procId;
-            GetWindowThreadProcessId(hWnd, out procId);
+            GetWindowThreadProcessId(hWnd, out var procId);
             if (data.ParentId != (int) procId)
                 return true;
 
@@ -113,13 +108,6 @@ namespace YetAnotherRelogger.Helpers.Tools
             return sd.Handle;
         }
 
-        public static IntPtr WindowContainsClass(string search, int pid)
-        {
-            var sd = new SearchData {SearchString = search, ParentId = pid};
-            EnumWindows(EnumProcContainsClass, ref sd);
-            return sd.Handle;
-        }
-
         public static IntPtr FindWindowCaption(string search, int pid)
         {
             var sd = new SearchData {SearchString = search, ParentId = pid};
@@ -131,13 +119,6 @@ namespace YetAnotherRelogger.Helpers.Tools
         {
             var sd = new SearchData {SearchString = search, ParentId = pid};
             EnumWindows(EnumProcCaptionEquals, ref sd);
-            return sd.Handle;
-        }
-
-        public static IntPtr FindWindowContainsCaption(string search, int pid)
-        {
-            var sd = new SearchData {SearchString = search, ParentId = pid};
-            EnumWindows(EnumProcContainsCaption, ref sd);
             return sd.Handle;
         }
 

@@ -14,13 +14,12 @@ namespace YetAnotherRelogger.Helpers
 {
     public static class AutoPosition
     {
-        public static void ManualPositionWindow(IntPtr handle, int x, int y, int w, int h, BotClass bot = null)
+        public static void ManualPositionWindow(IntPtr handle, int x, int y, int w, int h, Bot.Bot bot = null)
         {
             // Set window position and size
             try
             {
-                WinAPI.RECT rct;
-                if (WinAPI.GetWindowRect(new HandleRef(bot, handle), out rct))
+                if (WinApi.GetWindowRect(new HandleRef(bot, handle), out var rct))
                 {
                     if (w <= 0)
                         w = rct.Width;
@@ -29,8 +28,8 @@ namespace YetAnotherRelogger.Helpers
 
                     DebugHelper.Write(bot, "ManualPosition window:{0}: X:{1} Y:{2} W:{3} H:{4}", handle, x, y, w, h);
                     if (
-                        !WinAPI.SetWindowPos(handle, IntPtr.Zero, x, y, w, h,
-                            WinAPI.SetWindowPosFlags.SWP_NOACTIVATE | WinAPI.SetWindowPosFlags.SWP_NOSENDCHANGING))
+                        !WinApi.SetWindowPos(handle, IntPtr.Zero, x, y, w, h,
+                            WinApi.SetWindowPosFlags.SWP_NOACTIVATE | WinApi.SetWindowPosFlags.SWP_NOSENDCHANGING))
                         Logger.Instance.Write(bot, "ManualPosition window:{0}: Failed!", handle);
                 }
                 else
@@ -47,24 +46,24 @@ namespace YetAnotherRelogger.Helpers
         {
             try
             {
-                List<ScreensClass> workingScreens = Settings.Default.AutoPosScreens.Where(x => x.Enabled).ToList();
+                var workingScreens = Settings.Default.AutoPosScreens.Where(x => x.Enabled).ToList();
                 if (workingScreens.Count == 0)
                     return;
                 workingScreens.Sort((s1, s2) => s1.Order.CompareTo(s2.Order));
 
-                IEnumerable<BotClass> bots = BotSettings.Instance.Bots.Where(x => x.IsEnabled);
+                var bots = BotSettings.Instance.Bots.Where(x => x.IsEnabled);
 
-                int sc = 0; // Screen counter
-                int dy = 0; // Diablo Y-Axis counter
-                int dx = 0; // Diablo X-Axis counter
+                var sc = 0; // Screen counter
+                var dy = 0; // Diablo Y-Axis counter
+                var dx = 0; // Diablo X-Axis counter
 
                 // Calculated window height
-                decimal addy = (Settings.Default.AutoPosDiabloCascade ? 30 : Settings.Default.AutoPosDiabloH);
+                var addy = (Settings.Default.AutoPosDiabloCascade ? 30 : Settings.Default.AutoPosDiabloH);
 
-                foreach (BotClass bot in bots)
+                foreach (var bot in bots)
                 {
-                    DateTime time = DateTime.UtcNow;
-                    ScreensClass screen = workingScreens[sc]; // set current screen 
+                    var time = DateTime.UtcNow;
+                    var screen = workingScreens[sc]; // set current screen 
 
                     // Calculate demonbuddy position
                     if (!(bot.Demonbuddy.ManualPosSize && !Settings.Default.ForceAutoPos))
@@ -131,23 +130,23 @@ namespace YetAnotherRelogger.Helpers
             try
             {
                 // Get current style
-                IntPtr style = WinAPI.GetWindowLongPtr(handle, WinAPI.WindowLongFlags.GWL_STYLE);
-                WinAPI.WindowStyles newstyle = ((WinAPI.WindowStyles) style) & ~(WinAPI.WindowStyles.WS_CAPTION |
-                                                                                 WinAPI.WindowStyles.WS_THICKFRAME |
-                                                                                 WinAPI.WindowStyles.WS_MINIMIZE |
-                                                                                 WinAPI.WindowStyles.WS_MAXIMIZE
+                var style = WinApi.GetWindowLongPtr(handle, WinApi.WindowLongFlags.GwlStyle);
+                var newstyle = ((WinApi.WindowStyles) style) & ~(WinApi.WindowStyles.WsCaption |
+                                                                                 WinApi.WindowStyles.WsThickframe |
+                                                                                 WinApi.WindowStyles.WsMinimize |
+                                                                                 WinApi.WindowStyles.WsMaximize
                     /*| WinAPI.WindowStyles.WS_SYSMENU */); // Remove Frame from style
-                WinAPI.SetWindowLongPtr(new HandleRef(null, handle), WinAPI.WindowLongFlags.GWL_STYLE,
+                WinApi.SetWindowLongPtr(new HandleRef(null, handle), WinApi.WindowLongFlags.GwlStyle,
                     new IntPtr(Convert.ToInt64(newstyle))); // Set new style
 
                 // Get current extended style
-                IntPtr exStyle = WinAPI.GetWindowLongPtr(handle, WinAPI.WindowLongFlags.GWL_EXSTYLE);
-                WinAPI.WindowStyles newExStyle = ((WinAPI.WindowStyles) exStyle) &
-                                                 ~(WinAPI.WindowStyles.WS_EX_DLGMODALFRAME |
-                                                   WinAPI.WindowStyles.WS_EX_CLIENTEDGE |
-                                                   WinAPI.WindowStyles.WS_EX_STATICEDGE);
+                var exStyle = WinApi.GetWindowLongPtr(handle, WinApi.WindowLongFlags.GwlExstyle);
+                var newExStyle = ((WinApi.WindowStyles) exStyle) &
+                                                 ~(WinApi.WindowStyles.WsExDlgmodalframe |
+                                                   WinApi.WindowStyles.WsExClientedge |
+                                                   WinApi.WindowStyles.WsExStaticedge);
                     // Remove Frame from extended style
-                WinAPI.SetWindowLongPtr(new HandleRef(null, handle), WinAPI.WindowLongFlags.GWL_EXSTYLE,
+                WinApi.SetWindowLongPtr(new HandleRef(null, handle), WinApi.WindowLongFlags.GwlExstyle,
                     new IntPtr(Convert.ToInt64(newExStyle))); // set new extended style
             }
             catch (Exception ex)
@@ -163,8 +162,7 @@ namespace YetAnotherRelogger.Helpers
             // Set window position and size
             try
             {
-                WinAPI.RECT rct;
-                if (WinAPI.GetWindowRect(new HandleRef(null, handle), out rct))
+                if (WinApi.GetWindowRect(new HandleRef(null, handle), out var rct))
                 {
                     if (w <= 0)
                         w = rct.Width;
@@ -180,8 +178,8 @@ namespace YetAnotherRelogger.Helpers
                     }
 
                     if (
-                        !WinAPI.SetWindowPos(handle, IntPtr.Zero, x, y, w, h,
-                            WinAPI.SetWindowPosFlags.SWP_NOACTIVATE | WinAPI.SetWindowPosFlags.SWP_NOSENDCHANGING))
+                        !WinApi.SetWindowPos(handle, IntPtr.Zero, x, y, w, h,
+                            WinApi.SetWindowPosFlags.SWP_NOACTIVATE | WinApi.SetWindowPosFlags.SWP_NOSENDCHANGING))
                         Logger.Instance.WriteGlobal("AutoPosition window:{0}: Failed!", handle);
                 }
                 else
@@ -199,28 +197,28 @@ namespace YetAnotherRelogger.Helpers
         public static void UpdateScreens()
         {
             var tmpList = new List<ScreensClass>();
-            var d = new WinAPI.DisplayDevice();
+            var d = new WinApi.DisplayDevice();
             d.cb = Marshal.SizeOf(d);
             try
             {
                 Logger.Instance.WriteGlobal("####[ Detecting Screens ]####");
-                for (uint id = 0; WinAPI.EnumDisplayDevices(null, id, ref d, 0); id++)
+                for (uint id = 0; WinApi.EnumDisplayDevices(null, id, ref d, 0); id++)
                 {
-                    if (d.StateFlags.HasFlag(WinAPI.DisplayDeviceStateFlags.AttachedToDesktop))
+                    if (d.StateFlags.HasFlag(WinApi.DisplayDeviceStateFlags.AttachedToDesktop))
                     {
-                        ScreensClass screen = (Settings.Default.AutoPosScreens != null
+                        var screen = (Settings.Default.AutoPosScreens != null
                             ? Settings.Default.AutoPosScreens.FirstOrDefault(
                                 x => x != null && x.DisplayDevice.DeviceKey == d.DeviceKey)
                             : null);
                         var s = new ScreensClass
                         {
-                            Enabled = (screen != null ? screen.Enabled : true),
+                            Enabled = (screen == null || screen.Enabled),
                             Order = (int) id,
                             DisplayDevice = d
                         };
                         tmpList.Add(s);
                         Logger.Instance.WriteGlobal("-{0} Screen {1}: X:{2},Y:{3},W:{4},H:{5} Enabled:{6}",
-                            s.DisplayDevice.StateFlags.HasFlag(WinAPI.DisplayDeviceStateFlags.PrimaryDevice)
+                            s.DisplayDevice.StateFlags.HasFlag(WinApi.DisplayDeviceStateFlags.PrimaryDevice)
                                 ? " Primary"
                                 : "", id, s.Bounds.X, s.Bounds.Y, s.Bounds.Width, s.Bounds.Height, s.Enabled);
 
@@ -250,12 +248,9 @@ namespace YetAnotherRelogger.Helpers
         {
             public int Order { get; set; }
             public bool Enabled { get; set; }
-            public WinAPI.DisplayDevice DisplayDevice { get; set; }
+            public WinApi.DisplayDevice DisplayDevice { get; set; }
 
-            public string Name
-            {
-                get { return DisplayDevice.DeviceName; }
-            }
+            public string Name => DisplayDevice.DeviceName;
 
             public Rectangle Bounds
             {
@@ -271,7 +266,7 @@ namespace YetAnotherRelogger.Helpers
                             (int) Settings.Default.AutoPosForceWorkingAreaH);
                     try
                     {
-                        Screen s =
+                        var s =
                             Screen.AllScreens.FirstOrDefault(
                                 x => (x != null) && x.DeviceName.Equals(DisplayDevice.DeviceName));
                         if (s != null)
@@ -305,7 +300,7 @@ namespace YetAnotherRelogger.Helpers
                             (int) Settings.Default.AutoPosForceWorkingAreaH);
                     try
                     {
-                        Screen s =
+                        var s =
                             Screen.AllScreens.FirstOrDefault(
                                 x => (x != null) && x.DeviceName.Equals(DisplayDevice.DeviceName));
                         if (s != null)

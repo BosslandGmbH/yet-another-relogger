@@ -1,18 +1,35 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <RootNamespace>YetAnotherRelogger</RootNamespace>
+    <AssemblyName>YetAnotherRelogger</AssemblyName>
+  </PropertyGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <OutputPath>$(SolutionDir)\build\$(Platform)\$(Configuration)\</OutputPath>
+    <DocumentationFile>$(OutputPath)\$(AssemblyName).exe.xml</DocumentationFile>
+    <CodeAnalysisLogFile>$(OutputPath)\$(AssemblyName).exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+    <NoWarn>CS1591,CS1998</NoWarn>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(SolutionDir)\Demonbuddy.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{08564259-37DE-4F3E-AEAE-3EEB61B5882A}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>YetAnotherRelogger</RootNamespace>
-    <AssemblyName>YetAnotherRelogger</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
+    <TargetFrameworkProfile />
     <FileAlignment>512</FileAlignment>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
@@ -29,84 +46,35 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
-    <BootstrapperEnabled>false</BootstrapperEnabled>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <PlatformTarget>x86</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>
-    </DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
     <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationIcon>Ayyubid jar.ico</ApplicationIcon>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ManifestCertificateThumbprint>429BACAEF84721EDA86A68BACF699C1EEE5394AD</ManifestCertificateThumbprint>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ManifestKeyFile>YetAnotherRelogger_TemporaryKey.pfx</ManifestKeyFile>
-  </PropertyGroup>
-  <PropertyGroup>
-    <GenerateManifests>false</GenerateManifests>
-  </PropertyGroup>
-  <PropertyGroup>
-    <TargetZone>LocalIntranet</TargetZone>
-  </PropertyGroup>
-  <PropertyGroup />
-  <PropertyGroup>
-    <SignManifests>false</SignManifests>
-  </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>YetAnotherRelogger.Program</StartupObject>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
-    <OutputPath>bin\Release\</OutputPath>
-    <Optimize>true</Optimize>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <Prefer32Bit>false</Prefer32Bit>
+    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
+    <ApplicationIcon>Ayyubid jar.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Demonbuddy, Version=1.1.3069.470, Culture=neutral, PublicKeyToken=eff32ccf253d66d4, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\DB-Current\Demonbuddy.exe</HintPath>
-    </Reference>
-    <Reference Include="GreyMagic">
-      <HintPath>..\..\..\..\DB-Current\GreyMagic.dll</HintPath>
-    </Reference>
     <Reference Include="InputSimulator">
       <HintPath>..\ThirdParty\InputSimulator.dll</HintPath>
     </Reference>
@@ -223,7 +191,7 @@
       <DependentUpon>General.cs</DependentUpon>
     </Compile>
     <Compile Include="Helpers\Bot\AntiIdle.cs" />
-    <Compile Include="Helpers\Bot\BotClass.cs" />
+    <Compile Include="Helpers\Bot\Bot.cs" />
     <Compile Include="Forms\Wizard\DemonbuddyOptions.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -261,7 +229,6 @@
       <DependentUpon>WeekSchedule.cs</DependentUpon>
     </Compile>
     <Compile Include="Helpers\Bot\BotStats.cs" />
-    <Compile Include="Helpers\Bot\Heroes.cs" />
     <Compile Include="Helpers\Enums\IdleState.cs" />
     <Compile Include="Helpers\Hotkeys\IHotkeyAction.cs" />
     <Compile Include="Helpers\Hotkeys\SelectAction.cs">
@@ -271,17 +238,14 @@
       <DependentUpon>SelectAction.cs</DependentUpon>
     </Compile>
     <Compile Include="Helpers\ObjectExtensions.cs" />
-    <Compile Include="Helpers\ProfileKickstart.cs" />
     <Compile Include="Helpers\Bot\ProfileSchedule.cs" />
     <Compile Include="Helpers\BuddyAuth.cs" />
     <Compile Include="Helpers\CommandLineArgs.cs" />
-    <Compile Include="Helpers\Communicator.cs" />
     <Compile Include="Helpers\ConnectionCheck.cs" />
     <Compile Include="Helpers\CrashChecker.cs" />
     <Compile Include="Helpers\Bot\Demonbuddy.cs" />
     <Compile Include="Helpers\Bot\Diablo.cs" />
     <Compile Include="Helpers\Logger.cs" />
-    <Compile Include="Helpers\Installer.cs" />
     <Compile Include="Helpers\BotSettings.cs" />
     <Compile Include="Helpers\Bot\WeekSchedule.cs" />
     <Compile Include="Helpers\Stats\ChartStats.cs" />
@@ -299,15 +263,14 @@
     <Compile Include="Helpers\Tools\UserAccount.cs" />
     <None Include="app.config" />
     <None Include="Properties\app.manifest" />
-    <Resource Include="Resources\Plugin.cs" />
-    <Resource Include="Resources\YARBot.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Settings.cs" />
+    <Compile Include="Properties\Settings.cs" />
     <Compile Include="StatsUpdater.cs" />
+    <Compile Include="UdpLogListener.cs" />
     <Compile Include="Updater\CRC.cs" />
     <Compile Include="Helpers\Tools\General.cs" />
     <Compile Include="Helpers\Tools\Registry.cs" />
@@ -397,28 +360,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">
-      <Visible>False</Visible>
-      <ProductName>Microsoft .NET Framework 4 Client Profile %28x86 and x64%29</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-      <Visible>False</Visible>
-      <ProductName>.NET Framework 3.5 SP1</ProductName>
-      <Install>false</Install>
-    </BootstrapperPackage>
-    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
-      <Visible>False</Visible>
-      <ProductName>Windows Installer 3.1</ProductName>
-      <Install>true</Install>
-    </BootstrapperPackage>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Images\Diablo3.png" />
   </ItemGroup>
   <ItemGroup>
@@ -429,10 +370,21 @@
     <None Include="Images\YAR_LOGO_small.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Authenticator\Authenticator.csproj">
+    <ProjectReference Include="$(SolutionDir)\Plugins\yet-another-relogger\YetAnotherRelogger.Authenticator\YetAnotherRelogger.Authenticator.csproj">
       <Project>{eaf2d5ce-d817-453a-8a32-3d531570ae04}</Project>
-      <Name>Authenticator</Name>
+      <Name>YetAnotherRelogger.Authenticator</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>12.0.1</Version>
+    </PackageReference>
+    <PackageReference Include="Serilog">
+      <Version>2.8.0</Version>
+    </PackageReference>
+    <PackageReference Include="Serilog.Sinks.File">
+      <Version>4.0.0</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

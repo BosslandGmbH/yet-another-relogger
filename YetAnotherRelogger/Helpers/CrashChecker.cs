@@ -10,21 +10,20 @@ namespace YetAnotherRelogger.Helpers
         {
             if (proc == null)
                 return false;
-            return (testResponse(proc.MainWindowHandle));
+            return (TestResponse(proc.MainWindowHandle));
         }
 
         public static bool IsResponding(IntPtr handle)
         {
-            return (testResponse(handle));
+            return (TestResponse(handle));
         }
 
-        private static bool testResponse(IntPtr handle)
+        private static bool TestResponse(IntPtr handle)
         {
             UIntPtr dummy;
-            IntPtr result = IntPtr.Zero;
 
-            result = WinAPI.SendMessageTimeout(handle, 0, UIntPtr.Zero, IntPtr.Zero,
-                WinAPI.SendMessageTimeoutFlags.SMTO_ABORTIFHUNG, 1000, out dummy);
+            var result = WinApi.SendMessageTimeout(handle, 0, UIntPtr.Zero, IntPtr.Zero,
+                WinApi.SendMessageTimeoutFlags.SmtoAbortifhung, 1000, out dummy);
 
             return (result != IntPtr.Zero);
         }

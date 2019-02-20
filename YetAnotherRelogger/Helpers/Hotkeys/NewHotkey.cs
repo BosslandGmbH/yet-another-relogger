@@ -20,16 +20,16 @@ namespace YetAnotherRelogger.Helpers.Hotkeys
         public NewHotkey(Hotkey hotkey)
         {
             InitializeComponent();
-            Text = "Edit Hotkey";
+            Text = @"Edit Hotkey";
             textBox1.Text = hotkey.Name;
-            textBox2.Text = string.Format("{0}+{1}", hotkey.Modifier.ToString().Replace(", ", "+"), hotkey.Key);
+            textBox2.Text = $@"{hotkey.Modifier.ToString().Replace(", ", "+")}+{hotkey.Key}";
             HotkeyNew = hotkey;
         }
 
-        public override sealed string Text
+        public sealed override string Text
         {
-            get { return base.Text; }
-            set { base.Text = value; }
+            get => base.Text;
+            set => base.Text = value;
         }
 
         private void NewHotkey_Load(object sender, EventArgs e)
@@ -64,13 +64,13 @@ namespace YetAnotherRelogger.Helpers.Hotkeys
             // Check if Hotkey is valid to be saved
             if (textBox1.Text.Trim().Equals(""))
             {
-                MessageBox.Show(this, "You did not enter a name for your Hotkey", "Error", MessageBoxButtons.OK,
+                MessageBox.Show(this, @"You did not enter a name for your Hotkey", @"Error", MessageBoxButtons.OK,
                     MessageBoxIcon.Error);
                 return;
             }
 
             HotkeyNew.Name = textBox1.Text.Trim();
-            Hotkey hk = Settings.Default.HotKeys.FirstOrDefault(x => x.HookId == HotkeyNew.HookId);
+            var hk = Settings.Default.HotKeys.FirstOrDefault(x => x.HookId == HotkeyNew.HookId);
             if (hk == null)
             {
                 GlobalHotkeys.Instance.Add(HotkeyNew);
@@ -91,8 +91,8 @@ namespace YetAnotherRelogger.Helpers.Hotkeys
 
         private void NewHotkey_Closed(object sender, EventArgs e)
         {
-            var HKs = Program.Mainform.UcSetting as HotKeys;
-            HKs.UpdateGridview();
+            var hotKeys = Program.Mainform.UcSetting as HotKeys;
+            hotKeys?.UpdateGridview();
         }
 
         private void button4_Click(object sender, EventArgs e)
@@ -107,14 +107,10 @@ namespace YetAnotherRelogger.Helpers.Hotkeys
             // Open config window
             if (dataGridView1.CurrentRow == null || dataGridView1.CurrentRow.Index < 0)
                 return;
-            DataGridViewRow selected = dataGridView1.CurrentRow;
-            IHotkeyAction action = ActionContainer.GetAction((string) selected.Cells["Name"].Value,
+            var selected = dataGridView1.CurrentRow;
+            var action = ActionContainer.GetAction((string) selected.Cells["Name"].Value,
                 (Version) selected.Cells["Version"].Value);
-            if (action != null)
-            {
-                if (action.ConfigWindow != null)
-                    action.ConfigWindow.ShowDialog(this);
-            }
+            action?.ConfigWindow?.ShowDialog(this);
         }
     }
 }

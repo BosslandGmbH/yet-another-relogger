@@ -3,7 +3,6 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using YetAnotherRelogger.Helpers.Bot;
 using YetAnotherRelogger.Helpers.Tools;
 
 namespace YetAnotherRelogger.Helpers.Hotkeys.Actions
@@ -12,30 +11,15 @@ namespace YetAnotherRelogger.Helpers.Hotkeys.Actions
     {
         private Hotkey _hotkey;
 
-        public string Name
-        {
-            get { return "FullScreen"; }
-        }
+        public string Name => "FullScreen";
 
-        public string Author
-        {
-            get { return "sinterlkaas"; }
-        }
+        public string Author => "sinterlkaas";
 
-        public string Description
-        {
-            get { return "Make current window Fullscreen"; }
-        }
+        public string Description => "Make current window Fullscreen";
 
-        public Version Version
-        {
-            get { return new Version(1, 0, 0); }
-        }
+        public Version Version => new Version(1, 0, 0);
 
-        public Form ConfigWindow
-        {
-            get { return null; }
-        }
+        public Form ConfigWindow => null;
 
         public void OnInitialize(Hotkey hotkey)
         {
@@ -51,33 +35,32 @@ namespace YetAnotherRelogger.Helpers.Hotkeys.Actions
             Logger.Instance.WriteGlobal("Hotkey pressed: {0}+{1} : {2}", _hotkey.Modifier.ToString().Replace(", ", "+"),
                 _hotkey.Key, Name);
             // Get active window
-            IntPtr hwnd = WinAPI.GetForegroundWindow();
+            var hwnd = WinApi.GetForegroundWindow();
 
-            BotClass test = BotSettings.Instance.Bots.FirstOrDefault(x => x.Diablo.MainWindowHandle == hwnd);
+            var test = BotSettings.Instance.Bots.FirstOrDefault(x => x.Diablo.MainWindowHandle == hwnd);
             if (test != null)
             {
-                DiabloClass diablo = test.Diablo;
+                var diablo = test.Diablo;
                 if (diablo == null)
                     return;
 
                 // Get window rectangle
-                WinAPI.RECT rct;
-                if (WinAPI.GetWindowRect(new HandleRef(test, hwnd), out rct))
+                if (WinApi.GetWindowRect(new HandleRef(test, hwnd), out var rct))
                 {
                     // Get screen where window is located
                     var rect = new Rectangle(rct.Left, rct.Top, rct.Width, rct.Heigth);
-                    Screen screen = Screen.FromRectangle(rect);
+                    var screen = Screen.FromRectangle(rect);
                     // Set window fullscreen to current screen
-                    WinAPI.SetWindowPos(hwnd, IntPtr.Zero, screen.Bounds.X, screen.Bounds.Y, screen.Bounds.Width,
+                    WinApi.SetWindowPos(hwnd, IntPtr.Zero, screen.Bounds.X, screen.Bounds.Y, screen.Bounds.Width,
                         screen.Bounds.Height,
-                        WinAPI.SetWindowPosFlags.SWP_SHOWWINDOW | WinAPI.SetWindowPosFlags.SWP_NOSENDCHANGING);
+                        WinApi.SetWindowPosFlags.SWP_SHOWWINDOW | WinApi.SetWindowPosFlags.SWP_NOSENDCHANGING);
                 }
             }
         }
 
         public bool Equals(IHotkeyAction other)
         {
-            return (other.Name == Name) && (other.Version == Version);
+            return (other?.Name == Name) && (other?.Version == Version);
         }
     }
 }

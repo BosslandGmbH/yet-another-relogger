@@ -11,30 +11,27 @@ namespace YetAnotherRelogger.Forms.Wizard
     public partial class WeekSchedule : UserControl
     {
         public static ClickBox[] ScheduleBox = new ClickBox[168];
-        public readonly WizardMain WM = new WizardMain();
+        public readonly WizardMain Wm = new WizardMain();
 
-        private bool isDone;
+        private bool _isDone;
 
         public WeekSchedule(WizardMain parent)
         {
-            WM = parent;
+            Wm = parent;
             InitializeComponent();
             this.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right;
         }
 
-        public static ClickBox[] getSchedule
-        {
-            get { return ScheduleBox; }
-        }
+        public static ClickBox[] GetSchedule => ScheduleBox;
 
         private void Schedule_Load(object sender, EventArgs e)
         {
             VisibleChanged += WeekSchedule_VisibleChanged;
-            var Generator = new Thread(GenerateSchedule) { Name = "WeekScheduleGenerator" };
+            var generator = new Thread(GenerateSchedule) { Name = "WeekScheduleGenerator" };
 
             textBox1.KeyPress += NumericCheck;
             textBox2.KeyPress += NumericCheck;
-            Generator.Start();
+            generator.Start();
         }
 
         private void NumericCheck(object sender, KeyPressEventArgs e)
@@ -44,14 +41,14 @@ namespace YetAnotherRelogger.Forms.Wizard
 
         private void ScheduleLoader(object bot)
         {
-            var b = bot as BotClass;
+            var b = bot as Bot;
 
-            while (!isDone)
+            while (!_isDone)
                 Thread.Sleep(250);
 
-            int n = 0; // Box number
+            var n = 0; // Box number
             var md = new DaySchedule();
-            for (int d = 1; d <= 7; d++)
+            for (var d = 1; d <= 7; d++)
             {
                 switch (d)
                 {
@@ -77,15 +74,15 @@ namespace YetAnotherRelogger.Forms.Wizard
                         md = b.Week.Sunday;
                         break;
                 }
-                for (int h = 0; h <= 23; h++)
+                for (var h = 0; h <= 23; h++)
                 {
-                    getSchedule[n].isEnabled = md.Hours[h];
+                    GetSchedule[n].IsEnabled = md.Hours[h];
                     n++; // increase box number
                 }
             }
         }
 
-        public void LoadSchedule(BotClass bot)
+        public void LoadSchedule(Bot bot)
         {
             var loadScheduleThread = new Thread(ScheduleLoader) { Name = "ScheduleLoader" };
             loadScheduleThread.Start(bot);
@@ -94,21 +91,21 @@ namespace YetAnotherRelogger.Forms.Wizard
         private void WeekSchedule_VisibleChanged(object sender, EventArgs e)
         {
             if (Visible)
-                WM.NextStep("Week Schedule");
+                Wm.NextStep("Week Schedule");
             //WizardMain.ActiveForm.Text = "Week Schedule (Step 3/5)";
         }
 
         private void GenerateSchedule()
         {
-            int x = 0; // start at X-Axis
-            int y = 14; // start at Y-Axis
-            int n = 0; // box number
-            bool bHeader = false;
+            var x = 0; // start at X-Axis
+            var y = 14; // start at Y-Axis
+            var n = 0; // box number
+            var bHeader = false;
             try
             {
-                for (int d = 1; d <= 7; d++)
+                for (var d = 1; d <= 7; d++)
                 {
-                    for (int h = 0; h <= 23; h++)
+                    for (var h = 0; h <= 23; h++)
                     {
                         if (!bHeader)
                         {
@@ -123,7 +120,7 @@ namespace YetAnotherRelogger.Forms.Wizard
                         }
                         ScheduleBox[n] = new ClickBox("box" + n, x, y);
 
-                        Invoke(new Action(() => BoxPanel.Controls.Add(ScheduleBox[n].box)));
+                        Invoke(new Action(() => BoxPanel.Controls.Add(ScheduleBox[n].Box)));
                         n++;
                         x += 20; // X-Axis
                     }
@@ -136,26 +133,26 @@ namespace YetAnotherRelogger.Forms.Wizard
             {
                 DebugHelper.Exception(ex);
             }
-            isDone = true;
+            _isDone = true;
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             // Fill week
-            foreach (ClickBox x in ScheduleBox)
+            foreach (var x in ScheduleBox)
             {
-                if (x.box.BackColor != Color.LightGreen)
-                    x.box.BackColor = Color.LightGreen;
+                if (x.Box.BackColor != Color.LightGreen)
+                    x.Box.BackColor = Color.LightGreen;
             }
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
             // Clear week
-            foreach (ClickBox x in ScheduleBox)
+            foreach (var x in ScheduleBox)
             {
-                if (x.box.BackColor != DefaultBackColor)
-                    x.box.BackColor = DefaultBackColor;
+                if (x.Box.BackColor != DefaultBackColor)
+                    x.Box.BackColor = DefaultBackColor;
             }
         }
 
@@ -166,40 +163,40 @@ namespace YetAnotherRelogger.Forms.Wizard
 
         public class ClickBox
         {
-            public PictureBox box;
+            public PictureBox Box;
 
             public ClickBox(string name, int x, int y)
             {
-                box = new PictureBox
+                Box = new PictureBox
                 {
                     BorderStyle = BorderStyle.FixedSingle,
                     Location = new Point(x, y),
                     Name = name,
                     Size = new Size(21, 21)
                 };
-                box.Click += box_Click;
-                box.MouseEnter += box_MouseEnter;
+                Box.Click += box_Click;
+                Box.MouseEnter += box_MouseEnter;
             }
 
-            public bool isEnabled
+            public bool IsEnabled
             {
-                get { return (box.BackColor == Color.LightGreen); }
+                get => (Box.BackColor == Color.LightGreen);
                 set
                 {
                     if (value)
-                        box.BackColor = Color.LightGreen;
+                        Box.BackColor = Color.LightGreen;
                 }
             }
 
             private void box_MouseEnter(object sender, EventArgs e)
             {
-                if (WinAPI.IsKeyDown(WinAPI.VirtualKeyStates.VK_SHIFT))
-                    box.BackColor = Color.LightGreen;
+                if (WinApi.IsKeyDown(WinApi.VirtualKeyStates.VkShift))
+                    Box.BackColor = Color.LightGreen;
             }
 
             public void box_Click(object sender, EventArgs e)
             {
-                box.BackColor = box.BackColor == Color.LightGreen ? DefaultBackColor : Color.LightGreen;
+                Box.BackColor = Box.BackColor == Color.LightGreen ? DefaultBackColor : Color.LightGreen;
             }
         }
     }

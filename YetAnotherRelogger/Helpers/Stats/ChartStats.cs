@@ -21,16 +21,13 @@ namespace YetAnotherRelogger.Helpers.Stats
 
             public DateTime LastGainTime { get; private set; }
 
-            public double Hours
-            {
-                get { return DateTime.UtcNow.Subtract(StartTime).TotalSeconds/3600; }
-            }
+            public double Hours => DateTime.UtcNow.Subtract(StartTime).TotalSeconds/3600;
 
             public double GoldPerHour
             {
                 get
                 {
-                    double gph = (LastCoinage - StartCoinage)/Hours;
+                    var gph = (LastCoinage - StartCoinage)/Hours;
                     return double.IsNaN(gph) ? 0 : gph;
                 }
             }
@@ -40,9 +37,9 @@ namespace YetAnotherRelogger.Helpers.Stats
             public long StartCoinage { get; private set; }
             public long LastCoinage { get; private set; }
 
-            public void Update(BotClass bot)
+            public void Update(Bot.Bot bot)
             {
-                long coinage = bot.AntiIdle.Stats.Coinage;
+                var coinage = bot.AntiIdle.Stats.Coinage;
                 if (coinage > 0)
                 {
                     LastGain = coinage - LastCoinage;

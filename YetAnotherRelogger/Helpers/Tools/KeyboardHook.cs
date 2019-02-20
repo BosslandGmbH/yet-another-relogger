@@ -18,8 +18,7 @@ namespace YetAnotherRelogger.Helpers.Tools
             // register the event of the inner native window.
             _window.KeyPressed += delegate(object sender, KeyPressedEventArgs args)
             {
-                if (KeyPressed != null)
-                    KeyPressed(this, args);
+                KeyPressed?.Invoke(this, args);
             };
         }
 
@@ -67,7 +66,7 @@ namespace YetAnotherRelogger.Helpers.Tools
         public void Dispose()
         {
             // unregister all the registered hot keys.
-            for (int i = _currentId; i > 0; i--)
+            for (var i = _currentId; i > 0; i--)
             {
                 UnregisterHotKey(_window.Handle, i);
             }
@@ -83,7 +82,7 @@ namespace YetAnotherRelogger.Helpers.Tools
         /// </summary>
         private sealed class Window : NativeWindow, IDisposable
         {
-            private static int WM_HOTKEY = 0x0312;
+            private static int _wmHotkey = 0x0312;
 
             public Window()
             {
@@ -100,15 +99,14 @@ namespace YetAnotherRelogger.Helpers.Tools
                 base.WndProc(ref m);
 
                 // check if we got a hot key pressed.
-                if (m.Msg == WM_HOTKEY)
+                if (m.Msg == _wmHotkey)
                 {
                     // get the keys.
                     var key = (Keys) (((int) m.LParam >> 16) & 0xFFFF);
                     var modifier = (ModifierKeys) ((int) m.LParam & 0xFFFF);
 
                     // invoke the event to notify the parent.
-                    if (KeyPressed != null)
-                        KeyPressed(this, new KeyPressedEventArgs(modifier, key));
+                    KeyPressed?.Invoke(this, new KeyPressedEventArgs(modifier, key));
                 }
             }
 
@@ -130,24 +128,15 @@ namespace YetAnotherRelogger.Helpers.Tools
     /// </summary>
     public class KeyPressedEventArgs : EventArgs
     {
-        private readonly Keys _key;
-        private readonly ModifierKeys _modifier;
-
         internal KeyPressedEventArgs(ModifierKeys modifier, Keys key)
         {
-            _modifier = modifier;
-            _key = key;
+            Modifier = modifier;
+            Key = key;
         }
 
-        public ModifierKeys Modifier
-        {
-            get { return _modifier; }
-        }
+        public ModifierKeys Modifier { get; }
 
-        public Keys Key
-        {
-            get { return _key; }
-        }
+        public Keys Key { get; }
     }
 
     /// <summary>

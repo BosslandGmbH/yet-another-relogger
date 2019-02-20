@@ -4,77 +4,74 @@ using System.Security.Cryptography;
 
 namespace YetAnotherRelogger.Updater
 {
-    public class Crc32 : HashAlgorithm
+    public sealed class Crc32 : HashAlgorithm
     {
-        public const UInt32 DefaultPolynomial = 0xedb88320;
-        public const UInt32 DefaultSeed = 0xffffffff;
-        private static UInt32[] defaultTable;
+        public const uint DefaultPolynomial = 0xedb88320;
+        public const uint DefaultSeed = 0xffffffff;
+        private static uint[] _defaultTable;
 
-        private readonly UInt32 seed;
-        private readonly UInt32[] table;
-        private UInt32 hash;
+        private readonly uint _seed;
+        private readonly uint[] _table;
+        private uint _hash;
 
         public Crc32()
         {
-            table = InitializeTable(DefaultPolynomial);
-            seed = DefaultSeed;
+            _table = InitializeTable(DefaultPolynomial);
+            _seed = DefaultSeed;
             Initialize();
         }
 
-        public Crc32(UInt32 polynomial, UInt32 seed)
+        public Crc32(uint polynomial, uint seed)
         {
-            table = InitializeTable(polynomial);
-            this.seed = seed;
+            _table = InitializeTable(polynomial);
+            _seed = seed;
             Initialize();
         }
 
-        public override int HashSize
-        {
-            get { return 32; }
-        }
+        public override int HashSize => 32;
 
         public override void Initialize()
         {
-            hash = seed;
+            _hash = _seed;
         }
 
         protected override void HashCore(byte[] buffer, int start, int length)
         {
-            hash = CalculateHash(table, hash, buffer, start, length);
+            _hash = CalculateHash(_table, _hash, buffer, start, length);
         }
 
         protected override byte[] HashFinal()
         {
-            byte[] hashBuffer = UInt32ToBigEndianBytes(~hash);
+            var hashBuffer = UInt32ToBigEndianBytes(~_hash);
             HashValue = hashBuffer;
             return hashBuffer;
         }
 
-        public static UInt32 Compute(byte[] buffer)
+        public static uint Compute(byte[] buffer)
         {
             return ~CalculateHash(InitializeTable(DefaultPolynomial), DefaultSeed, buffer, 0, buffer.Length);
         }
 
-        public static UInt32 Compute(UInt32 seed, byte[] buffer)
+        public static uint Compute(uint seed, byte[] buffer)
         {
             return ~CalculateHash(InitializeTable(DefaultPolynomial), seed, buffer, 0, buffer.Length);
         }
 
-        public static UInt32 Compute(UInt32 polynomial, UInt32 seed, byte[] buffer)
+        public static uint Compute(uint polynomial, uint seed, byte[] buffer)
         {
             return ~CalculateHash(InitializeTable(polynomial), seed, buffer, 0, buffer.Length);
         }
 
-        private static UInt32[] InitializeTable(UInt32 polynomial)
+        private static uint[] InitializeTable(uint polynomial)
         {
-            if (polynomial == DefaultPolynomial && defaultTable != null)
-                return defaultTable;
+            if (polynomial == DefaultPolynomial && _defaultTable != null)
+                return _defaultTable;
 
-            var createTable = new UInt32[256];
-            for (int i = 0; i < 256; i++)
+            var createTable = new uint[256];
+            for (var i = 0; i < 256; i++)
             {
-                var entry = (UInt32) i;
-                for (int j = 0; j < 8; j++)
+                var entry = (uint) i;
+                for (var j = 0; j < 8; j++)
                     if ((entry & 1) == 1)
                         entry = (entry >> 1) ^ polynomial;
                     else
@@ -83,15 +80,15 @@ namespace YetAnotherRelogger.Updater
             }
 
             if (polynomial == DefaultPolynomial)
-                defaultTable = createTable;
+                _defaultTable = createTable;
 
             return createTable;
         }
 
-        private static UInt32 CalculateHash(UInt32[] table, UInt32 seed, byte[] buffer, int start, int size)
+        private static uint CalculateHash(uint[] table, uint seed, byte[] buffer, int start, int size)
         {
-            UInt32 crc = seed;
-            for (int i = start; i < size; i++)
+            var crc = seed;
+            for (var i = start; i < size; i++)
                 unchecked
                 {
                     crc = (crc >> 8) ^ table[buffer[i] ^ crc & 0xff];
@@ -99,7 +96,7 @@ namespace YetAnotherRelogger.Updater
             return crc;
         }
 
-        private byte[] UInt32ToBigEndianBytes(UInt32 x)
+        private byte[] UInt32ToBigEndianBytes(uint x)
         {
             return new[]
             {
@@ -113,15 +110,15 @@ namespace YetAnotherRelogger.Updater
         public static string GetHash(string filename)
         {
             var crc32 = new Crc32();
-            String hash = String.Empty;
+            var hash = string.Empty;
 
             try
             {
                 if (!File.Exists(filename))
                     throw new IOException("Unknown File");
 
-                using (FileStream fs = File.Open(filename, FileMode.Open))
-                    foreach (byte b in crc32.ComputeHash(fs))
+                using (var fs = File.Open(filename, FileMode.Open))
+                    foreach (var b in crc32.ComputeHash(fs))
                         hash += b.ToString("x2").ToLower();
             }
             catch (Exception ex)

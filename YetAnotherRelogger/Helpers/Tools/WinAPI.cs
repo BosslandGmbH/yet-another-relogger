@@ -5,7 +5,7 @@ using System.Text;
 
 namespace YetAnotherRelogger.Helpers.Tools
 {
-    public static class WinAPI
+    public static class WinApi
     {
         #region EnumDisplayDevices
 
@@ -23,7 +23,7 @@ namespace YetAnotherRelogger.Helpers.Tools
             MirroringDriver = 0x8,
 
             /// <summary>The device is VGA compatible.</summary>
-            VGACompatible = 0x16,
+            VgaCompatible = 0x16,
 
             /// <summary>The device is removable; it cannot be the primary display.</summary>
             Removable = 0x20,
@@ -56,9 +56,9 @@ namespace YetAnotherRelogger.Helpers.Tools
 
         public enum VirtualKeyStates
         {
-            VK_LBUTTON = 0x01, // Left mouse click
-            VK_RBUTTON = 0x02, // right mouse click
-            VK_SHIFT = 0x10 // shift key
+            VkLbutton = 0x01, // Left mouse click
+            VkRbutton = 0x02, // right mouse click
+            VkShift = 0x10 // shift key
         }
 
         private const int KeyPressed = 0x8000;
@@ -239,16 +239,16 @@ namespace YetAnotherRelogger.Helpers.Tools
 
         public enum SendMessageTimeoutFlags : uint
         {
-            SMTO_NORMAL = 0x0000,
-            SMTO_BLOCK = 0x0001,
-            SMTO_ABORTIFHUNG = 0x0002,
-            SMTO_NOTIMEOUTIFNOTHUNG = 0x0008
+            SmtoNormal = 0x0000,
+            SmtoBlock = 0x0001,
+            SmtoAbortifhung = 0x0002,
+            SmtoNotimeoutifnothung = 0x0008
         }
 
         [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         public static extern IntPtr SendMessageTimeout(
             IntPtr hWnd,
-            uint Msg,
+            uint msg,
             UIntPtr wParam,
             IntPtr lParam,
             SendMessageTimeoutFlags fuFlags,
@@ -382,14 +382,14 @@ namespace YetAnotherRelogger.Helpers.Tools
             // ReSharper restore InconsistentNaming
         }
 
-        public static readonly IntPtr HWND_TOPMOST = new IntPtr(-1);
-        public static readonly IntPtr HWND_NOTOPMOST = new IntPtr(-2);
-        public static readonly IntPtr HWND_TOP = new IntPtr(0);
-        public static readonly IntPtr HWND_BOTTOM = new IntPtr(1);
+        public static readonly IntPtr HwndTopmost = new IntPtr(-1);
+        public static readonly IntPtr HwndNotopmost = new IntPtr(-2);
+        public static readonly IntPtr HwndTop = new IntPtr(0);
+        public static readonly IntPtr HwndBottom = new IntPtr(1);
 
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy,
+        public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy,
             SetWindowPosFlags uFlags);
 
         #endregion
@@ -398,25 +398,19 @@ namespace YetAnotherRelogger.Helpers.Tools
 
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool GetWindowRect(HandleRef hWnd, out RECT lpRect);
+        public static extern bool GetWindowRect(HandleRef hWnd, out Rect lpRect);
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct RECT
+        public struct Rect
         {
             public int Left; // x position of upper-left corner
             public int Top; // y position of upper-left corner
             public int Right; // x position of lower-right corner
             public int Bottom; // y position of lower-right corner
 
-            public int Width
-            {
-                get { return (Right - Left); }
-            }
+            public int Width => (Right - Left);
 
-            public int Heigth
-            {
-                get { return (Bottom - Top); }
-            }
+            public int Heigth => (Bottom - Top);
         }
 
         #endregion
@@ -444,7 +438,7 @@ namespace YetAnotherRelogger.Helpers.Tools
         /// </returns>
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool GetWindowPlacement(IntPtr hWnd, out WINDOWPLACEMENT lpwndpl);
+        internal static extern bool GetWindowPlacement(IntPtr hWnd, out Windowplacement lpwndpl);
 
         /// <summary>
         ///     Sets the show state and the restored, minimized, and maximized positions of the specified window.
@@ -468,16 +462,16 @@ namespace YetAnotherRelogger.Helpers.Tools
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetWindowPlacement(IntPtr hWnd,
-            [In] ref WINDOWPLACEMENT lpwndpl);
+            [In] ref Windowplacement lpwndpl);
 
-        public struct WINDOWPLACEMENT
+        public struct Windowplacement
         {
-            public int flags;
-            public int length;
-            public Point ptMaxPosition;
-            public Point ptMinPosition;
-            public Rectangle rcNormalPosition;
-            public int showCmd;
+            public int Flags;
+            public int Length;
+            public Point PtMaxPosition;
+            public Point PtMinPosition;
+            public Rectangle RcNormalPosition;
+            public int ShowCmd;
         }
 
         #endregion
@@ -486,99 +480,99 @@ namespace YetAnotherRelogger.Helpers.Tools
 
         public enum WindowLongFlags
         {
-            GWL_EXSTYLE = -20,
-            GWLP_HINSTANCE = -6,
-            GWLP_HWNDPARENT = -8,
-            GWL_ID = -12,
-            GWL_STYLE = -16,
-            GWL_USERDATA = -21,
-            GWL_WNDPROC = -4,
-            DWLP_USER = 0x8,
-            DWLP_MSGRESULT = 0x0,
-            DWLP_DLGPROC = 0x4
+            GwlExstyle = -20,
+            GwlpHinstance = -6,
+            GwlpHwndparent = -8,
+            GwlId = -12,
+            GwlStyle = -16,
+            GwlUserdata = -21,
+            GwlWndproc = -4,
+            DwlpUser = 0x8,
+            DwlpMsgresult = 0x0,
+            DwlpDlgproc = 0x4
         }
 
         [Flags]
         public enum WindowStyles : uint
         {
-            WS_OVERLAPPED = 0x00000000,
-            WS_POPUP = 0x80000000,
-            WS_CHILD = 0x40000000,
-            WS_MINIMIZE = 0x20000000,
-            WS_VISIBLE = 0x10000000,
-            WS_DISABLED = 0x08000000,
-            WS_CLIPSIBLINGS = 0x04000000,
-            WS_CLIPCHILDREN = 0x02000000,
-            WS_MAXIMIZE = 0x01000000,
-            WS_BORDER = 0x00800000,
-            WS_DLGFRAME = 0x00400000,
-            WS_VSCROLL = 0x00200000,
-            WS_HSCROLL = 0x00100000,
-            WS_SYSMENU = 0x00080000,
-            WS_THICKFRAME = 0x00040000,
-            WS_GROUP = 0x00020000,
-            WS_TABSTOP = 0x00010000,
+            WsOverlapped = 0x00000000,
+            WsPopup = 0x80000000,
+            WsChild = 0x40000000,
+            WsMinimize = 0x20000000,
+            WsVisible = 0x10000000,
+            WsDisabled = 0x08000000,
+            WsClipsiblings = 0x04000000,
+            WsClipchildren = 0x02000000,
+            WsMaximize = 0x01000000,
+            WsBorder = 0x00800000,
+            WsDlgframe = 0x00400000,
+            WsVscroll = 0x00200000,
+            WsHscroll = 0x00100000,
+            WsSysmenu = 0x00080000,
+            WsThickframe = 0x00040000,
+            WsGroup = 0x00020000,
+            WsTabstop = 0x00010000,
 
-            WS_MINIMIZEBOX = 0x00020000,
-            WS_MAXIMIZEBOX = 0x00010000,
+            WsMinimizebox = 0x00020000,
+            WsMaximizebox = 0x00010000,
 
-            WS_CAPTION = WS_BORDER | WS_DLGFRAME,
-            WS_TILED = WS_OVERLAPPED,
-            WS_ICONIC = WS_MINIMIZE,
-            WS_SIZEBOX = WS_THICKFRAME,
-            WS_TILEDWINDOW = WS_OVERLAPPEDWINDOW,
+            WsCaption = WsBorder | WsDlgframe,
+            WsTiled = WsOverlapped,
+            WsIconic = WsMinimize,
+            WsSizebox = WsThickframe,
+            WsTiledwindow = WsOverlappedwindow,
 
-            WS_OVERLAPPEDWINDOW =
-                WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
-            WS_POPUPWINDOW = WS_POPUP | WS_BORDER | WS_SYSMENU,
-            WS_CHILDWINDOW = WS_CHILD,
+            WsOverlappedwindow =
+                WsOverlapped | WsCaption | WsSysmenu | WsThickframe | WsMinimizebox | WsMaximizebox,
+            WsPopupwindow = WsPopup | WsBorder | WsSysmenu,
+            WsChildwindow = WsChild,
 
             //Extended Window Styles
 
-            WS_EX_DLGMODALFRAME = 0x00000001,
-            WS_EX_NOPARENTNOTIFY = 0x00000004,
-            WS_EX_TOPMOST = 0x00000008,
-            WS_EX_ACCEPTFILES = 0x00000010,
-            WS_EX_TRANSPARENT = 0x00000020,
+            WsExDlgmodalframe = 0x00000001,
+            WsExNoparentnotify = 0x00000004,
+            WsExTopmost = 0x00000008,
+            WsExAcceptfiles = 0x00000010,
+            WsExTransparent = 0x00000020,
 
             //#if(WINVER >= 0x0400)
 
-            WS_EX_MDICHILD = 0x00000040,
-            WS_EX_TOOLWINDOW = 0x00000080,
-            WS_EX_WINDOWEDGE = 0x00000100,
-            WS_EX_CLIENTEDGE = 0x00000200,
-            WS_EX_CONTEXTHELP = 0x00000400,
+            WsExMdichild = 0x00000040,
+            WsExToolwindow = 0x00000080,
+            WsExWindowedge = 0x00000100,
+            WsExClientedge = 0x00000200,
+            WsExContexthelp = 0x00000400,
 
-            WS_EX_RIGHT = 0x00001000,
-            WS_EX_LEFT = 0x00000000,
-            WS_EX_RTLREADING = 0x00002000,
-            WS_EX_LTRREADING = 0x00000000,
-            WS_EX_LEFTSCROLLBAR = 0x00004000,
-            WS_EX_RIGHTSCROLLBAR = 0x00000000,
+            WsExRight = 0x00001000,
+            WsExLeft = 0x00000000,
+            WsExRtlreading = 0x00002000,
+            WsExLtrreading = 0x00000000,
+            WsExLeftscrollbar = 0x00004000,
+            WsExRightscrollbar = 0x00000000,
 
-            WS_EX_CONTROLPARENT = 0x00010000,
-            WS_EX_STATICEDGE = 0x00020000,
-            WS_EX_APPWINDOW = 0x00040000,
+            WsExControlparent = 0x00010000,
+            WsExStaticedge = 0x00020000,
+            WsExAppwindow = 0x00040000,
 
-            WS_EX_OVERLAPPEDWINDOW = (WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE),
-            WS_EX_PALETTEWINDOW = (WS_EX_WINDOWEDGE | WS_EX_TOOLWINDOW | WS_EX_TOPMOST),
+            WsExOverlappedwindow = (WsExWindowedge | WsExClientedge),
+            WsExPalettewindow = (WsExWindowedge | WsExToolwindow | WsExTopmost),
             //#endif /* WINVER >= 0x0400 */
 
             //#if(WIN32WINNT >= 0x0500)
 
-            WS_EX_LAYERED = 0x00080000,
+            WsExLayered = 0x00080000,
             //#endif /* WIN32WINNT >= 0x0500 */
 
             //#if(WINVER >= 0x0500)
 
-            WS_EX_NOINHERITLAYOUT = 0x00100000, // Disable inheritence of mirroring by children
-            WS_EX_LAYOUTRTL = 0x00400000, // Right to left mirroring
+            WsExNoinheritlayout = 0x00100000, // Disable inheritence of mirroring by children
+            WsExLayoutrtl = 0x00400000, // Right to left mirroring
             //#endif /* WINVER >= 0x0500 */
 
             //#if(WIN32WINNT >= 0x0500)
 
-            WS_EX_COMPOSITED = 0x02000000,
-            WS_EX_NOACTIVATE = 0x08000000
+            WsExComposited = 0x02000000,
+            WsExNoactivate = 0x08000000
             //#endif /* WIN32WINNT >= 0x0500 */
         }
 
@@ -602,14 +596,14 @@ namespace YetAnotherRelogger.Helpers.Tools
 
         #region Register/Post Message (for single app instance)
 
-        public const int HWND_BROADCAST = 0xffff;
+        public const int HwndBroadcast = 0xffff;
 
         [DllImport("user32")]
         public static extern int RegisterWindowMessage(string message);
 
         public static int RegisterWindowMessage(string format, params object[] args)
         {
-            string message = String.Format(format, args);
+            var message = string.Format(format, args);
             return RegisterWindowMessage(message);
         }
 
@@ -621,7 +615,7 @@ namespace YetAnotherRelogger.Helpers.Tools
         //!!! Added
         #region ClipboardAPI
 
-        internal class Win32ClipboardAPI
+        internal class Win32ClipboardApi
         {
             [DllImport("user32.dll")]
             public static extern bool OpenClipboard(IntPtr hWndNewOwner);
@@ -651,7 +645,7 @@ namespace YetAnotherRelogger.Helpers.Tools
         
         #region MemoryAPI
 
-        internal class Win32MemoryAPI
+        internal class Win32MemoryApi
         {
             [DllImport("Kernel32.dll", EntryPoint = "RtlMoveMemory", SetLastError = false)]
             public static extern void CopyMemory(IntPtr dest, IntPtr src, int size);
@@ -671,8 +665,8 @@ namespace YetAnotherRelogger.Helpers.Tools
             [DllImport("kernel32.dll")]
             public static extern UIntPtr GlobalSize(IntPtr hMem);
 
-            public const uint GMEM_DDESHARE = 0x2000;
-            public const uint GMEM_MOVEABLE = 0x2;
+            public const uint GmemDdeshare = 0x2000;
+            public const uint GmemMoveable = 0x2;
         }
 
 
